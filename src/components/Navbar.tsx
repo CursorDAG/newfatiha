@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import NotificationBell from "./NotificationBell";
 
 export default function Navbar({ userName, role }: { userName?: string | null; role?: string | null }) {
   const pathname = usePathname();
@@ -13,11 +14,13 @@ export default function Navbar({ userName, role }: { userName?: string | null; r
   const teacherLinks = [
     { href: "/teacher", label: "Мои курсы" },
     { href: "/teacher/schedule", label: "Расписание" },
+    { href: "/notifications", label: "Уведомления" },
     { href: "/teacher/settings", label: "Настройки" },
   ];
 
   const studentLinks = [
     { href: "/student", label: "Мои потоки" },
+    { href: "/notifications", label: "Уведомления" },
     { href: "#", label: "ДЗ" },
     { href: "#", label: "Расписание" },
   ];
@@ -62,6 +65,7 @@ export default function Navbar({ userName, role }: { userName?: string | null; r
         <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
           {isAuthenticated ? (
             <>
+              <NotificationBell />
               <span className="text-sm font-medium text-emerald-100 hidden sm:block">{userName}</span>
               <Link
                 href="/api/auth/signout"

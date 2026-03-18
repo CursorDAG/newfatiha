@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
+import { NotificationService } from "@/lib/notification-service";
 
 type CreateHomeworkBody = {
   streamId?: string;
@@ -69,6 +70,11 @@ export const POST = withErrorHandling(async (req: Request) => {
       type: normalizedType,
       dueAt: dueAtDate,
     },
+  });
+
+  // Уведомить студентов о новом домашнем задании
+  await NotificationService.notifyHomeworkAssigned(stream.id, assignment.id).catch((err) => {
+    console.error("Failed to send notifications:", err);
   });
 
   return NextResponse.json({ success: true, assignment });

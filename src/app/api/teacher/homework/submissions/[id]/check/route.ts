@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
+import { NotificationService } from "@/lib/notification-service";
 
 type CheckBody = {
   status?: HomeworkSubmissionStatus | string;
@@ -66,6 +67,11 @@ export const POST = withErrorHandling(async (
       teacherComment: body.teacherComment ?? submission.teacherComment,
       checkedAt: new Date(),
     },
+  });
+
+  // Уведомить студента о проверке
+  await NotificationService.notifyHomeworkChecked(updated.id).catch((err) => {
+    console.error("Failed to send notification:", err);
   });
 
   return NextResponse.json({ success: true, submissionId: updated.id, status: updated.status });
