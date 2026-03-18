@@ -2,12 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-
-type SlotInput = {
-  dayOfWeek: number;
-  startMinutes: number;
-  durationMinutes: number;
-};
+import { isValidSlot, overlaps, slotsToScheduleText, type SlotInput } from "@/lib/schedule";
 
 type CreateStreamBody = {
   courseId?: string;
@@ -39,38 +34,6 @@ function isHexColor(input: string) {
 
 function pickRandomColor() {
   return STREAM_COLOR_PALETTE[Math.floor(Math.random() * STREAM_COLOR_PALETTE.length)];
-}
-
-function isValidSlot(slot: SlotInput) {
-  return (
-    Number.isInteger(slot.dayOfWeek) &&
-    slot.dayOfWeek >= 0 &&
-    slot.dayOfWeek <= 6 &&
-    Number.isInteger(slot.startMinutes) &&
-    slot.startMinutes >= 0 &&
-    slot.startMinutes < 24 * 60 &&
-    Number.isInteger(slot.durationMinutes) &&
-    slot.durationMinutes > 0 &&
-    slot.durationMinutes % 30 === 0 &&
-    slot.startMinutes + slot.durationMinutes <= 24 * 60
-  );
-}
-
-function slotsToScheduleText(slots: SlotInput[]) {
-  if (!slots.length) return "";
-  const dayNames = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
-  const toTime = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
-  const normalized = [...slots].sort((a, b) => (a.dayOfWeek - b.dayOfWeek) || (a.startMinutes - b.startMinutes));
-  return normalized
-    .map((s) => `${dayNames[s.dayOfWeek]} ${toTime(s.startMinutes)}–${toTime(s.startMinutes + s.durationMinutes)}`)
-    .join(", ");
-}
-
-function overlaps(a: SlotInput, b: SlotInput) {
-  if (a.dayOfWeek !== b.dayOfWeek) return false;
-  const aEnd = a.startMinutes + a.durationMinutes;
-  const bEnd = b.startMinutes + b.durationMinutes;
-  return a.startMinutes < bEnd && b.startMinutes < aEnd;
 }
 
 export async function GET() {
