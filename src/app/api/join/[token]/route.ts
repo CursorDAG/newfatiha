@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withErrorHandling } from '@/lib/api-handler';
-import { NotFoundError, ConflictError, ValidationError } from '@/lib/errors';
+import { NotFoundError, ConflictError, ValidationError, ForbiddenError } from '@/lib/errors';
 import { rateLimit, rateLimitConfigs } from '@/lib/rate-limit';
+import { canStudentJoinStream } from '@/lib/gender-rules';
 
 // GET /api/join/[token] — validate invite token before student joins
 export const GET = withErrorHandling(async (
@@ -43,6 +44,7 @@ export const GET = withErrorHandling(async (
     level: stream.level,
     schedule: stream.schedule,
     remaining: capacity - activeCount,
+    genderType: stream.genderType,
   });
 });
 
@@ -85,6 +87,23 @@ export const POST = withErrorHandling(async (
 
   if (activeCount >= stream.course.capacity) {
     throw new ConflictError('Group is full');
+  }
+
+  // Get student's gender for validation
+  const student = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { gender: true },
+  });
+
+  if (!student) {
+    throw new NotFoundError('Студент не найден');
+  }
+
+  // Check gender compatibility
+  const genderCheck = canStudentJoinStream(student.gender, stream.genderType);
+
+  if (!genderCheck.allowed) {
+    throw new ForbiddenError(genderCheck.reason || 'Невозможно записаться в эту группу');
   }
 
   const enrollment = await prisma.enrollment.upsert({

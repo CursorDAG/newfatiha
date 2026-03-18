@@ -56,6 +56,7 @@ type Stream = {
   schedule: string;
   color?: string;
   courseId?: string;
+  genderType?: "MALE_ONLY" | "FEMALE_ONLY" | "MIXED";
   inviteToken?: { token: string } | null;
   enrollments: Enrollment[];
   lessons: Array<{
@@ -467,6 +468,7 @@ export default function TeacherDashboard({
     slots: SlotInput[];
     showSchedulePicker: boolean;
     color: string;
+    genderType: "MALE_ONLY" | "FEMALE_ONLY" | "MIXED";
   } | null>(null);
 
   const slotsToScheduleText = useCallback((slots: SlotInput[]) => {
@@ -788,6 +790,7 @@ export default function TeacherDashboard({
       slots: [],
       showSchedulePicker: true,
       color: "",
+      genderType: "MIXED",
     });
   };
 
@@ -798,6 +801,7 @@ export default function TeacherDashboard({
     schedule: string;
     color?: string;
     courseId?: string;
+    genderType?: "MALE_ONLY" | "FEMALE_ONLY" | "MIXED";
   }) => {
     setLoading(true);
     try {
@@ -822,6 +826,7 @@ export default function TeacherDashboard({
         slots,
         showSchedulePicker: false,
         color: stream.color ?? "",
+        genderType: stream.genderType ?? "MIXED",
       });
     } catch (e: unknown) {
       pushToast({
@@ -836,7 +841,7 @@ export default function TeacherDashboard({
 
   const submitStreamModal = async () => {
     if (!streamModalState) return;
-    const { mode, streamId, courseId, name, level, slots, color } = streamModalState;
+    const { mode, streamId, courseId, name, level, slots, color, genderType } = streamModalState;
     if (!courseId) {
       pushToast({ type: "info", title: "Выберите курс" });
       return;
@@ -863,6 +868,7 @@ export default function TeacherDashboard({
             scheduleText: "",
             slots,
             color: color.trim() || undefined,
+            genderType,
           }),
         });
         const data = await res.json();
@@ -878,6 +884,7 @@ export default function TeacherDashboard({
             scheduleText: "",
             slots,
             color: color.trim() || undefined,
+            genderType,
           }),
         });
         const data = await res.json();
@@ -1285,6 +1292,20 @@ export default function TeacherDashboard({
                       placeholder="#RRGGBB"
                     />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Тип группы</label>
+                  <select
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
+                    value={streamModalState.genderType}
+                    onChange={(e) =>
+                      setStreamModalState((prev) => (prev ? { ...prev, genderType: e.target.value as "MALE_ONLY" | "FEMALE_ONLY" | "MIXED" } : prev))
+                    }
+                  >
+                    <option value="MIXED">⚥ Смешанная группа</option>
+                    <option value="MALE_ONLY">♂ Только мужчины</option>
+                    <option value="FEMALE_ONLY">♀ Только женщины</option>
+                  </select>
                 </div>
                 <div className="flex flex-col">
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">Расписание</label>

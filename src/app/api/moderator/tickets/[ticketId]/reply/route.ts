@@ -1,0 +1,63 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, NotFoundError } from "@/lib/errors";
+import { validateRequest } from "@/lib/validate-request";
+import { replyToTicketSchema } from "@/lib/validation";
+import { NotificationService } from "@/lib/notification-service";
+
+// POST: moderator reply to a support ticket
+export const POST = withErrorHandling(
+  async (req: Request, context?: { params: Promise<Record<string, string>> }) => {
+    const session = await getServerSession(authOptions);
+    if (!session || !["MODERATOR", "ADMIN"].includes(session.user.role)) {
+      throw new AuthError("Unauthorized");
+    }
+
+    const params = await context?.params;
+    const ticketId = params?.ticketId;
+
+    if (!ticketId) {
+      throw new NotFoundError("Ticket");
+    }
+
+    const { message } = await validateRequest(req, replyToTicketSchema);
+
+    const ticket = await prisma.supportTicket.findUnique({
+      where: { id: ticketId },
+      select: { userId: true },
+    });
+
+    if (!ticket) {
+      throw new NotFoundError("Ticket");
+    }
+
+    const reply = await prisma.supportTicketReply.create({
+      data: {
+        ticketId,
+        userId: session.user.id,
+        message,
+        isStaff: true,
+      },
+    });
+
+    // Update ticket updatedAt
+    await prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: { updatedAt: new Date() },
+    });
+
+    // Notify the user who created the ticket
+    await NotificationService.create({
+      userId: ticket.userId,
+      type: "SUPPORT_TICKET_REPLY",
+      title: "Ответ на ваше обращение",
+      message: "Техподдержка ответила на ваше обращение",
+      link: `/support?ticketId=${ticketId}`,
+    });
+
+    return NextResponse.json({ success: true, reply });
+  }
+);

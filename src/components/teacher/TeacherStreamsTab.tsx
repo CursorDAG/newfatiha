@@ -12,6 +12,7 @@ type Stream = {
   schedule: string;
   courseId?: string;
   color?: string;
+  genderType?: "MALE_ONLY" | "FEMALE_ONLY" | "MIXED";
   inviteToken?: { token: string } | null;
 };
 
@@ -93,6 +94,15 @@ export default function TeacherStreamsTab({
                                 <span className="font-semibold text-slate-600">{s.level}</span>
                                 {s.schedule ? ` · ${s.schedule}` : ""}
                               </p>
+                              {s.genderType && s.genderType !== "MIXED" && (
+                                <span className={`inline-block mt-1.5 text-xs font-bold px-2 py-0.5 rounded-full ${
+                                  s.genderType === "MALE_ONLY"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-pink-100 text-pink-700"
+                                }`}>
+                                  {s.genderType === "MALE_ONLY" ? "♂ Только мужчины" : "♀ Только женщины"}
+                                </span>
+                              )}
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">

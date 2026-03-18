@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import { LessonType, HomeworkType, HomeworkSubmissionStatus, QuizSubmissionStatus } from "@prisma/client";
+import { LessonType, HomeworkType, HomeworkSubmissionStatus, QuizSubmissionStatus, Gender, StreamGenderType } from "@prisma/client";
 
 // Course schemas
 export const createCourseSchema = z.object({
@@ -33,6 +33,7 @@ export const createStreamSchema = z.object({
     durationMinutes: z.number().int().min(30).max(480).multipleOf(30),
   })).min(1, "At least one schedule slot is required"),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Invalid hex color").optional(),
+  genderType: z.nativeEnum(StreamGenderType).default(StreamGenderType.MIXED),
 });
 
 // Lesson schemas
@@ -106,6 +107,15 @@ export const changePasswordSchema = z.object({
   newPassword: z.string().min(8, "Password must be at least 8 characters"),
 });
 
+export const registerUserSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  name: z.string().min(1, "Name is required").max(100, "Name too long"),
+  gender: z.nativeEnum(Gender).refine((val) => val !== Gender.NOT_SPECIFIED, {
+    message: "Gender must be specified",
+  }),
+});
+
 // Student management schemas
 export const transferStudentSchema = z.object({
   enrollmentId: z.string().uuid("Invalid enrollment ID"),
@@ -117,6 +127,28 @@ export const kickStudentSchema = z.object({
 });
 
 // Type exports for use in API routes
+// Support ticket schemas
+export const createSupportTicketSchema = z.object({
+  subject: z.string().min(1, "Subject is required").max(200, "Subject too long"),
+  description: z.string().min(1, "Description is required").max(10000, "Description too long"),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
+});
+
+export const replyToTicketSchema = z.object({
+  message: z.string().min(1, "Message is required").max(10000, "Message too long"),
+});
+
+export const updateTicketSchema = z.object({
+  status: z.enum(["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"]).optional(),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
+});
+
+// Content report schemas
+export const reviewReportSchema = z.object({
+  action: z.enum(["APPROVE", "REJECT"]),
+  comment: z.string().max(1000, "Comment too long").optional(),
+});
+
 export type CreateCourseInput = z.infer<typeof createCourseSchema>;
 export type UpdateCourseInput = z.infer<typeof updateCourseSchema>;
 export type CreateStreamInput = z.infer<typeof createStreamSchema>;
@@ -130,3 +162,26 @@ export type CheckQuizInput = z.infer<typeof checkQuizSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type TransferStudentInput = z.infer<typeof transferStudentSchema>;
 export type KickStudentInput = z.infer<typeof kickStudentSchema>;
+
+// Admin schemas
+export const updateUserSchema = z.object({
+  name: z.string().min(1, "Name is required").max(100, "Name too long").optional(),
+  email: z.string().email("Invalid email").optional(),
+  role: z.enum(["STUDENT", "TEACHER", "ADMIN", "MODERATOR"]).optional(),
+});
+
+export const getUsersQuerySchema = z.object({
+  role: z.enum(["STUDENT", "TEACHER", "ADMIN", "MODERATOR"]).optional(),
+  isBlocked: z.enum(["true", "false"]).optional(),
+  search: z.string().optional(),
+  limit: z.string().regex(/^\d+$/).transform(Number).optional(),
+  offset: z.string().regex(/^\d+$/).transform(Number).optional(),
+});
+
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type GetUsersQuery = z.infer<typeof getUsersQuerySchema>;
+export type CreateSupportTicketInput = z.infer<typeof createSupportTicketSchema>;
+export type ReplyToTicketInput = z.infer<typeof replyToTicketSchema>;
+export type UpdateTicketInput = z.infer<typeof updateTicketSchema>;
+export type ReviewReportInput = z.infer<typeof reviewReportSchema>;
+export type RegisterUserInput = z.infer<typeof registerUserSchema>;

@@ -24,6 +24,12 @@ export const testPrisma = new PrismaClient({
  */
 export async function cleanupDatabase() {
   // Delete in order to respect foreign key constraints
+  await testPrisma.chatMessage.deleteMany();
+  await testPrisma.chatRoom.deleteMany();
+  await testPrisma.supportTicketReply.deleteMany();
+  await testPrisma.supportTicket.deleteMany();
+  await testPrisma.contentReport.deleteMany();
+  await testPrisma.notification.deleteMany();
   await testPrisma.activitySession.deleteMany();
   await testPrisma.homeworkSubmission.deleteMany();
   await testPrisma.homeworkAssignment.deleteMany();
@@ -55,7 +61,7 @@ interface CreateTestUserOptions {
   email?: string;
   password?: string;
   name?: string;
-  role?: "STUDENT" | "TEACHER" | "ADMIN";
+  role?: "STUDENT" | "TEACHER" | "ADMIN" | "MODERATOR";
 }
 
 /**
@@ -310,7 +316,7 @@ export function createMockSession(user: {
   id: string;
   email: string;
   name: string;
-  role: "STUDENT" | "TEACHER" | "ADMIN";
+  role: "STUDENT" | "TEACHER" | "ADMIN" | "MODERATOR";
 }) {
   return {
     user: {

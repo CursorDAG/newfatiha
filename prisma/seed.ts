@@ -17,9 +17,24 @@ async function main() {
       name: 'Устаз Ахмад',
       password: hashedPassword,
       role: 'TEACHER',
+      gender: 'MALE',
     },
   })
   console.log(`Teacher created: ${teacher.email}`)
+
+  // 1.1 Create Moderator
+  const moderator = await prisma.user.upsert({
+    where: { email: 'moderator@fatiha.ru' },
+    update: {},
+    create: {
+      email: 'moderator@fatiha.ru',
+      name: 'Модератор Ибрагим',
+      password: hashedPassword,
+      role: 'MODERATOR',
+      gender: 'MALE',
+    },
+  })
+  console.log(`Moderator created: ${moderator.email}`)
 
   // 2. Create or reuse Course
   const courseTitle = 'Основы Ислама 101'
@@ -50,6 +65,8 @@ async function main() {
         teacherId: teacher.id,
         courseId: course.id,
         color: '#22c55e',
+        genderType: 'MALE_ONLY',
+        chatEnabled: true,
       },
     }))
 
@@ -65,6 +82,8 @@ async function main() {
         teacherId: teacher.id,
         courseId: course.id,
         color: '#6366f1',
+        genderType: 'FEMALE_ONLY',
+        chatEnabled: true,
       },
     }))
   console.log(`Streams created: ${morningStream.name}, ${eveningStream.name}`)
@@ -88,24 +107,27 @@ async function main() {
 
   // 4. Create Students
   const studentData = [
-    { name: 'Али', email: 'ali@student.ru', streamId: morningStream.id },
-    { name: 'Умар', email: 'umar@student.ru', streamId: morningStream.id },
-    { name: 'Фатима', email: 'fatima@student.ru', streamId: eveningStream.id },
-    { name: 'Аиша', email: 'aisha@student.ru', streamId: eveningStream.id },
+    { name: 'Али', email: 'ali@student.ru', streamId: morningStream.id, gender: 'MALE' as const },
+    { name: 'Умар', email: 'umar@student.ru', streamId: morningStream.id, gender: 'MALE' as const },
+    { name: 'Фатима', email: 'fatima@student.ru', streamId: eveningStream.id, gender: 'FEMALE' as const },
+    { name: 'Аиша', email: 'aisha@student.ru', streamId: eveningStream.id, gender: 'FEMALE' as const },
   ]
 
+  const students = []
   for (const s of studentData) {
     const pswd = await bcrypt.hash('student123', 10)
     const student = await prisma.user.upsert({
       where: { email: s.email },
-      update: { name: s.name },
+      update: { name: s.name, gender: s.gender },
       create: {
         email: s.email,
         name: s.name,
         password: pswd,
         role: 'STUDENT',
+        gender: s.gender,
       },
     })
+    students.push(student)
 
     await prisma.enrollment.upsert({
       where: { userId_streamId: { userId: student.id, streamId: s.streamId } },
@@ -136,7 +158,82 @@ async function main() {
       teacherNotes: 'Просмотр видео по тахарату, задать вопросы на следующем занятии.',
     }
   })
-  
+
+  // 6. Create ChatRooms for streams
+  await prisma.chatRoom.upsert({
+    where: { streamId: morningStream.id },
+    update: {},
+    create: {
+      type: 'GROUP',
+      streamId: morningStream.id,
+    },
+  })
+
+  await prisma.chatRoom.upsert({
+    where: { streamId: eveningStream.id },
+    update: {},
+    create: {
+      type: 'GROUP',
+      streamId: eveningStream.id,
+    },
+  })
+  console.log('Chat rooms created for streams.')
+
+  // 7. Create test SupportTickets
+  await prisma.supportTicket.create({
+    data: {
+      userId: students[0].id,
+      subject: 'Не могу войти в урок',
+      description: 'При попытке войти в live урок показывается ошибка. Помогите пожалуйста.',
+      status: 'OPEN',
+      priority: 'HIGH',
+    },
+  })
+
+  const resolvedTicket = await prisma.supportTicket.create({
+    data: {
+      userId: students[2].id,
+      subject: 'Вопрос по домашнему заданию',
+      description: 'Не понимаю как выполнить задание по тахарату.',
+      status: 'RESOLVED',
+      priority: 'MEDIUM',
+      assignedToId: moderator.id,
+      resolvedAt: new Date(),
+    },
+  })
+
+  await prisma.supportTicketReply.create({
+    data: {
+      ticketId: resolvedTicket.id,
+      userId: moderator.id,
+      message: 'Здравствуйте! Посмотрите видеоурок еще раз, там все подробно объяснено.',
+      isStaff: true,
+    },
+  })
+
+  await prisma.supportTicketReply.create({
+    data: {
+      ticketId: resolvedTicket.id,
+      userId: students[2].id,
+      message: 'Спасибо, разобралась!',
+      isStaff: false,
+    },
+  })
+  console.log('Test support tickets created.')
+
+  // 8. Create test ContentReport
+  await prisma.contentReport.create({
+    data: {
+      reporterId: students[1].id,
+      contentType: 'LESSON',
+      contentId: 'sample-lesson-id',
+      reason: 'OTHER',
+      description: 'Урок содержит устаревшую информацию.',
+      status: 'PENDING',
+    },
+  })
+  console.log('Test content report created.')
+
   console.log('Seeding finished.')
 }
 

@@ -31,9 +31,29 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Protect /admin routes
+  if (pathname.startsWith("/admin")) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/api/auth/signin", req.url));
+    }
+    if (token.role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
+  }
+
+  // Protect /moderator routes
+  if (pathname.startsWith("/moderator")) {
+    if (!token) {
+      return NextResponse.redirect(new URL("/api/auth/signin", req.url));
+    }
+    if (token.role !== "MODERATOR" && token.role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/teacher/:path*", "/student/:path*"],
+  matcher: ["/teacher/:path*", "/student/:path*", "/admin/:path*", "/moderator/:path*"],
 };

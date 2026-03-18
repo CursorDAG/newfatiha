@@ -14,12 +14,14 @@ export default function Navbar({ userName, role }: { userName?: string | null; r
   const teacherLinks = [
     { href: "/teacher", label: "Мои курсы" },
     { href: "/teacher/schedule", label: "Расписание" },
+    { href: "/chat", label: "Чат" },
     { href: "/notifications", label: "Уведомления" },
     { href: "/teacher/settings", label: "Настройки" },
   ];
 
   const studentLinks = [
     { href: "/student", label: "Мои потоки" },
+    { href: "/chat", label: "Чат" },
     { href: "/notifications", label: "Уведомления" },
     { href: "#", label: "ДЗ" },
     { href: "#", label: "Расписание" },

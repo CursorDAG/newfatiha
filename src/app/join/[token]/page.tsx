@@ -3,6 +3,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
+import { canStudentJoinStream } from '@/lib/gender-rules';
 
 export default async function JoinPage({ params }: { params: { token: string } }) {
   const session = await getServerSession(authOptions);
@@ -38,6 +39,30 @@ export default async function JoinPage({ params }: { params: { token: string } }
       <ErrorLayout
         title="Группа заполнена"
         message={`В потоке «${stream.name}» нет свободных мест (лимит: ${capacity} студентов). Обратитесь к преподавателю.`}
+      />
+    );
+  }
+
+  // Get student's gender for validation
+  const student = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { gender: true },
+  });
+
+  if (!student) {
+    return (
+      <ErrorLayout title="Ошибка" message="Не удалось найти информацию о пользователе." />
+    );
+  }
+
+  // Check gender compatibility
+  const genderCheck = canStudentJoinStream(student.gender, stream.genderType);
+
+  if (!genderCheck.allowed) {
+    return (
+      <ErrorLayout
+        title="Невозможно присоединиться"
+        message={genderCheck.reason || 'Вы не можете записаться в эту группу.'}
       />
     );
   }

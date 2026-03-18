@@ -1,4 +1,4 @@
-export type Role = "STUDENT" | "TEACHER" | "ADMIN";
+export type Role = "STUDENT" | "TEACHER" | "ADMIN" | "MODERATOR";
 
 export type EnrollmentStatus = "ACTIVE" | "TRANSFERRED" | "REPEATING" | "KICKED";
 

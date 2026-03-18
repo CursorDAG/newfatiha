@@ -6,6 +6,8 @@ import { isValidSlot, overlaps, slotsToScheduleText, type SlotInput } from "@/li
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError, ConflictError } from "@/lib/errors";
 import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
+import { canTeacherCreateStreamType } from "@/lib/gender-rules";
+import { StreamGenderType } from "@prisma/client";
 
 type CreateStreamBody = {
   courseId?: string;
@@ -14,6 +16,7 @@ type CreateStreamBody = {
   scheduleText?: string;
   slots?: SlotInput[];
   color?: string;
+  genderType?: StreamGenderType;
 };
 
 const STREAM_COLOR_PALETTE = [
@@ -70,13 +73,33 @@ export const POST = withErrorHandling(async (req: Request) => {
     throw new ValidationError("Invalid JSON");
   }
 
-  const { courseId, name, level, scheduleText, slots, color } = body;
+  const { courseId, name, level, scheduleText, slots, color, genderType } = body;
   if (!courseId || !name?.trim() || !level?.trim()) {
     const errors: Record<string, string> = {};
     if (!courseId) errors.courseId = "Course ID is required";
     if (!name?.trim()) errors.name = "Name is required";
     if (!level?.trim()) errors.level = "Level is required";
     throw new ValidationError("courseId, name, level обязательны", errors);
+  }
+
+  // Get teacher's gender for validation
+  const teacher = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { gender: true },
+  });
+
+  if (!teacher) {
+    throw new NotFoundError("Учитель не найден");
+  }
+
+  // Validate gender type (default to MIXED if not specified)
+  const streamGenderType = genderType || StreamGenderType.MIXED;
+  const genderCheck = canTeacherCreateStreamType(teacher.gender, streamGenderType);
+
+  if (!genderCheck.allowed) {
+    throw new ValidationError(genderCheck.reason || "Невозможно создать группу данного типа", {
+      genderType: genderCheck.reason || "Invalid gender type for this teacher",
+    });
   }
 
   const inputSlots = Array.isArray(slots) ? slots : [];
@@ -144,6 +167,7 @@ export const POST = withErrorHandling(async (req: Request) => {
         level: level.trim(),
         schedule: computedText,
         color: computedColor,
+        genderType: streamGenderType,
       },
     });
     await tx.streamScheduleSlot.createMany({
@@ -153,6 +177,13 @@ export const POST = withErrorHandling(async (req: Request) => {
         startMinutes: s.startMinutes,
         durationMinutes: s.durationMinutes,
       })),
+    });
+    // Automatically create group chat room for the stream
+    await tx.chatRoom.create({
+      data: {
+        type: "GROUP",
+        streamId: created.id,
+      },
     });
     return created;
   });
