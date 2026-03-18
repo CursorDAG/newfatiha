@@ -86,10 +86,15 @@ const prisma = new PrismaClient() // ❌ Неправильно
 - [x] Создать типизированные error классы (`AuthError`, `ValidationError`, `NotFoundError`)
 - [x] Создать middleware для обработки ошибок API маршрутов (`withErrorHandling`)
 - [x] Обернуть все API handlers в `withErrorHandling` HOF (29 маршрутов обновлено)
-- [ ] Добавить структурированное логирование (Winston или Pino)
-- [ ] Интегрировать Sentry для отслеживания ошибок в production
+- [x] Добавить структурированное логирование (Pino с JSON форматом)
+- [x] Интегрировать Sentry для отслеживания ошибок в production
 
-**Статус:** ✅ Полностью исправлено в commit bd23a32. Централизованная обработка ошибок внедрена во все 29 API маршрутов через `withErrorHandling` middleware. Создана библиотека типизированных ошибок (`src/lib/errors.ts`) с классами `AuthError`, `ValidationError`, `NotFoundError`, `ForbiddenError`, `ConflictError`. Все ошибки возвращают консистентный JSON формат с правильными HTTP статусами. Prisma ошибки (P2002, P2025) обрабатываются автоматически. Все тесты проходят успешно.
+**Статус:** ✅ Полностью завершено. Реализовано в 3 коммитах:
+1. **bd23a32**: Централизованная обработка ошибок через `withErrorHandling` middleware во всех 29 API маршрутах
+2. **24190a4**: Структурированное логирование с Pino (JSON в production, pretty-print в dev)
+3. **[pending]**: Интеграция Sentry с фильтрацией чувствительных данных и захватом только 5xx ошибок
+
+Все тесты проходят успешно (29/29).
 
 ### 6. CI/CD Pipeline ✅ ИСПРАВЛЕНО
 

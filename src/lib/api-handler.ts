@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import { AppError, ValidationError } from "./errors";
 import { logger } from "./logger";
 
@@ -26,18 +27,33 @@ export function withErrorHandling<T = unknown>(
     } catch (error) {
       // Structured logging with context
       const url = new URL(req.url);
-      logger.error(
-        {
-          path: url.pathname,
-          method: req.method,
-          query: Object.fromEntries(url.searchParams),
-          errorType: error instanceof Error ? error.constructor.name : typeof error,
-          errorMessage: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          statusCode: error instanceof AppError ? error.statusCode : 500,
-        },
-        "API request failed"
-      );
+      const logContext = {
+        path: url.pathname,
+        method: req.method,
+        query: Object.fromEntries(url.searchParams),
+        errorType: error instanceof Error ? error.constructor.name : typeof error,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        statusCode: error instanceof AppError ? error.statusCode : 500,
+      };
+
+      logger.error(logContext, "API request failed");
+
+      // Send to Sentry in production (only for unexpected errors, not validation/auth)
+      if (
+        process.env.NODE_ENV === "production" &&
+        !(error instanceof AppError && error.statusCode < 500)
+      ) {
+        Sentry.captureException(error, {
+          contexts: {
+            request: {
+              url: url.pathname,
+              method: req.method,
+              query_string: url.search,
+            },
+          },
+        });
+      }
 
       // Handle known application errors
       if (error instanceof AppError) {
