@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
+// eslint-disable-next-line no-restricted-syntax -- Seed scripts run outside Next.js and need their own PrismaClient instance
 const prisma = new PrismaClient()
 
 async function main() {

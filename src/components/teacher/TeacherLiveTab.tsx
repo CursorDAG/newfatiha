@@ -47,6 +47,7 @@ export default function TeacherLiveTab({
   // Initialise selectedLessonId when liveLessons arrives
   useEffect(() => {
     if (liveLessons.length > 0 && !selectedLessonId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- One-time initialization of default selection
       setSelectedLessonId(liveLessons[0].id);
     }
   }, [liveLessons, selectedLessonId]);
@@ -56,6 +57,7 @@ export default function TeacherLiveTab({
     if (!notesKey) return;
     try {
       const saved = localStorage.getItem(notesKey);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- One-time initialization from localStorage on mount
       if (saved) setNotes(saved);
     } catch {
       // ignore

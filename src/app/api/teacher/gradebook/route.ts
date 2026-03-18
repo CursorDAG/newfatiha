@@ -95,7 +95,6 @@ export async function GET(req: Request) {
   }
 
   const lessonIds = stream.lessons.map((l) => l.id);
-  const enrollmentIds = stream.enrollments.map((e) => e.id);
 
   const [assignments, homeworkSubmissions, quizzes, quizSubmissions] =
     await Promise.all([

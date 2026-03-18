@@ -41,7 +41,7 @@ export async function POST(
 
   let nextStatus: HomeworkSubmissionStatus | undefined;
   if (body.status) {
-    if (typeof body.status === "string" && Object.values(HomeworkSubmissionStatus).includes(body.status as any)) {
+    if (typeof body.status === "string" && Object.values(HomeworkSubmissionStatus).includes(body.status as HomeworkSubmissionStatus)) {
       nextStatus = body.status as HomeworkSubmissionStatus;
     } else {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });

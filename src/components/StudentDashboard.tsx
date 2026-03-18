@@ -355,13 +355,11 @@ function HomeworkCard({
 
 export default function StudentDashboard({
   userName,
-  role,
   enrollments,
   homeworkAssignments,
   quizResults = [],
 }: {
   userName: string;
-  role: string;
   enrollments: Enrollment[];
   homeworkAssignments: HomeworkAssignment[];
   quizResults?: QuizResult[];

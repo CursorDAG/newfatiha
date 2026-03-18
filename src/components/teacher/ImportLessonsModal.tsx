@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import ModalShell from "@/components/teacher/ui/ModalShell";
 import { Button } from "@/components/teacher/ui/Button";
 
@@ -36,6 +36,11 @@ export default function ImportLessonsModal({
   const [fromId, setFromId] = useState<string>(options[0]?.id ?? "");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  const handleStreamChange = (newFromId: string) => {
+    setFromId(newFromId);
+    setSelectedIds(new Set()); // Clear selection when changing streams
+  };
+
   const selectedStream = useMemo(
     () => options.find((s) => s.id === fromId),
     [options, fromId],
@@ -49,10 +54,6 @@ export default function ImportLessonsModal({
         : [],
     [selectedStream],
   );
-
-  useEffect(() => {
-    setSelectedIds(new Set());
-  }, [fromId]);
 
   function toggleLesson(id: string) {
     setSelectedIds((prev) => {
@@ -105,7 +106,7 @@ export default function ImportLessonsModal({
           <select
             className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
             value={fromId}
-            onChange={(e) => setFromId(e.target.value)}
+            onChange={(e) => handleStreamChange(e.target.value)}
           >
             {options.map((s) => (
               <option key={s.id} value={s.id}>

@@ -73,7 +73,7 @@ export default function ScheduleGrid({
   currentStreamId,
   onHoverStream,
 }: Props) {
-  const stepMinutes: 30 = 30;
+  const stepMinutes = 30 as const;
   const [pending, setPending] = useState<{ dayOfWeek: number; startMinutes: number } | null>(null);
   const clearHoverTimerRef = useRef<number | null>(null);
 

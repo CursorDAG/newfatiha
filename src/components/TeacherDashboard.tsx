@@ -201,6 +201,7 @@ function LiveJitsiRoom({
         apiRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- onReady is a callback prop that doesn't need to trigger re-initialization
   }, [streamId]);
 
   return <div ref={containerRef} className="w-full h-full" />;
@@ -307,16 +308,12 @@ function KickConfirmDialog({
 }
 
 // ── Main Dashboard ─────────────────────────────────────────────────────────
-export default function TeacherDashboard({ 
-  initialStreams, 
+export default function TeacherDashboard({
+  initialStreams,
   initialCourses,
-  userName,
-  role 
-}: { 
-  initialStreams: Stream[]; 
+}: {
+  initialStreams: Stream[];
   initialCourses: Course[];
-  userName: string;
-  role: string;
 }) {
   const router = useRouter();
   const [selectedStreamId, setSelectedStreamId] = useState<string>(initialStreams[0]?.id ?? '');
@@ -719,38 +716,6 @@ export default function TeacherDashboard({
       pushToast({
         type: "error",
         title: "Ошибка сохранения урока",
-        message: e instanceof Error ? e.message : undefined,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const moveLesson = async (lessonId: string, direction: "up" | "down") => {
-    if (!selectedStream) return;
-    const sorted = [...selectedStream.lessons].sort(
-      (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
-    );
-    const idx = sorted.findIndex((l) => l.id === lessonId);
-    if (idx === -1) return;
-    const targetIdx = direction === "up" ? idx - 1 : idx + 1;
-    if (targetIdx < 0 || targetIdx >= sorted.length) return;
-    [sorted[idx], sorted[targetIdx]] = [sorted[targetIdx], sorted[idx]];
-    const lessonIdsInOrder = sorted.map((l) => l.id);
-    setLoading(true);
-    try {
-      const res = await fetch("/api/teacher/lessons", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ streamId: selectedStream.id, lessonIdsInOrder }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error ?? "Не удалось изменить порядок уроков");
-      router.refresh();
-    } catch (e: unknown) {
-      pushToast({
-        type: "error",
-        title: "Не удалось изменить порядок уроков",
         message: e instanceof Error ? e.message : undefined,
       });
     } finally {
@@ -1511,8 +1476,6 @@ export default function TeacherDashboard({
           <TeacherStreamsTab
             courses={initialCourses.map((c) => ({ id: c.id, title: c.title }))}
             streams={initialStreams}
-            selectedCourseId={selectedCourseId}
-            onChangeCourse={setSelectedCourseId}
             onCreate={() => openCreateStreamModal()}
             onCreateForCourse={(courseId) => openCreateStreamModal(courseId)}
             onEdit={(s) => openEditStreamModal(s)}

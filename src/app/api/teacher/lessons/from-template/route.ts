@@ -66,7 +66,7 @@ export async function POST(req: Request) {
       teacherNotes: template.teacherNotes,
       sortOrder: baseSortOrder,
       quizzes: {
-        create: template.quizzes.map((quiz, quizIdx) => ({
+        create: template.quizzes.map((quiz) => ({
           title: quiz.title,
           type: quiz.type,
           questions: {

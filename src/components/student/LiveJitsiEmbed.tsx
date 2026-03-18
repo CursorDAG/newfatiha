@@ -47,6 +47,7 @@ export default function LiveJitsiEmbed({
   useEffect(() => {
     try {
       const saved = localStorage.getItem(storageKey);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- One-time initialization from localStorage on mount
       if (saved) setNotes(saved);
     } catch {
       // localStorage not available (e.g., SSR) — ignore

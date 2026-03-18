@@ -39,9 +39,9 @@ const prisma = new PrismaClient() // ❌ Неправильно
 
 **Решение:**
 - [x] Заменить на `import { prisma } from "@/lib/prisma"` (исправлено в 3 файлах)
-- [ ] Добавить ESLint правило, запрещающее `new PrismaClient()`
+- [x] Добавить ESLint правило, запрещающее `new PrismaClient()`
 
-**Статус:** Исправлено в commit cda5d12. Заменено в:
+**Статус:** ✅ Полностью исправлено. Добавлено ESLint правило `no-restricted-syntax` в `eslint.config.mjs`. Исключения добавлены для `prisma/seed.ts` и `src/lib/prisma.ts` (где инстанцирование необходимо).
 - `src/app/api/auth/[...nextauth]/route.ts`
 - `src/app/api/activity/heartbeat/route.ts`
 - `src/app/join/[token]/page.tsx`

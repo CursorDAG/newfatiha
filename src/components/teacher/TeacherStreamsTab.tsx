@@ -18,8 +18,6 @@ type Stream = {
 export default function TeacherStreamsTab({
   courses,
   streams,
-  selectedCourseId,
-  onChangeCourse,
   onCreate,
   onCreateForCourse,
   onEdit,
@@ -29,8 +27,6 @@ export default function TeacherStreamsTab({
 }: {
   courses: Course[];
   streams: Stream[];
-  selectedCourseId: string;
-  onChangeCourse: (courseId: string) => void;
   onCreate: () => void;
   onCreateForCourse: (courseId: string) => void;
   onEdit: (stream: Stream) => void;

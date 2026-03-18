@@ -5,6 +5,17 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "NewExpression[callee.name='PrismaClient']",
+          message: "Do not instantiate PrismaClient directly. Import the singleton from '@/lib/prisma' instead.",
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

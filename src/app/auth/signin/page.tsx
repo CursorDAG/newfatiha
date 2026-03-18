@@ -34,7 +34,7 @@ function SignInForm() {
         router.push(res.url);
         router.refresh();
       }
-    } catch (err) {
+    } catch {
       setError("Произошла ошибка при входе");
     } finally {
       setLoading(false);
