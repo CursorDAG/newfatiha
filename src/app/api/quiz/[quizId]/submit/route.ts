@@ -5,6 +5,13 @@ import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
+import {
+  uploadFile,
+  generateVoiceKey,
+  getExtensionFromMimeType,
+  isStorageConfigured,
+} from "@/lib/storage";
+import { logger } from "@/lib/logger";
 
 const MAX_VOICE_BYTES = 7 * 1024 * 1024; // ~7MB
 
@@ -103,11 +110,45 @@ export const POST = withErrorHandling(async (
       throw new ValidationError("Invalid voice size", { voiceBase64: "Voice size must be between 1 byte and 7MB" });
     }
 
+    // Try to upload to S3 if configured, otherwise fall back to PostgreSQL
+    let voiceUrl: string | null = null;
+    let voiceData: Uint8Array | null = null;
+
+    if (isStorageConfigured()) {
+      try {
+        const extension = getExtensionFromMimeType(voiceMimeType);
+        const key = generateVoiceKey(quiz.id, session.user.id, extension);
+        voiceUrl = await uploadFile(key, bytes, voiceMimeType);
+
+        logger.info({
+          msg: "Voice recording uploaded to S3",
+          quizId: quiz.id,
+          studentId: session.user.id,
+          size: bytes.length,
+        });
+      } catch (error) {
+        logger.warn({
+          msg: "Failed to upload to S3, falling back to PostgreSQL",
+          error: error instanceof Error ? error.message : String(error),
+        });
+        voiceData = bytes as Uint8Array;
+      }
+    } else {
+      // S3 not configured, store in PostgreSQL
+      voiceData = bytes as Uint8Array;
+      logger.debug({
+        msg: "S3 not configured, storing voice in PostgreSQL",
+        quizId: quiz.id,
+        size: bytes.length,
+      });
+    }
+
     const submission = await prisma.lessonQuizSubmission.upsert({
       where: { quizId_studentId: { quizId: quiz.id, studentId: session.user.id } },
       update: {
         selectedOptionId: null,
-        voiceData: bytes,
+        voiceData: voiceData as Uint8Array<ArrayBuffer> | null,
+        voiceUrl,
         voiceMimeType,
         voiceDurationMs: typeof voiceDurationMs === "number" ? Math.max(0, Math.floor(voiceDurationMs)) : null,
         status: "SUBMITTED",
@@ -117,7 +158,8 @@ export const POST = withErrorHandling(async (
       create: {
         quizId: quiz.id,
         studentId: session.user.id,
-        voiceData: bytes,
+        voiceData: voiceData as Uint8Array<ArrayBuffer> | null,
+        voiceUrl,
         voiceMimeType,
         voiceDurationMs: typeof voiceDurationMs === "number" ? Math.max(0, Math.floor(voiceDurationMs)) : null,
         status: "SUBMITTED",

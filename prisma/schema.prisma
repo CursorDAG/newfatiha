@@ -218,7 +218,8 @@ model LessonQuizSubmission {
 
   // VOICE
   voiceMimeType   String?
-  voiceData       Bytes?
+  voiceData       Bytes?  // Deprecated: Use voiceUrl instead. Kept for backward compatibility during migration.
+  voiceUrl        String? // S3 URL or key for voice recording
   voiceDurationMs Int?
 
   status      QuizSubmissionStatus @default(SUBMITTED)
