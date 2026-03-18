@@ -14,7 +14,8 @@ npm run dev              # Start dev server at http://localhost:3000
 
 # Database
 npx prisma generate      # Generate Prisma Client after schema changes
-npx prisma db push       # Push schema changes to database
+npx prisma migrate dev   # Create and apply migration (replaces db push)
+npx prisma migrate deploy # Apply migrations in production
 npx prisma db seed       # Seed database with test data (creates admin@fatiha.ru / admin123)
 npx prisma studio        # Open Prisma Studio GUI
 
@@ -293,9 +294,11 @@ No test suite currently exists. When adding tests, consider:
 
 ### Modifying Database Schema
 1. Edit `prisma/schema.prisma`
-2. Run `npx prisma db push` (development) or create migration (production)
+2. Run `npx prisma migrate dev --name descriptive_name` to create and apply migration
 3. Run `npx prisma generate` to update Prisma Client types
 4. Restart dev server to pick up new types
+
+**Important:** Always use migrations (`prisma migrate dev`) instead of `prisma db push` to maintain migration history. Migrations are tracked in `prisma/migrations/` and should be committed to git.
 
 ### Debugging Common Issues
 
