@@ -89,11 +89,9 @@ export default async function TeacherPage() {
   }))
 
   return (
-    <TeacherDashboard 
-      initialStreams={serializedStreams} 
+    <TeacherDashboard
+      initialStreams={serializedStreams}
       initialCourses={serializedCourses}
-      userName={session.user.name ?? "Учитель"} 
-      role={session.user.role} 
     />
   )
 }

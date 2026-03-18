@@ -134,7 +134,6 @@ export default async function StudentPage() {
   return (
     <StudentDashboard
       userName={session.user.name ?? "Студент"}
-      role={session.user.role}
       enrollments={serializedEnrollments}
       homeworkAssignments={serializedAssignments}
       quizResults={serializedQuizResults}

@@ -78,16 +78,18 @@ const prisma = new PrismaClient() // ❌ Неправильно
 
 **Статус:** Базовая инфраструктура настроена. Созданы utility модули `src/lib/quiz.ts` и `src/lib/schedule.ts` с полным покрытием тестами (19 тестов, 100% coverage). Vitest настроен с поддержкой coverage reporting.
 
-### 5. Обработка ошибок
+### 5. Обработка ошибок ⚙️ В ПРОЦЕССЕ
 
 **Проблема:** Только 21 try-catch блок на ~30 API маршрутов, нет централизованной обработки
 
 **Решение:**
-- [ ] Создать middleware для обработки ошибок API маршрутов
+- [x] Создать типизированные error классы (`AuthError`, `ValidationError`, `NotFoundError`)
+- [x] Создать middleware для обработки ошибок API маршрутов (`withErrorHandling`)
 - [ ] Обернуть все API handlers в `withErrorHandling` HOF
 - [ ] Добавить структурированное логирование (Winston или Pino)
 - [ ] Интегрировать Sentry для отслеживания ошибок в production
-- [ ] Создать типизированные error классы (`AuthError`, `ValidationError`, `NotFoundError`)
+
+**Статус:** Базовая инфраструктура создана. Реализованы типизированные error классы с тестами (10 тестов, 100% coverage) и middleware `withErrorHandling` для централизованной обработки ошибок в API маршрутах.
 
 ### 6. CI/CD Pipeline ✅ ИСПРАВЛЕНО
 

@@ -30,7 +30,8 @@
       "Bash(git push:*)",
       "Bash(npm install:*)",
       "Bash(npm test:*)",
-      "Bash(npx husky:*)"
+      "Bash(npx husky:*)",
+      "Bash(npx tsc:*)"
     ]
   },
   "prefersReducedMotion": false
