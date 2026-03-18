@@ -29,15 +29,18 @@ type LessonPayload = {
   quizzes: LessonQuiz[];
 };
 
+type JitsiOptions = {
+  roomName: string;
+  parentNode: HTMLElement;
+  userInfo?: { displayName?: string };
+  jwt?: string;
+};
+
 declare global {
   interface Window {
     JitsiMeetExternalAPI?: new (
       domain: string,
-      options: {
-        roomName: string;
-        parentNode: HTMLElement;
-        userInfo?: { displayName?: string };
-      }
+      options: JitsiOptions
     ) => { dispose: () => void; executeCommand: (cmd: string) => void };
   }
 }
@@ -61,9 +64,13 @@ async function heartbeat(input: {
 export default function LessonRoomClient({
   lesson,
   viewerRole,
+  jitsiDomain = "meet.jit.si",
+  jitsiToken,
 }: {
   lesson: LessonPayload;
   viewerRole: string;
+  jitsiDomain?: string;
+  jitsiToken?: string;
 }) {
   const router = useRouter();
   const [activitySessionId, setActivitySessionId] = useState<string | undefined>(undefined);
@@ -161,7 +168,7 @@ export default function LessonRoomClient({
         }
         const script = existing ?? document.createElement("script");
         if (!existing) {
-          script.src = "https://meet.jit.si/external_api.js";
+          script.src = `https://${jitsiDomain}/external_api.js`;
           script.async = true;
           script.dataset.jitsiExternalApi = "true";
           script.onload = () => resolve();
@@ -178,10 +185,18 @@ export default function LessonRoomClient({
         await ensureScriptLoaded();
         if (cancelled || !window.JitsiMeetExternalAPI || !jitsiContainerRef.current) return;
         jitsiApiRef.current?.dispose();
-        jitsiApiRef.current = new window.JitsiMeetExternalAPI("meet.jit.si", {
+
+        const options: JitsiOptions = {
           roomName: lesson.jitsiRoomName,
           parentNode: jitsiContainerRef.current,
-        });
+        };
+
+        // Add JWT token if available (for authenticated Jitsi)
+        if (jitsiToken) {
+          options.jwt = jitsiToken;
+        }
+
+        jitsiApiRef.current = new window.JitsiMeetExternalAPI(jitsiDomain, options);
       } catch (e) {
         console.error("[Jitsi] init error", e);
       }
@@ -192,7 +207,7 @@ export default function LessonRoomClient({
       jitsiApiRef.current?.dispose();
       jitsiApiRef.current = null;
     };
-  }, [lesson.jitsiRoomName, lesson.type]);
+  }, [lesson.jitsiRoomName, lesson.type, jitsiDomain, jitsiToken]);
 
   const submitQuiz = async () => {
     if (!quiz) return;

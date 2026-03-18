@@ -3,6 +3,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import StudentDashboard from "@/components/StudentDashboard";
+import { getJitsiConfig } from "@/lib/jitsi-jwt";
 
 export default async function StudentPage() {
   const session = await getServerSession(authOptions);
@@ -131,12 +132,19 @@ export default async function StudentPage() {
     },
   }));
 
+  // Get Jitsi configuration
+  const jitsiConfig = getJitsiConfig()
+  const jitsiDomain = jitsiConfig?.domain ?? "meet.jit.si"
+
   return (
     <StudentDashboard
       userName={session.user.name ?? "Студент"}
+      userId={session.user.id}
+      userEmail={session.user.email ?? ""}
       enrollments={serializedEnrollments}
       homeworkAssignments={serializedAssignments}
       quizResults={serializedQuizResults}
+      jitsiDomain={jitsiDomain}
     />
   );
 }

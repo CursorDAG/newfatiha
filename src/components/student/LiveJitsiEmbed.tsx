@@ -8,6 +8,7 @@ type JitsiAPI = new (
     roomName: string;
     parentNode: HTMLElement;
     userInfo?: { displayName?: string };
+    jwt?: string;
   }
 ) => { dispose: () => void };
 
@@ -17,6 +18,8 @@ type Props = {
   streamName: string;
   jitsiRoomName: string;
   userName?: string;
+  jitsiDomain?: string;
+  jitsiToken?: string;
   onLeave: () => void;
 };
 
@@ -32,6 +35,8 @@ export default function LiveJitsiEmbed({
   streamName,
   jitsiRoomName,
   userName,
+  jitsiDomain = "meet.jit.si",
+  jitsiToken,
   onLeave,
 }: Props) {
   const jitsiContainerRef = useRef<HTMLDivElement | null>(null);
@@ -90,7 +95,7 @@ export default function LiveJitsiEmbed({
         }
         const script = existing ?? document.createElement("script");
         if (!existing) {
-          script.src = "https://meet.jit.si/external_api.js";
+          script.src = `https://${jitsiDomain}/external_api.js`;
           script.async = true;
           script.dataset.jitsiExternalApi = "true";
           document.head.appendChild(script);
@@ -107,11 +112,23 @@ export default function LiveJitsiEmbed({
         const JitsiAPI = (window as { JitsiMeetExternalAPI?: JitsiAPI }).JitsiMeetExternalAPI;
         if (cancelled || !JitsiAPI || !jitsiContainerRef.current) return;
         jitsiApiRef.current?.dispose();
-        jitsiApiRef.current = new JitsiAPI("meet.jit.si", {
+
+        const options: {
+          roomName: string;
+          parentNode: HTMLElement;
+          userInfo?: { displayName?: string };
+          jwt?: string;
+        } = {
           roomName: jitsiRoomName,
           parentNode: jitsiContainerRef.current,
           userInfo: userName ? { displayName: userName } : undefined,
-        });
+        };
+
+        if (jitsiToken) {
+          options.jwt = jitsiToken;
+        }
+
+        jitsiApiRef.current = new JitsiAPI(jitsiDomain, options);
       } catch (e) {
         console.error("[Jitsi] init error", e);
       }
@@ -122,7 +139,7 @@ export default function LiveJitsiEmbed({
       jitsiApiRef.current?.dispose();
       jitsiApiRef.current = null;
     };
-  }, [jitsiRoomName, userName]);
+  }, [jitsiRoomName, userName, jitsiDomain, jitsiToken]);
 
   return (
     <div className="flex flex-col h-full">

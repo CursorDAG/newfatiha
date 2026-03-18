@@ -3,6 +3,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { redirect, notFound } from "next/navigation";
 import LessonRoomClient from "./room-client";
+import { generateJitsiToken, getJitsiConfig } from "@/lib/jitsi-jwt";
 
 export default async function LessonPage({
   params,
@@ -48,6 +49,25 @@ export default async function LessonPage({
     notFound();
   }
 
+  // Generate Jitsi JWT token if configured
+  const jitsiConfig = getJitsiConfig();
+  let jitsiToken: string | undefined;
+  let jitsiDomain = "meet.jit.si";
+
+  if (jitsiConfig) {
+    jitsiDomain = jitsiConfig.domain;
+    jitsiToken = generateJitsiToken(
+      lesson.stream.id, // room name
+      {
+        id: session.user.id,
+        name: session.user.name || "Unknown",
+        email: session.user.email || "",
+        role: isTeacher ? "moderator" : "participant",
+      },
+      jitsiConfig
+    );
+  }
+
   return (
     <LessonRoomClient
       lesson={{
@@ -73,6 +93,8 @@ export default async function LessonPage({
         })),
       }}
       viewerRole={session.user.role}
+      jitsiDomain={jitsiDomain}
+      jitsiToken={jitsiToken}
     />
   );
 }

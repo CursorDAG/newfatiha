@@ -114,6 +114,7 @@ declare global {
         roomName: string;
         parentNode: HTMLElement;
         userInfo?: { displayName?: string };
+        jwt?: string;
       }
     ) => { dispose: () => void; executeCommand: (cmd: string) => void };
   }
@@ -126,9 +127,13 @@ type JitsiCommands = {
 
 function LiveJitsiRoom({
   streamId,
+  jitsiDomain = "meet.jit.si",
+  jitsiToken,
   onReady,
 }: {
   streamId: string;
+  jitsiDomain?: string;
+  jitsiToken?: string;
   onReady?: (commands: JitsiCommands) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -153,7 +158,7 @@ function LiveJitsiRoom({
 
           const script = existing ?? document.createElement("script");
           if (!existing) {
-            script.src = "https://meet.jit.si/external_api.js";
+            script.src = `https://${jitsiDomain}/external_api.js`;
             script.async = true;
             script.dataset.jitsiExternalApi = "true";
             script.onload = () => resolve();
@@ -174,10 +179,20 @@ function LiveJitsiRoom({
           apiRef.current = null;
         }
 
-        apiRef.current = new window.JitsiMeetExternalAPI("meet.jit.si", {
+        const options: {
+          roomName: string;
+          parentNode: HTMLElement;
+          jwt?: string;
+        } = {
           roomName: streamId,
           parentNode: containerRef.current,
-        }) as { dispose: () => void; executeCommand: (cmd: string) => void };
+        };
+
+        if (jitsiToken) {
+          options.jwt = jitsiToken;
+        }
+
+        apiRef.current = new window.JitsiMeetExternalAPI(jitsiDomain, options) as { dispose: () => void; executeCommand: (cmd: string) => void };
 
         onReady?.({
           shareScreen: () => apiRef.current?.executeCommand("toggleShareScreen"),
@@ -202,7 +217,7 @@ function LiveJitsiRoom({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- onReady is a callback prop that doesn't need to trigger re-initialization
-  }, [streamId]);
+  }, [streamId, jitsiDomain, jitsiToken]);
 
   return <div ref={containerRef} className="w-full h-full" />;
 }
@@ -311,15 +326,25 @@ function KickConfirmDialog({
 export default function TeacherDashboard({
   initialStreams,
   initialCourses,
+  jitsiDomain = "meet.jit.si",
+  teacherId: _teacherId,
+  teacherName: _teacherName,
+  teacherEmail: _teacherEmail,
 }: {
   initialStreams: Stream[];
   initialCourses: Course[];
+  jitsiDomain?: string;
+  teacherId: string;
+  teacherName: string;
+  teacherEmail: string;
 }) {
   const router = useRouter();
   const [selectedStreamId, setSelectedStreamId] = useState<string>(initialStreams[0]?.id ?? '');
   const [activeTab, setActiveTab] = useState<TeacherTabId>("overview");
   const [loading, setLoading] = useState(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [jitsiToken, setJitsiToken] = useState<string | undefined>(undefined);
+
   const pushToast = useCallback((t: Omit<ToastItem, "id">) => {
     const id = crypto.randomUUID();
     setToasts((prev) => [...prev, { id, ...t }]);
@@ -348,6 +373,31 @@ export default function TeacherDashboard({
     (cmds: { shareScreen: () => void; endLesson: () => void }) => setJitsiCommands(cmds),
     [],
   );
+
+  // Fetch Jitsi JWT token for a stream
+  const fetchJitsiToken = async (streamId: string): Promise<string | undefined> => {
+    try {
+      const res = await fetch("/api/jitsi/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ streamId }),
+      });
+      if (!res.ok) return undefined;
+      const data = await res.json();
+      return data.enabled ? data.token : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+
+  // Fetch token when entering live mode
+  useEffect(() => {
+    if (activeTab === "live" && selectedStreamId) {
+      fetchJitsiToken(selectedStreamId).then(setJitsiToken);
+    } else {
+      setJitsiToken(undefined);
+    }
+  }, [activeTab, selectedStreamId]);
   const [showCreateQuizForLessonId, setShowCreateQuizForLessonId] = useState<string | null>(null);
   const [quizForm, setQuizForm] = useState({
     title: "Тест по уроку",
@@ -1937,6 +1987,8 @@ export default function TeacherDashboard({
               selectedStream ? (
                 <LiveJitsiRoom
                   streamId={selectedStream.id}
+                  jitsiDomain={jitsiDomain}
+                  jitsiToken={jitsiToken}
                   onReady={handleJitsiReady}
                 />
               ) : null

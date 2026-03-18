@@ -355,19 +355,54 @@ function HomeworkCard({
 
 export default function StudentDashboard({
   userName,
+  userId: _userId,
+  userEmail: _userEmail,
   enrollments,
   homeworkAssignments,
   quizResults = [],
+  jitsiDomain = "meet.jit.si",
 }: {
   userName: string;
+  userId: string;
+  userEmail: string;
   enrollments: Enrollment[];
   homeworkAssignments: HomeworkAssignment[];
   quizResults?: QuizResult[];
+  jitsiDomain?: string;
 }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabId>("home");
   const [activeLiveLesson, setActiveLiveLesson] = useState<ActiveLiveLesson>(null);
+  const [jitsiToken, setJitsiToken] = useState<string | undefined>(undefined);
   const activitySessionIdRef = useRef<string | undefined>(undefined);
+
+  // Fetch Jitsi JWT token for a stream
+  const fetchJitsiToken = async (streamId: string): Promise<string | undefined> => {
+    try {
+      const res = await fetch("/api/jitsi/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ streamId }),
+      });
+      if (!res.ok) return undefined;
+      const data = await res.json();
+      return data.enabled ? data.token : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+
+  // Join live lesson with JWT token
+  const joinLiveLesson = async (lesson: {
+    lessonId: string;
+    lessonTitle: string;
+    jitsiRoomName: string;
+    streamName: string;
+  }) => {
+    const token = await fetchJitsiToken(lesson.jitsiRoomName);
+    setJitsiToken(token);
+    setActiveLiveLesson(lesson);
+  };
 
   // Activity heartbeat
   useEffect(() => {
@@ -449,7 +484,12 @@ export default function StudentDashboard({
             jitsiRoomName={activeLiveLesson.jitsiRoomName}
             streamName={activeLiveLesson.streamName}
             userName={userName}
-            onLeave={() => setActiveLiveLesson(null)}
+            jitsiDomain={jitsiDomain}
+            jitsiToken={jitsiToken}
+            onLeave={() => {
+              setActiveLiveLesson(null);
+              setJitsiToken(undefined);
+            }}
           />
         </div>
       )}
@@ -597,7 +637,7 @@ export default function StudentDashboard({
                           {l.type === "LIVE" && (
                             <button
                               onClick={() =>
-                                setActiveLiveLesson({
+                                joinLiveLesson({
                                   lessonId: l.id,
                                   lessonTitle: l.title,
                                   jitsiRoomName: l.streamId,
@@ -741,7 +781,7 @@ export default function StudentDashboard({
                                 {lesson.type === "LIVE" && (
                                   <button
                                     onClick={() =>
-                                      setActiveLiveLesson({
+                                      joinLiveLesson({
                                         lessonId: lesson.id,
                                         lessonTitle: lesson.title,
                                         jitsiRoomName: e.stream.id,
