@@ -89,21 +89,24 @@ const prisma = new PrismaClient() // ❌ Неправильно
 - [ ] Интегрировать Sentry для отслеживания ошибок в production
 - [ ] Создать типизированные error классы (`AuthError`, `ValidationError`, `NotFoundError`)
 
-### 6. CI/CD Pipeline
+### 6. CI/CD Pipeline ⚙️ В ПРОЦЕССЕ
 
 **Проблема:** Нет автоматизации, GitHub Actions workflows отсутствуют
 
 **Решение:**
-- [ ] Создать `.github/workflows/ci.yml`:
+- [x] Создать `.github/workflows/ci.yml`:
   - Lint (ESLint + TypeScript check)
   - Tests (Vitest)
   - Build verification
   - Prisma schema validation
+- [x] Создать отдельный workflow для валидации Prisma схемы
 - [ ] Создать `.github/workflows/deploy.yml` для автодеплоя
 - [ ] Настроить pre-commit hooks (Husky + lint-staged):
   - ESLint на измененных файлах
   - Prettier форматирование
   - TypeScript проверка
+
+**Статус:** CI pipeline настроен. Созданы workflows для автоматической проверки кода (lint, tests, build) и валидации Prisma схемы при каждом push/PR.
 
 ### 7. Database Migrations
 
