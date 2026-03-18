@@ -239,6 +239,31 @@ All API routes use centralized error handling via `withErrorHandling` middleware
 
 When creating new API routes, always wrap handlers with `withErrorHandling` and throw typed errors instead of returning error responses manually.
 
+## Request Validation
+
+Use Zod schemas for type-safe request validation (`src/lib/validation.ts`):
+
+```typescript
+import { validateRequest } from "@/lib/validate-request";
+import { createCourseSchema } from "@/lib/validation";
+
+export const POST = withErrorHandling(async (req: Request) => {
+  // Validate and parse request body
+  const { title, description, capacity } = await validateRequest(req, createCourseSchema);
+
+  // Data is now type-safe and validated
+  // ...
+});
+```
+
+Benefits:
+- Automatic validation with clear error messages
+- Type safety (TypeScript infers types from schemas)
+- Reusable schemas across routes
+- Consistent validation logic
+
+Available schemas in `src/lib/validation.ts`: `createCourseSchema`, `createStreamSchema`, `createLessonSchema`, `submitQuizSchema`, `changePasswordSchema`, and more.
+
 ## UI Language
 
 All user-facing text is hardcoded in **Russian**. No internationalization library is used. When adding new features:

@@ -5,6 +5,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ValidationError } from "@/lib/errors";
+import { validateRequest } from "@/lib/validate-request";
+import { changePasswordSchema } from "@/lib/validation";
 
 /**
  * POST /api/teacher/change-password
@@ -20,21 +22,8 @@ export const POST = withErrorHandling(async (req: Request) => {
     throw new AuthError("Unauthorized");
   }
 
-  const body = await req.json();
-  const currentPassword = (body?.currentPassword ?? "") as string;
-  const newPassword = (body?.newPassword ?? "") as string;
-
-  if (!currentPassword || !newPassword) {
-    const errors: Record<string, string> = {};
-    if (!currentPassword) errors.currentPassword = "Current password is required";
-    if (!newPassword) errors.newPassword = "New password is required";
-    throw new ValidationError("Заполните все поля", errors);
-  }
-  if (newPassword.length < 8) {
-    throw new ValidationError("Новый пароль должен содержать не менее 8 символов", {
-      newPassword: "Password must be at least 8 characters",
-    });
-  }
+  // Validate request body with Zod
+  const { currentPassword, newPassword } = await validateRequest(req, changePasswordSchema);
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },

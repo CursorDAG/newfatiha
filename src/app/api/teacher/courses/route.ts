@@ -3,7 +3,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from '@/lib/api-handler';
-import { AuthError, ValidationError } from '@/lib/errors';
+import { AuthError } from '@/lib/errors';
+import { validateRequest } from '@/lib/validate-request';
+import { createCourseSchema } from '@/lib/validation';
 
 // GET: fetch teacher's courses
 export const GET = withErrorHandling(async () => {
@@ -32,17 +34,15 @@ export const POST = withErrorHandling(async (req: Request) => {
     throw new AuthError('Unauthorized');
   }
 
-  const { title, description, capacity, published } = await req.json();
-  if (!title?.trim()) {
-    throw new ValidationError('Title is required', { title: 'Title is required' });
-  }
+  // Validate request body with Zod
+  const { title, description, capacity, published } = await validateRequest(req, createCourseSchema);
 
   const course = await prisma.course.create({
     data: {
-      title: title.trim(),
-      description: description?.trim() || null,
-      capacity: Number(capacity) || 30,
-      published: Boolean(published),
+      title,
+      description,
+      capacity,
+      published,
       teacherId: session.user.id,
     }
   });

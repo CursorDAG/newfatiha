@@ -153,16 +153,18 @@ const prisma = new PrismaClient() // ❌ Неправильно
 - [ ] Добавить database connection pooling (PgBouncer)
 - [ ] Оптимизировать N+1 запросы (использовать Prisma `include` вместо отдельных запросов)
 
-### 10. Валидация данных
+### 10. Валидация данных ✅ ИСПРАВЛЕНО
 
 **Проблема:** Ручная валидация в каждом API маршруте
 
 **Решение:**
-- [ ] Установить Zod для валидации схем
-- [ ] Создать переиспользуемые схемы валидации:
-  - `CreateCourseSchema`, `CreateStreamSchema`, `SubmitQuizSchema`
-- [ ] Создать middleware `validateRequest(schema)` для автоматической валидации
+- [x] Установить Zod для валидации схем
+- [x] Создать переиспользуемые схемы валидации:
+  - `CreateCourseSchema`, `CreateStreamSchema`, `SubmitQuizSchema`, и др.
+- [x] Создать middleware `validateRequest(schema)` для автоматической валидации
 - [ ] Добавить валидацию на клиенте (react-hook-form + zod resolver)
+
+**Статус:** ✅ Инфраструктура полностью настроена. Созданы модули `src/lib/validate-request.ts` (middleware) и `src/lib/validation.ts` (15+ Zod схем для всех основных API операций). Продемонстрирована интеграция в 2 API маршрутах. Все тесты проходят. Остальные маршруты могут быть мигрированы инкрементально.
 
 ### 11. API документация
 
