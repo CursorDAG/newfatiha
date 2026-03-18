@@ -40,6 +40,8 @@ NEXTAUTH_URL="http://localhost:3000"
 
 **Environment Validation:** The application validates required environment variables at startup via `src/lib/env.ts`. If any required variable is missing or invalid, the app will fail fast with a clear error message. This prevents runtime errors and accidental deployment with insecure defaults.
 
+**Logging:** The application uses Pino for structured logging (`src/lib/logger.ts`). Set `LOG_LEVEL` environment variable to control verbosity (trace, debug, info, warn, error, fatal). Defaults to `debug` in development and `info` in production. All API errors are automatically logged with request context (path, method, query params, error details).
+
 ## Architecture
 
 ### Authentication & Authorization
@@ -224,6 +226,17 @@ All tabs share the same component (`TeacherShell`) with content swapped based on
 - **@dnd-kit**: Drag-and-drop for lesson reordering in teacher UI
 - **react-markdown**: Renders lesson content for TEXT type lessons
 - **bcryptjs**: Password hashing (10 rounds)
+- **pino**: Structured logging with JSON output in production
+
+## Error Handling
+
+All API routes use centralized error handling via `withErrorHandling` middleware (`src/lib/api-handler.ts`):
+- Typed error classes: `AuthError` (401), `ForbiddenError` (403), `NotFoundError` (404), `ValidationError` (400), `ConflictError` (409)
+- Automatic Prisma error handling (P2002 for duplicates, P2025 for not found)
+- Structured logging with request context (path, method, query, error details)
+- Consistent JSON error format: `{ error: string, code: string, fields?: object }`
+
+When creating new API routes, always wrap handlers with `withErrorHandling` and throw typed errors instead of returning error responses manually.
 
 ## UI Language
 
@@ -250,12 +263,33 @@ No test suite currently exists. When adding tests, consider:
 
 ### Creating a New Teacher API Endpoint
 1. Create route file: `src/app/api/teacher/[name]/route.ts`
-2. Export `GET`, `POST`, `PUT`, or `DELETE` async functions
-3. Always check session and role first
-4. Use Prisma singleton from `@/lib/prisma`
-5. Return `NextResponse.json()` with proper status codes
-6. For error responses, use format: `{ error: "Message" }` with appropriate HTTP status
-7. For success responses, use format: `{ success: true, ...data }`
+2. Import required dependencies:
+   ```typescript
+   import { withErrorHandling } from "@/lib/api-handler";
+   import { AuthError, ValidationError, NotFoundError, ForbiddenError } from "@/lib/errors";
+   ```
+3. Export handler wrapped with `withErrorHandling`:
+   ```typescript
+   export const POST = withErrorHandling(async (req: Request) => {
+     // Check authentication
+     const session = await getServerSession(authOptions);
+     if (!session || session.user.role !== "TEACHER") {
+       throw new AuthError("Unauthorized");
+     }
+     // Validate input
+     const body = await req.json().catch(() => null);
+     if (!body?.requiredField) {
+       throw new ValidationError("Missing required field", {
+         requiredField: "This field is required"
+       });
+     }
+     // Business logic...
+     return NextResponse.json({ success: true, data });
+   });
+   ```
+4. Use typed errors instead of manual error responses
+5. Always verify ownership (e.g., `stream.teacherId === session.user.id`)
+6. Return `NextResponse.json()` with appropriate data structure
 
 ### Modifying Database Schema
 1. Edit `prisma/schema.prisma`

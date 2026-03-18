@@ -5,6 +5,7 @@
 
 import { NextResponse } from "next/server";
 import { AppError, ValidationError } from "./errors";
+import { logger } from "./logger";
 
 type ApiHandler<T = unknown> = (
   req: Request,
@@ -23,13 +24,20 @@ export function withErrorHandling<T = unknown>(
     try {
       return await handler(req, context);
     } catch (error) {
-      // Log error (in production, this would go to a logging service)
-      console.error("[API Error]", {
-        path: new URL(req.url).pathname,
-        method: req.method,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-      });
+      // Structured logging with context
+      const url = new URL(req.url);
+      logger.error(
+        {
+          path: url.pathname,
+          method: req.method,
+          query: Object.fromEntries(url.searchParams),
+          errorType: error instanceof Error ? error.constructor.name : typeof error,
+          errorMessage: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          statusCode: error instanceof AppError ? error.statusCode : 500,
+        },
+        "API request failed"
+      );
 
       // Handle known application errors
       if (error instanceof AppError) {
