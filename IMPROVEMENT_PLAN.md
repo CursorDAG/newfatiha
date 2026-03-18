@@ -10,7 +10,7 @@
 
 ## 🔴 Критические проблемы (требуют немедленного решения)
 
-### 1. Безопасность
+### 1. Безопасность ⚠️ В ПРОЦЕССЕ
 
 **Проблема:** Fallback секреты в коде, отсутствие JWT токенов для Jitsi
 ```typescript
@@ -19,13 +19,18 @@ secret: process.env.NEXTAUTH_SECRET || "fallback_secret_for_dev"
 ```
 
 **Решение:**
-- [ ] Удалить все fallback секреты, приложение должно падать без env переменных
-- [ ] Создать `.env.example` с документацией всех переменных
-- [ ] Добавить валидацию env переменных при старте (библиотека `zod` или `envalid`)
+- [x] Удалить все fallback секреты, приложение должно падать без env переменных
+- [x] Создать `.env.example` с документацией всех переменных
+- [x] Добавить валидацию env переменных при старте (создан `src/lib/env.ts`)
 - [ ] Реализовать JWT токены для Jitsi Meet (защита от несанкционированного доступа)
 - [ ] Добавить rate limiting на API маршруты (библиотека `@upstash/ratelimit` или `express-rate-limit`)
 
-### 2. Дублирование PrismaClient
+**Статус:** Частично исправлено в commit [pending]. Удалены fallback секреты из:
+- `src/app/api/auth/[...nextauth]/route.ts`
+- `src/middleware.ts`
+Создан `.env.example` и модуль валидации `src/lib/env.ts`.
+
+### 2. Дублирование PrismaClient ✅ ИСПРАВЛЕНО
 
 **Проблема:** В `src/app/api/auth/[...nextauth]/route.ts` создается новый `PrismaClient()` вместо использования синглтона
 ```typescript
@@ -33,8 +38,13 @@ const prisma = new PrismaClient() // ❌ Неправильно
 ```
 
 **Решение:**
-- [ ] Заменить на `import { prisma } from "@/lib/prisma"`
+- [x] Заменить на `import { prisma } from "@/lib/prisma"` (исправлено в 3 файлах)
 - [ ] Добавить ESLint правило, запрещающее `new PrismaClient()`
+
+**Статус:** Исправлено в commit cda5d12. Заменено в:
+- `src/app/api/auth/[...nextauth]/route.ts`
+- `src/app/api/activity/heartbeat/route.ts`
+- `src/app/join/[token]/page.tsx`
 
 ### 3. Хранение голосовых записей в PostgreSQL
 
