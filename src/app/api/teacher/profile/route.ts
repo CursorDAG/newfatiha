@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ValidationError } from "@/lib/errors";
 
 /**
  * PATCH /api/teacher/profile
@@ -9,13 +11,13 @@ import { prisma } from "@/lib/prisma";
  * Body: { name?: string; bio?: string | null; skills?: string[] }
  * At least one field must be present.
  */
-export async function PATCH(req: Request) {
+export const PATCH = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (
     !session?.user?.id ||
     (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")
   ) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const body = await req.json();
@@ -26,10 +28,10 @@ export async function PATCH(req: Request) {
   if (body?.name !== undefined) {
     const name = (body.name as string).trim();
     if (!name) {
-      return NextResponse.json({ error: "Имя не может быть пустым" }, { status: 400 });
+      throw new ValidationError("Имя не может быть пустым", { name: "Name cannot be empty" });
     }
     if (name.length > 100) {
-      return NextResponse.json({ error: "Имя не должно превышать 100 символов" }, { status: 400 });
+      throw new ValidationError("Имя не должно превышать 100 символов", { name: "Name must not exceed 100 characters" });
     }
     updateData.name = name;
   }
@@ -38,7 +40,7 @@ export async function PATCH(req: Request) {
   if (body?.bio !== undefined) {
     const bio = body.bio === null ? null : (body.bio as string).trim() || null;
     if (bio && bio.length > 1000) {
-      return NextResponse.json({ error: "Биография не должна превышать 1000 символов" }, { status: 400 });
+      throw new ValidationError("Биография не должна превышать 1000 символов", { bio: "Bio must not exceed 1000 characters" });
     }
     updateData.bio = bio;
   }
@@ -46,7 +48,7 @@ export async function PATCH(req: Request) {
   // skills
   if (body?.skills !== undefined) {
     if (!Array.isArray(body.skills)) {
-      return NextResponse.json({ error: "skills должен быть массивом" }, { status: 400 });
+      throw new ValidationError("skills должен быть массивом", { skills: "Skills must be an array" });
     }
     const skills: string[] = (body.skills as unknown[])
       .filter((s) => typeof s === "string" && (s as string).trim().length > 0)
@@ -54,17 +56,14 @@ export async function PATCH(req: Request) {
       .slice(0, 20);
     for (const skill of skills) {
       if (skill.length > 50) {
-        return NextResponse.json(
-          { error: `Тег «${skill}» превышает 50 символов` },
-          { status: 400 },
-        );
+        throw new ValidationError(`Тег «${skill}» превышает 50 символов`, { skills: `Tag "${skill}" exceeds 50 characters` });
       }
     }
     updateData.skills = skills;
   }
 
   if (Object.keys(updateData).length === 0) {
-    return NextResponse.json({ error: "Нет полей для обновления" }, { status: 400 });
+    throw new ValidationError("Нет полей для обновления");
   }
 
   await prisma.user.update({
@@ -73,4 +72,4 @@ export async function PATCH(req: Request) {
   });
 
   return NextResponse.json({ success: true });
-}
+});

@@ -7,6 +7,8 @@ import {
 } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { bestQuizStatusWithTimestamp } from "@/lib/quiz";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError } from "@/lib/errors";
 
 export type StudentLessonProgress = {
   lessonId: string;
@@ -27,14 +29,15 @@ export type StudentProgressPayload = {
   lessons: StudentLessonProgress[];
 };
 
-export async function GET(
+export const GET = withErrorHandling(async (
   _req: Request,
-  context: { params: Promise<{ enrollmentId: string }> },
-) {
-  const { enrollmentId } = await context.params;
+  context?: { params: Promise<Record<string, string>> },
+) => {
+  const params = await context!.params;
+  const enrollmentId = params.enrollmentId;
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const enrollment = await prisma.enrollment.findUnique({
@@ -53,11 +56,11 @@ export async function GET(
   });
 
   if (!enrollment) {
-    return NextResponse.json({ error: "Enrollment not found" }, { status: 404 });
+    throw new NotFoundError("Enrollment");
   }
 
   if (session.user.role !== "ADMIN" && enrollment.stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this enrollment");
   }
 
   const lessonIds = enrollment.stream.lessons.map((l) => l.id);
@@ -191,5 +194,5 @@ export async function GET(
   };
 
   return NextResponse.json(payload);
-}
+});
 

@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { LessonType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 
 type CreateLessonBody = {
   streamId?: string;
@@ -18,24 +20,25 @@ type ReorderLessonsBody = {
   lessonIdsInOrder?: string[];
 };
 
-export async function POST(req: Request) {
+export const POST = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const body = (await req.json().catch(() => null)) as CreateLessonBody | null;
   if (!body) {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    throw new ValidationError("Invalid JSON");
   }
 
   const { streamId, title, type, content, sortOrder, teacherNotes } = body;
 
   if (!streamId || !title || !type) {
-    return NextResponse.json(
-      { error: "streamId, title и type являются обязательными полями" },
-      { status: 400 }
-    );
+    const errors: Record<string, string> = {};
+    if (!streamId) errors.streamId = "Stream ID is required";
+    if (!title) errors.title = "Title is required";
+    if (!type) errors.type = "Type is required";
+    throw new ValidationError("streamId, title и type являются обязательными полями", errors);
   }
 
   const normalizedType =
@@ -44,7 +47,7 @@ export async function POST(req: Request) {
       : null;
 
   if (!normalizedType) {
-    return NextResponse.json({ error: "Некорректный тип урока" }, { status: 400 });
+    throw new ValidationError("Некорректный тип урока", { type: "Invalid lesson type" });
   }
 
   const stream = await prisma.stream.findUnique({
@@ -53,11 +56,11 @@ export async function POST(req: Request) {
   });
 
   if (!stream) {
-    return NextResponse.json({ error: "Поток не найден" }, { status: 404 });
+    throw new NotFoundError("Поток не найден");
   }
 
   if (session.user.role !== "ADMIN" && stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this stream");
   }
 
   const targetSortOrder =
@@ -83,25 +86,25 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ success: true, lesson });
-}
+});
 
-export async function PATCH(req: Request) {
+export const PATCH = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const body = (await req.json().catch(() => null)) as ReorderLessonsBody | null;
   if (!body) {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    throw new ValidationError("Invalid JSON");
   }
 
   const { streamId, lessonIdsInOrder } = body;
   if (!streamId || !Array.isArray(lessonIdsInOrder) || !lessonIdsInOrder.length) {
-    return NextResponse.json(
-      { error: "streamId и lessonIdsInOrder обязательны" },
-      { status: 400 }
-    );
+    const errors: Record<string, string> = {};
+    if (!streamId) errors.streamId = "Stream ID is required";
+    if (!Array.isArray(lessonIdsInOrder) || !lessonIdsInOrder.length) errors.lessonIdsInOrder = "Lesson IDs are required";
+    throw new ValidationError("streamId и lessonIdsInOrder обязательны", errors);
   }
 
   const stream = await prisma.stream.findUnique({
@@ -110,11 +113,11 @@ export async function PATCH(req: Request) {
   });
 
   if (!stream) {
-    return NextResponse.json({ error: "Поток не найден" }, { status: 404 });
+    throw new NotFoundError("Поток не найден");
   }
 
   if (session.user.role !== "ADMIN" && stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this stream");
   }
 
   const existingLessons = await prisma.lesson.findMany({
@@ -124,10 +127,9 @@ export async function PATCH(req: Request) {
   const existingIds = new Set(existingLessons.map((l) => l.id));
 
   if (!lessonIdsInOrder.every((id) => existingIds.has(id))) {
-    return NextResponse.json(
-      { error: "lessonIdsInOrder содержит уроки, не принадлежащие потоку" },
-      { status: 400 }
-    );
+    throw new ValidationError("lessonIdsInOrder содержит уроки, не принадлежащие потоку", {
+      lessonIdsInOrder: "Some lesson IDs do not belong to this stream",
+    });
   }
 
   await prisma.$transaction(
@@ -140,5 +142,5 @@ export async function PATCH(req: Request) {
   );
 
   return NextResponse.json({ success: true });
-}
+});
 

@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { ActivityKind } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 
 const RETENTION_DAYS = 30;
 const MAX_SESSION_MS = 4 * 60 * 60 * 1000; // safety cap per session
@@ -27,17 +29,19 @@ function sessionDurationMs(s: { startedAt: Date; lastSeenAt: Date; endedAt: Date
   return Math.min(ms, MAX_SESSION_MS);
 }
 
-export async function GET(req: Request) {
+export const GET = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   await purgeOldActivitySessions();
 
   const url = new URL(req.url);
   const streamId = url.searchParams.get("streamId");
-  if (!streamId) return NextResponse.json({ error: "streamId is required" }, { status: 400 });
+  if (!streamId) {
+    throw new ValidationError("streamId is required", { streamId: "Stream ID is required" });
+  }
 
   const stream = await prisma.stream.findUnique({
     where: { id: streamId },
@@ -50,9 +54,9 @@ export async function GET(req: Request) {
     },
   });
 
-  if (!stream) return NextResponse.json({ error: "Stream not found" }, { status: 404 });
+  if (!stream) throw new NotFoundError("Stream");
   if (session.user.role !== "ADMIN" && stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this stream");
   }
 
   const c = cutoff();
@@ -159,5 +163,5 @@ export async function GET(req: Request) {
     retentionDays: RETENTION_DAYS,
     students,
   });
-}
+});
 

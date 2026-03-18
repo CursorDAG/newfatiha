@@ -1,29 +1,32 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError } from "@/lib/errors";
 
-export async function GET(
+export const GET = withErrorHandling(async (
   _req: Request,
-  context: { params: Promise<{ submissionId: string }> },
-) {
-  const { submissionId } = await context.params;
+  context?: { params: Promise<Record<string, string>> },
+) => {
+  const params = await context!.params;
+  const submissionId = params.submissionId;
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return new Response("Unauthorized", { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const submission = await prisma.lessonQuizSubmission.findUnique({
     where: { id: submissionId },
     include: { quiz: { include: { lesson: { include: { stream: true } } } } },
   });
-  if (!submission) return new Response("Not found", { status: 404 });
+  if (!submission) throw new NotFoundError("Submission");
 
   if (session.user.role !== "ADMIN" && submission.quiz.lesson.stream.teacherId !== session.user.id) {
-    return new Response("Forbidden", { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this audio");
   }
 
   if (!submission.voiceData || !submission.voiceMimeType) {
-    return new Response("No audio", { status: 404 });
+    throw new NotFoundError("No audio");
   }
 
   return new Response(submission.voiceData, {
@@ -33,5 +36,5 @@ export async function GET(
       "Cache-Control": "no-store",
     },
   });
-}
+});
 

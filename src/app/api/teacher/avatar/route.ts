@@ -4,6 +4,8 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ValidationError } from "@/lib/errors";
 
 const MAX_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB
 const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -19,41 +21,39 @@ const EXT_MAP: Record<string, string> = {
  * Accepts multipart/form-data with a "file" field.
  * Saves to public/uploads/avatars/{userId}.{ext} and updates user.avatar.
  */
-export async function POST(req: Request) {
+export const POST = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (
     !session?.user?.id ||
     (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")
   ) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   let formData: FormData;
   try {
     formData = await req.formData();
   } catch {
-    return NextResponse.json({ error: "Невалидный multipart запрос" }, { status: 400 });
+    throw new ValidationError("Невалидный multipart запрос");
   }
 
   const file = formData.get("file");
   if (!file || typeof file === "string") {
-    return NextResponse.json({ error: "Файл не найден в запросе" }, { status: 400 });
+    throw new ValidationError("Файл не найден в запросе", { file: "File is required" });
   }
 
   const mimeType = file.type;
   if (!ALLOWED_MIME.includes(mimeType)) {
-    return NextResponse.json(
-      { error: "Допустимые форматы: JPEG, PNG, WebP, GIF" },
-      { status: 400 },
-    );
+    throw new ValidationError("Допустимые форматы: JPEG, PNG, WebP, GIF", {
+      file: "Allowed formats: JPEG, PNG, WebP, GIF",
+    });
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
   if (buffer.byteLength > MAX_SIZE_BYTES) {
-    return NextResponse.json(
-      { error: "Размер файла не должен превышать 2 МБ" },
-      { status: 400 },
-    );
+    throw new ValidationError("Размер файла не должен превышать 2 МБ", {
+      file: "File size must not exceed 2 MB",
+    });
   }
 
   const ext = EXT_MAP[mimeType] ?? "jpg";
@@ -71,4 +71,4 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ success: true, url: avatarUrl });
-}
+});

@@ -2,16 +2,19 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 
 const MAX_VOICE_BYTES = 7 * 1024 * 1024; // ~7MB
 
-export async function POST(
+export const POST = withErrorHandling(async (
   req: Request,
-  context: { params: Promise<{ quizId: string }> },
-) {
-  const { quizId } = await context.params;
+  context?: { params: Promise<Record<string, string>> },
+) => {
+  const params = await context!.params;
+  const quizId = params.quizId;
   const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) throw new AuthError("Unauthorized");
 
   const quiz = await prisma.lessonQuiz.findUnique({
     where: { id: quizId },
@@ -32,21 +35,25 @@ export async function POST(
     },
   });
 
-  if (!quiz) return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
+  if (!quiz) throw new NotFoundError("Quiz");
 
   const isTeacher = session.user.role === "TEACHER" || session.user.role === "ADMIN";
   const isEnrolled = quiz.lesson.stream.enrollments.length > 0;
-  if (!isTeacher && !isEnrolled) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!isTeacher && !isEnrolled) throw new ForbiddenError("You do not have permission to submit this quiz");
 
   const body = await req.json().catch(() => null);
-  if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  if (!body) throw new ValidationError("Invalid JSON");
 
   if (quiz.type === "MULTIPLE_CHOICE") {
     const { selectedOptionId }: { selectedOptionId?: string } = body;
-    if (!selectedOptionId) return NextResponse.json({ error: "selectedOptionId is required" }, { status: 400 });
+    if (!selectedOptionId) {
+      throw new ValidationError("selectedOptionId is required", { selectedOptionId: "Option ID is required" });
+    }
 
     const optionExists = quiz.questions.some((q) => q.options.some((o) => o.id === selectedOptionId));
-    if (!optionExists) return NextResponse.json({ error: "Invalid option" }, { status: 400 });
+    if (!optionExists) {
+      throw new ValidationError("Invalid option", { selectedOptionId: "Invalid option ID" });
+    }
 
     const submission = await prisma.lessonQuizSubmission.upsert({
       where: { quizId_studentId: { quizId: quiz.id, studentId: session.user.id } },
@@ -78,12 +85,15 @@ export async function POST(
     }: { voiceBase64?: string; voiceMimeType?: string; voiceDurationMs?: number } = body;
 
     if (!voiceBase64 || !voiceMimeType) {
-      return NextResponse.json({ error: "voiceBase64 and voiceMimeType are required" }, { status: 400 });
+      const errors: Record<string, string> = {};
+      if (!voiceBase64) errors.voiceBase64 = "Voice data is required";
+      if (!voiceMimeType) errors.voiceMimeType = "Voice MIME type is required";
+      throw new ValidationError("voiceBase64 and voiceMimeType are required", errors);
     }
 
     const bytes = Buffer.from(voiceBase64, "base64");
     if (!bytes.length || bytes.length > MAX_VOICE_BYTES) {
-      return NextResponse.json({ error: "Invalid voice size" }, { status: 400 });
+      throw new ValidationError("Invalid voice size", { voiceBase64: "Voice size must be between 1 byte and 7MB" });
     }
 
     const submission = await prisma.lessonQuizSubmission.upsert({
@@ -110,6 +120,6 @@ export async function POST(
     return NextResponse.json({ success: true, submissionId: submission.id });
   }
 
-  return NextResponse.json({ error: "Unsupported quiz type" }, { status: 400 });
-}
+  throw new ValidationError("Unsupported quiz type", { type: "Quiz type not supported" });
+});
 

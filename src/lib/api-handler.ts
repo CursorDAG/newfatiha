@@ -9,7 +9,7 @@ import { AppError, ValidationError } from "./errors";
 type ApiHandler<T = unknown> = (
   req: Request,
   context?: { params: Promise<Record<string, string>> }
-) => Promise<NextResponse<T | Record<string, unknown>>>;
+) => Promise<NextResponse<T | Record<string, unknown>> | Response>;
 
 /**
  * Wraps an API route handler with error handling

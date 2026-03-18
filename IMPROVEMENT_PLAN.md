@@ -85,11 +85,11 @@ const prisma = new PrismaClient() // ❌ Неправильно
 **Решение:**
 - [x] Создать типизированные error классы (`AuthError`, `ValidationError`, `NotFoundError`)
 - [x] Создать middleware для обработки ошибок API маршрутов (`withErrorHandling`)
-- [ ] Обернуть все API handlers в `withErrorHandling` HOF
+- [x] Обернуть все API handlers в `withErrorHandling` HOF (29 маршрутов обновлено)
 - [ ] Добавить структурированное логирование (Winston или Pino)
 - [ ] Интегрировать Sentry для отслеживания ошибок в production
 
-**Статус:** Базовая инфраструктура создана. Реализованы типизированные error классы с тестами (10 тестов, 100% coverage) и middleware `withErrorHandling` для централизованной обработки ошибок в API маршрутах.
+**Статус:** Централизованная обработка ошибок полностью внедрена. Все 29 API маршрутов обернуты в `withErrorHandling` middleware. Ошибки теперь возвращают консистентный JSON формат с правильными HTTP статусами. Prisma ошибки (P2002, P2025) обрабатываются автоматически.
 
 ### 6. CI/CD Pipeline ✅ ИСПРАВЛЕНО
 

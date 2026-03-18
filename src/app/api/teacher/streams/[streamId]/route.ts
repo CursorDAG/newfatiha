@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError, ConflictError } from "@/lib/errors";
 
 type SlotInput = {
   dayOfWeek: number;
@@ -86,31 +88,32 @@ function sameSlots(a: SlotInput[], b: SlotInput[]) {
   return true;
 }
 
-export async function PATCH(
+export const PATCH = withErrorHandling(async (
   req: Request,
-  context: { params: Promise<{ streamId: string }> }
-) {
+  context?: { params: Promise<Record<string, string>> }
+) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
-  const { streamId } = await context.params;
+  const params = await context!.params;
+  const streamId = params.streamId;
 
   const stream = await prisma.stream.findUnique({
     where: { id: streamId },
     select: { id: true, teacherId: true, courseId: true },
   });
   if (!stream) {
-    return NextResponse.json({ error: "Поток не найден" }, { status: 404 });
+    throw new NotFoundError("Поток не найден");
   }
   if (session.user.role !== "ADMIN" && stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this stream");
   }
 
   const body = (await req.json().catch(() => null)) as UpdateStreamBody | null;
   if (!body) {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    throw new ValidationError("Invalid JSON");
   }
 
   const data: UpdateStreamBody = {};
@@ -119,7 +122,7 @@ export async function PATCH(
   if (typeof body.color === "string" && body.color.trim()) {
     const c = body.color.trim();
     if (!isHexColor(c)) {
-      return NextResponse.json({ error: "Некорректный цвет (hex)" }, { status: 400 });
+      throw new ValidationError("Некорректный цвет (hex)", { color: "Invalid hex color" });
     }
     data.color = c;
   }
@@ -129,28 +132,36 @@ export async function PATCH(
       where: { id: body.courseId },
       select: { id: true, teacherId: true },
     });
-    if (!course) return NextResponse.json({ error: "Курс не найден" }, { status: 404 });
+    if (!course) throw new NotFoundError("Курс не найден");
     if (session.user.role !== "ADMIN" && course.teacherId !== session.user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      throw new ForbiddenError("You do not have permission to access this course");
     }
     data.courseId = course.id;
   }
 
   const inputSlots = Array.isArray(body.slots) ? body.slots : null;
   if (!inputSlots) {
-    return NextResponse.json({ error: "slots обязательны (полная замена расписания)" }, { status: 400 });
+    throw new ValidationError("slots обязательны (полная замена расписания)", {
+      slots: "Slots are required",
+    });
   }
 
   if (!inputSlots.length) {
-    return NextResponse.json({ error: "Выберите хотя бы один слот расписания" }, { status: 400 });
+    throw new ValidationError("Выберите хотя бы один слот расписания", {
+      slots: "At least one schedule slot is required",
+    });
   }
   if (!inputSlots.every(isValidSlot)) {
-    return NextResponse.json({ error: "Некорректные слоты расписания" }, { status: 400 });
+    throw new ValidationError("Некорректные слоты расписания", {
+      slots: "Invalid schedule slots",
+    });
   }
   for (let i = 0; i < inputSlots.length; i++) {
     for (let j = i + 1; j < inputSlots.length; j++) {
       if (overlaps(inputSlots[i], inputSlots[j])) {
-        return NextResponse.json({ error: "Слоты текущего потока пересекаются между собой" }, { status: 400 });
+        throw new ValidationError("Слоты текущего потока пересекаются между собой", {
+          slots: "Schedule slots overlap with each other",
+        });
       }
     }
   }
@@ -180,10 +191,7 @@ export async function PATCH(
             durationMinutes: ex.durationMinutes,
           })
         ) {
-          return NextResponse.json(
-            { error: `Конфликт расписания: слот пересекается с потоком «${ex.stream.name}»` },
-            { status: 400 },
-          );
+          throw new ConflictError(`Конфликт расписания: слот пересекается с потоком «${ex.stream.name}»`);
         }
       }
     }
@@ -212,38 +220,36 @@ export async function PATCH(
   });
 
   return NextResponse.json({ success: true, stream: updated });
-}
+});
 
-export async function DELETE(
+export const DELETE = withErrorHandling(async (
   _req: Request,
-  context: { params: Promise<{ streamId: string }> }
-) {
+  context?: { params: Promise<Record<string, string>> }
+) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
-  const { streamId } = await context.params;
+  const params = await context!.params;
+  const streamId = params.streamId;
 
   const stream = await prisma.stream.findUnique({
     where: { id: streamId },
     include: { _count: { select: { enrollments: true, lessons: true } } },
   });
   if (!stream) {
-    return NextResponse.json({ error: "Поток не найден" }, { status: 404 });
+    throw new NotFoundError("Поток не найден");
   }
   if (session.user.role !== "ADMIN" && stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this stream");
   }
 
   if (stream._count.enrollments > 0 || stream._count.lessons > 0) {
-    return NextResponse.json(
-      { error: "Нельзя удалить поток: в нём есть ученики или уроки" },
-      { status: 400 }
-    );
+    throw new ConflictError("Нельзя удалить поток: в нём есть ученики или уроки");
   }
 
   await prisma.stream.delete({ where: { id: stream.id } });
   return NextResponse.json({ success: true });
-}
+});
 

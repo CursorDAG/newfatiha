@@ -6,6 +6,8 @@ import {
   QuizSubmissionStatus,
 } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 
 export type GradebookLessonCellKind = "HOMEWORK" | "QUIZ";
 
@@ -52,16 +54,16 @@ function bestQuizStatus(
   return "SUBMITTED";
 }
 
-export async function GET(req: Request) {
+export const GET = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const url = new URL(req.url);
   const streamId = url.searchParams.get("streamId");
   if (!streamId) {
-    return NextResponse.json({ error: "streamId is required" }, { status: 400 });
+    throw new ValidationError("streamId is required", { streamId: "Stream ID is required" });
   }
 
   const stream = await prisma.stream.findUnique({
@@ -79,10 +81,10 @@ export async function GET(req: Request) {
   });
 
   if (!stream) {
-    return NextResponse.json({ error: "Stream not found" }, { status: 404 });
+    throw new NotFoundError("Stream");
   }
   if (session.user.role !== "ADMIN" && stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this stream");
   }
 
   if (!stream.lessons.length || !stream.enrollments.length) {
@@ -228,5 +230,5 @@ export async function GET(req: Request) {
   };
 
   return NextResponse.json(payload);
-}
+});
 

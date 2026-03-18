@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { withErrorHandling } from '@/lib/api-handler';
+import { NotFoundError, ConflictError, ValidationError } from '@/lib/errors';
 
 // GET /api/join/[token] — validate invite token before student joins
-export async function GET(
+export const GET = withErrorHandling(async (
   _req: Request,
-  context: { params: Promise<{ token: string }> },
-) {
-  const { token } = await context.params;
+  context?: { params: Promise<Record<string, string>> },
+) => {
+  const params = await context!.params;
+  const token = params.token;
 
   const invite = await prisma.inviteToken.findUnique({
     where: { token },
@@ -21,7 +24,7 @@ export async function GET(
   });
 
   if (!invite) {
-    return NextResponse.json({ error: 'Invite link is invalid or expired.' }, { status: 404 });
+    throw new NotFoundError('Invite link is invalid or expired');
   }
 
   const { stream } = invite;
@@ -29,7 +32,7 @@ export async function GET(
   const capacity = stream.course.capacity;
 
   if (activeCount >= capacity) {
-    return NextResponse.json({ error: 'Group is full. Contact your teacher.' }, { status: 409 });
+    throw new ConflictError('Group is full. Contact your teacher.');
   }
 
   return NextResponse.json({
@@ -40,16 +43,19 @@ export async function GET(
     schedule: stream.schedule,
     remaining: capacity - activeCount,
   });
-}
+});
 
 // POST /api/join/[token] — enroll authenticated student
-export async function POST(
+export const POST = withErrorHandling(async (
   req: Request,
-  context: { params: Promise<{ token: string }> },
-) {
-  const { token } = await context.params;
+  context?: { params: Promise<Record<string, string>> },
+) => {
+  const params = await context!.params;
+  const token = params.token;
   const { userId } = await req.json();
-  if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
+  if (!userId) {
+    throw new ValidationError('Missing userId', { userId: 'User ID is required' });
+  }
 
   const invite = await prisma.inviteToken.findUnique({
     where: { token },
@@ -63,13 +69,15 @@ export async function POST(
     }
   });
 
-  if (!invite) return NextResponse.json({ error: 'Invalid invite.' }, { status: 404 });
+  if (!invite) {
+    throw new NotFoundError('Invalid invite');
+  }
 
   const { stream } = invite;
   const activeCount = stream._count.enrollments;
 
   if (activeCount >= stream.course.capacity) {
-    return NextResponse.json({ error: 'Group is full.' }, { status: 409 });
+    throw new ConflictError('Group is full');
   }
 
   const enrollment = await prisma.enrollment.upsert({
@@ -79,4 +87,4 @@ export async function POST(
   });
 
   return NextResponse.json({ success: true, enrollment });
-}
+});

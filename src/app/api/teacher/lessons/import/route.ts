@@ -2,15 +2,17 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 
-export async function POST(req: Request) {
+export const POST = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const body = await req.json().catch(() => null);
-  if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  if (!body) throw new ValidationError("Invalid JSON");
 
   const { fromStreamId, toStreamId, lessonIds } = body as {
     fromStreamId?: string;
@@ -18,13 +20,20 @@ export async function POST(req: Request) {
     lessonIds?: string[];
   };
   if (!fromStreamId || !toStreamId) {
-    return NextResponse.json({ error: "fromStreamId and toStreamId are required" }, { status: 400 });
+    const errors: Record<string, string> = {};
+    if (!fromStreamId) errors.fromStreamId = "Source stream ID is required";
+    if (!toStreamId) errors.toStreamId = "Target stream ID is required";
+    throw new ValidationError("fromStreamId and toStreamId are required", errors);
   }
   if (fromStreamId === toStreamId) {
-    return NextResponse.json({ error: "Streams must be different" }, { status: 400 });
+    throw new ValidationError("Streams must be different", {
+      toStreamId: "Target stream must be different from source stream",
+    });
   }
   if (!Array.isArray(lessonIds) || lessonIds.length === 0) {
-    return NextResponse.json({ error: "Выберите хотя бы один урок" }, { status: 400 });
+    throw new ValidationError("Выберите хотя бы один урок", {
+      lessonIds: "At least one lesson must be selected",
+    });
   }
 
   const [fromStream, toStream] = await Promise.all([
@@ -47,17 +56,19 @@ export async function POST(req: Request) {
   ]);
 
   if (!fromStream || !toStream) {
-    return NextResponse.json({ error: "Stream not found" }, { status: 404 });
+    throw new NotFoundError("Stream");
   }
   if (
     session.user.role !== "ADMIN" &&
     (fromStream.teacherId !== session.user.id || toStream.teacherId !== session.user.id)
   ) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access these streams");
   }
 
   if (!fromStream.lessons.length) {
-    return NextResponse.json({ error: "Source stream has no lessons" }, { status: 400 });
+    throw new ValidationError("Source stream has no lessons", {
+      fromStreamId: "Source stream has no lessons",
+    });
   }
 
   const lessonIdSet = new Set(lessonIds);
@@ -66,10 +77,9 @@ export async function POST(req: Request) {
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
   if (sourceLessons.length === 0) {
-    return NextResponse.json(
-      { error: "Выбранные уроки не найдены в потоке-источнике" },
-      { status: 400 },
-    );
+    throw new ValidationError("Выбранные уроки не найдены в потоке-источнике", {
+      lessonIds: "Selected lessons not found in source stream",
+    });
   }
 
   // Determine the current max sortOrder in the target stream so cloned lessons
@@ -126,5 +136,5 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ success: true, ...created });
-}
+});
 

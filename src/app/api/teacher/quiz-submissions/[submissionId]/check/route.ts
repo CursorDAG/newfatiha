@@ -3,27 +3,30 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { QuizSubmissionStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 
-export async function POST(
+export const POST = withErrorHandling(async (
   req: Request,
-  context: { params: Promise<{ submissionId: string }> },
-) {
-  const { submissionId } = await context.params;
+  context?: { params: Promise<Record<string, string>> },
+) => {
+  const params = await context!.params;
+  const submissionId = params.submissionId;
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const body = await req.json().catch(() => null);
-  if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  if (!body) throw new ValidationError("Invalid JSON");
 
   const { status }: { status?: QuizSubmissionStatus } = body;
   if (!status || !Object.values(QuizSubmissionStatus).includes(status)) {
-    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    throw new ValidationError("Invalid status", { status: "Status must be PASSED, FAILED, or SUBMITTED" });
   }
 
   if (status === "SUBMITTED") {
-    return NextResponse.json({ error: "Use PASSED or FAILED" }, { status: 400 });
+    throw new ValidationError("Use PASSED or FAILED", { status: "Cannot set status to SUBMITTED" });
   }
 
   const submission = await prisma.lessonQuizSubmission.findUnique({
@@ -31,10 +34,10 @@ export async function POST(
     include: { quiz: { include: { lesson: { include: { stream: true } } } } },
   });
 
-  if (!submission) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!submission) throw new NotFoundError("Submission");
 
   if (session.user.role !== "ADMIN" && submission.quiz.lesson.stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to check this submission");
   }
 
   const updated = await prisma.lessonQuizSubmission.update({
@@ -47,5 +50,5 @@ export async function POST(
   });
 
   return NextResponse.json({ success: true, submissionId: updated.id, status: updated.status });
-}
+});
 

@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError } from "@/lib/errors";
 
-export async function GET(req: Request) {
+export const GET = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const url = new URL(req.url);
@@ -53,5 +55,5 @@ export async function GET(req: Request) {
   });
 
   return NextResponse.json({ success: true, templates });
-}
+});
 

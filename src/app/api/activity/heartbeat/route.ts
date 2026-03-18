@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { ActivityKind } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ValidationError } from "@/lib/errors";
 
 const RETENTION_DAYS = 30;
 
@@ -19,12 +21,12 @@ async function purgeOldActivity() {
   });
 }
 
-export async function POST(req: Request) {
+export const POST = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session) throw new AuthError("Unauthorized");
 
   const body = await req.json().catch(() => null);
-  if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  if (!body) throw new ValidationError("Invalid JSON");
 
   const {
     sessionId,
@@ -41,7 +43,7 @@ export async function POST(req: Request) {
   } = body;
 
   if (!kind || !Object.values(ActivityKind).includes(kind)) {
-    return NextResponse.json({ error: "Invalid kind" }, { status: 400 });
+    throw new ValidationError("Invalid kind", { kind: "Activity kind is required and must be valid" });
   }
 
   await purgeOldActivity();
@@ -92,5 +94,5 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ sessionId });
-}
+});
 

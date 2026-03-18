@@ -2,33 +2,38 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 
 type FromTemplateBody = {
   streamId?: string;
   templateLessonId?: string;
 };
 
-export async function POST(req: Request) {
+export const POST = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const body = (await req.json().catch(() => null)) as FromTemplateBody | null;
-  if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  if (!body) throw new ValidationError("Invalid JSON");
 
   const { streamId, templateLessonId } = body;
   if (!streamId || !templateLessonId) {
-    return NextResponse.json({ error: "streamId и templateLessonId обязательны" }, { status: 400 });
+    const errors: Record<string, string> = {};
+    if (!streamId) errors.streamId = "Stream ID is required";
+    if (!templateLessonId) errors.templateLessonId = "Template lesson ID is required";
+    throw new ValidationError("streamId и templateLessonId обязательны", errors);
   }
 
   const stream = await prisma.stream.findUnique({
     where: { id: streamId },
     select: { id: true, teacherId: true },
   });
-  if (!stream) return NextResponse.json({ error: "Stream not found" }, { status: 404 });
+  if (!stream) throw new NotFoundError("Stream");
   if (session.user.role !== "ADMIN" && stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this stream");
   }
 
   const template = await prisma.lesson.findUnique({
@@ -47,7 +52,7 @@ export async function POST(req: Request) {
   });
 
   if (!template || !template.isTemplate) {
-    return NextResponse.json({ error: "Template lesson not found" }, { status: 404 });
+    throw new NotFoundError("Template lesson not found");
   }
 
   const maxSort = await prisma.lesson.aggregate({
@@ -88,5 +93,5 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ success: true, lessonId: created.id });
-}
+});
 

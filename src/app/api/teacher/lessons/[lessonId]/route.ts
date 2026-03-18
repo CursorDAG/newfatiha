@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { LessonType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 
 type UpdateLessonBody = {
   title?: string;
@@ -13,14 +15,15 @@ type UpdateLessonBody = {
 };
 
 async function getSessionAndLesson(
-  context: { params: Promise<{ lessonId: string }> }
+  context: { params: Promise<Record<string, string>> }
 ) {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return { errorResponse: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
+    throw new AuthError("Unauthorized");
   }
 
-  const { lessonId } = await context.params;
+  const params = await context.params;
+  const lessonId = params.lessonId;
 
   const lesson = await prisma.lesson.findUnique({
     where: { id: lessonId },
@@ -28,30 +31,25 @@ async function getSessionAndLesson(
   });
 
   if (!lesson) {
-    return {
-      errorResponse: NextResponse.json({ error: "Lesson not found" }, { status: 404 }),
-    };
+    throw new NotFoundError("Lesson");
   }
 
   if (session.user.role !== "ADMIN" && lesson.stream.teacherId !== session.user.id) {
-    return { errorResponse: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+    throw new ForbiddenError("You do not have permission to access this lesson");
   }
 
   return { session, lesson };
 }
 
-export async function PATCH(
+export const PATCH = withErrorHandling(async (
   req: Request,
-  context: { params: Promise<{ lessonId: string }> }
-) {
-  const sessionAndLesson = await getSessionAndLesson(context);
-  if ("errorResponse" in sessionAndLesson) {
-    return sessionAndLesson.errorResponse;
-  }
+  context?: { params: Promise<Record<string, string>> }
+) => {
+  const sessionAndLesson = await getSessionAndLesson(context!);
 
   const body = (await req.json().catch(() => null)) as UpdateLessonBody | null;
   if (!body) {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    throw new ValidationError("Invalid JSON");
   }
 
   const data: UpdateLessonBody = {};
@@ -62,7 +60,7 @@ export async function PATCH(
 
   if (typeof body.type === "string") {
     if (!["LIVE", "VIDEO", "TEXT"].includes(body.type)) {
-      return NextResponse.json({ error: "Некорректный тип урока" }, { status: 400 });
+      throw new ValidationError("Некорректный тип урока", { type: "Invalid lesson type" });
     }
     data.type = body.type as LessonType;
   }
@@ -83,7 +81,7 @@ export async function PATCH(
   }
 
   if (Object.keys(data).length === 0) {
-    return NextResponse.json({ error: "Нет полей для обновления" }, { status: 400 });
+    throw new ValidationError("Нет полей для обновления");
   }
 
   const updated = await prisma.lesson.update({
@@ -92,30 +90,19 @@ export async function PATCH(
   });
 
   return NextResponse.json({ success: true, lesson: updated });
-}
+});
 
-export async function DELETE(
+export const DELETE = withErrorHandling(async (
   _req: Request,
-  context: { params: Promise<{ lessonId: string }> }
-) {
-  const sessionAndLesson = await getSessionAndLesson(context);
-  if ("errorResponse" in sessionAndLesson) {
-    return sessionAndLesson.errorResponse;
-  }
+  context?: { params: Promise<Record<string, string>> }
+) => {
+  const sessionAndLesson = await getSessionAndLesson(context!);
 
-  try {
-    await prisma.$transaction([
-      prisma.homework.deleteMany({ where: { lessonId: sessionAndLesson.lesson.id } }),
-      prisma.lesson.delete({ where: { id: sessionAndLesson.lesson.id } }),
-    ]);
-  } catch (err) {
-    console.error("[DELETE /api/teacher/lessons]", err);
-    return NextResponse.json(
-      { error: "Не удалось удалить урок. Возможно, есть связанные данные." },
-      { status: 500 }
-    );
-  }
+  await prisma.$transaction([
+    prisma.homework.deleteMany({ where: { lessonId: sessionAndLesson.lesson.id } }),
+    prisma.lesson.delete({ where: { id: sessionAndLesson.lesson.id } }),
+  ]);
 
   return NextResponse.json({ success: true });
-}
+});
 

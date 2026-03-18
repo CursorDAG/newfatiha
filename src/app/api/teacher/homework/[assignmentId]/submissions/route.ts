@@ -2,15 +2,18 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError } from "@/lib/errors";
 
-export async function GET(
+export const GET = withErrorHandling(async (
   req: Request,
-  context: { params: Promise<{ assignmentId: string }> },
-) {
-  const { assignmentId } = await context.params;
+  context?: { params: Promise<Record<string, string>> },
+) => {
+  const params = await context!.params;
+  const assignmentId = params.assignmentId;
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const assignment = await prisma.homeworkAssignment.findUnique({
@@ -20,9 +23,9 @@ export async function GET(
     },
   });
 
-  if (!assignment) return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
+  if (!assignment) throw new NotFoundError("Assignment");
   if (session.user.role !== "ADMIN" && assignment.stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this assignment");
   }
 
   const submissions = await prisma.homeworkSubmission.findMany({
@@ -66,5 +69,5 @@ export async function GET(
     },
     submissions: serialized,
   });
-}
+});
 

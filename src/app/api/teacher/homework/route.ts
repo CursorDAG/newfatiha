@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { HomeworkType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 
 type CreateHomeworkBody = {
   streamId?: string;
@@ -13,18 +15,21 @@ type CreateHomeworkBody = {
   dueAt?: string | null;
 };
 
-export async function POST(req: Request) {
+export const POST = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const body = (await req.json().catch(() => null)) as CreateHomeworkBody | null;
-  if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  if (!body) throw new ValidationError("Invalid JSON");
 
   const { streamId, lessonId, title, description, type, dueAt } = body;
   if (!streamId || !title) {
-    return NextResponse.json({ error: "streamId и title обязательны" }, { status: 400 });
+    const errors: Record<string, string> = {};
+    if (!streamId) errors.streamId = "Stream ID is required";
+    if (!title) errors.title = "Title is required";
+    throw new ValidationError("streamId и title обязательны", errors);
   }
 
   const stream = await prisma.stream.findUnique({
@@ -32,9 +37,9 @@ export async function POST(req: Request) {
     select: { id: true, teacherId: true },
   });
 
-  if (!stream) return NextResponse.json({ error: "Stream not found" }, { status: 404 });
+  if (!stream) throw new NotFoundError("Stream");
   if (session.user.role !== "ADMIN" && stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this stream");
   }
 
   const normalizedType: HomeworkType =
@@ -60,27 +65,27 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ success: true, assignment });
-}
+});
 
-export async function GET(req: Request) {
+export const GET = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const url = new URL(req.url);
   const streamId = url.searchParams.get("streamId");
   if (!streamId) {
-    return NextResponse.json({ error: "streamId is required" }, { status: 400 });
+    throw new ValidationError("streamId is required", { streamId: "Stream ID is required" });
   }
 
   const stream = await prisma.stream.findUnique({
     where: { id: streamId },
     select: { id: true, teacherId: true },
   });
-  if (!stream) return NextResponse.json({ error: "Stream not found" }, { status: 404 });
+  if (!stream) throw new NotFoundError("Stream");
   if (session.user.role !== "ADMIN" && stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this stream");
   }
 
   const assignments = await prisma.homeworkAssignment.findMany({
@@ -114,5 +119,5 @@ export async function GET(req: Request) {
   });
 
   return NextResponse.json({ success: true, assignments: serialized });
-}
+});
 

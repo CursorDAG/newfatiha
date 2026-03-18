@@ -3,30 +3,33 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { HomeworkSubmissionStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 
 type SubmitBody = {
   contentText?: string | null;
   contentUrl?: string | null;
 };
 
-export async function POST(
+export const POST = withErrorHandling(async (
   req: Request,
-  context: { params: Promise<{ assignmentId: string }> },
-) {
-  const { assignmentId } = await context.params;
+  context?: { params: Promise<Record<string, string>> },
+) => {
+  const params = await context!.params;
+  const assignmentId = params.assignmentId;
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== "STUDENT") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const body = (await req.json().catch(() => null)) as SubmitBody | null;
-  if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  if (!body) throw new ValidationError("Invalid JSON");
 
   const assignment = await prisma.homeworkAssignment.findUnique({
     where: { id: assignmentId },
     include: { stream: true },
   });
-  if (!assignment) return NextResponse.json({ error: "Assignment not found" }, { status: 404 });
+  if (!assignment) throw new NotFoundError("Assignment");
 
   const enrollment = await prisma.enrollment.findFirst({
     where: {
@@ -35,7 +38,7 @@ export async function POST(
     },
   });
   if (!enrollment) {
-    return NextResponse.json({ error: "Not enrolled to this stream" }, { status: 403 });
+    throw new ForbiddenError("Not enrolled to this stream");
   }
 
   const submission = await prisma.homeworkSubmission.upsert({
@@ -64,5 +67,5 @@ export async function POST(
   });
 
   return NextResponse.json({ success: true, submissionId: submission.id });
-}
+});
 

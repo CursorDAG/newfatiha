@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { isValidSlot, overlaps, slotsToScheduleText, type SlotInput } from "@/lib/schedule";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError, ConflictError } from "@/lib/errors";
 
 type CreateStreamBody = {
   courseId?: string;
@@ -36,10 +38,10 @@ function pickRandomColor() {
   return STREAM_COLOR_PALETTE[Math.floor(Math.random() * STREAM_COLOR_PALETTE.length)];
 }
 
-export async function GET() {
+export const GET = withErrorHandling(async () => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const streams = await prisma.stream.findMany({
@@ -48,39 +50,46 @@ export async function GET() {
   });
 
   return NextResponse.json({ success: true, streams });
-}
+});
 
-export async function POST(req: Request) {
+export const POST = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const body = (await req.json().catch(() => null)) as CreateStreamBody | null;
   if (!body) {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    throw new ValidationError("Invalid JSON");
   }
 
   const { courseId, name, level, scheduleText, slots, color } = body;
   if (!courseId || !name?.trim() || !level?.trim()) {
-    return NextResponse.json(
-      { error: "courseId, name, level обязательны" },
-      { status: 400 }
-    );
+    const errors: Record<string, string> = {};
+    if (!courseId) errors.courseId = "Course ID is required";
+    if (!name?.trim()) errors.name = "Name is required";
+    if (!level?.trim()) errors.level = "Level is required";
+    throw new ValidationError("courseId, name, level обязательны", errors);
   }
 
   const inputSlots = Array.isArray(slots) ? slots : [];
   if (!inputSlots.length) {
-    return NextResponse.json({ error: "Выберите хотя бы один слот расписания" }, { status: 400 });
+    throw new ValidationError("Выберите хотя бы один слот расписания", {
+      slots: "At least one schedule slot is required",
+    });
   }
   if (!inputSlots.every(isValidSlot)) {
-    return NextResponse.json({ error: "Некорректные слоты расписания" }, { status: 400 });
+    throw new ValidationError("Некорректные слоты расписания", {
+      slots: "Invalid schedule slots",
+    });
   }
   // prevent self-overlaps
   for (let i = 0; i < inputSlots.length; i++) {
     for (let j = i + 1; j < inputSlots.length; j++) {
       if (overlaps(inputSlots[i], inputSlots[j])) {
-        return NextResponse.json({ error: "Слоты текущего потока пересекаются между собой" }, { status: 400 });
+        throw new ValidationError("Слоты текущего потока пересекаются между собой", {
+          slots: "Schedule slots overlap with each other",
+        });
       }
     }
   }
@@ -90,10 +99,10 @@ export async function POST(req: Request) {
     select: { id: true, teacherId: true },
   });
   if (!course) {
-    return NextResponse.json({ error: "Курс не найден" }, { status: 404 });
+    throw new NotFoundError("Курс не найден");
   }
   if (session.user.role !== "ADMIN" && course.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this course");
   }
 
   // check conflicts against other streams of teacher
@@ -110,10 +119,7 @@ export async function POST(req: Request) {
           durationMinutes: ex.durationMinutes,
         })
       ) {
-        return NextResponse.json(
-          { error: `Конфликт расписания: слот пересекается с потоком «${ex.stream.name}»` },
-          { status: 400 }
-        );
+        throw new ConflictError(`Конфликт расписания: слот пересекается с потоком «${ex.stream.name}»`);
       }
     }
   }
@@ -145,5 +151,5 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ success: true, stream });
-}
+});
 

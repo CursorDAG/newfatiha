@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { HomeworkSubmissionStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 
 type CheckBody = {
   status?: HomeworkSubmissionStatus | string;
@@ -10,18 +12,19 @@ type CheckBody = {
   teacherComment?: string | null;
 };
 
-export async function POST(
+export const POST = withErrorHandling(async (
   req: Request,
-  context: { params: Promise<{ id: string }> },
-) {
-  const { id } = await context.params;
+  context?: { params: Promise<Record<string, string>> },
+) => {
+  const params = await context!.params;
+  const id = params.id;
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const body = (await req.json().catch(() => null)) as CheckBody | null;
-  if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  if (!body) throw new ValidationError("Invalid JSON");
 
   const submission = await prisma.homeworkSubmission.findUnique({
     where: { id },
@@ -33,10 +36,10 @@ export async function POST(
       },
     },
   });
-  if (!submission) return NextResponse.json({ error: "Submission not found" }, { status: 404 });
+  if (!submission) throw new NotFoundError("Submission");
 
   if (session.user.role !== "ADMIN" && submission.assignment.stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to check this submission");
   }
 
   let nextStatus: HomeworkSubmissionStatus | undefined;
@@ -44,7 +47,7 @@ export async function POST(
     if (typeof body.status === "string" && Object.values(HomeworkSubmissionStatus).includes(body.status as HomeworkSubmissionStatus)) {
       nextStatus = body.status as HomeworkSubmissionStatus;
     } else {
-      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+      throw new ValidationError("Invalid status", { status: "Status must be SUBMITTED, ACCEPTED, NEEDS_REWORK, or REJECTED" });
     }
   }
 
@@ -59,5 +62,5 @@ export async function POST(
   });
 
   return NextResponse.json({ success: true, submissionId: updated.id, status: updated.status });
-}
+});
 

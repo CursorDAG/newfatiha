@@ -2,12 +2,14 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from '@/lib/api-handler';
+import { AuthError, ValidationError } from '@/lib/errors';
 
 // GET: fetch teacher's courses
-export async function GET() {
+export const GET = withErrorHandling(async () => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    throw new AuthError('Unauthorized');
   }
 
   const courses = await prisma.course.findMany({
@@ -21,18 +23,18 @@ export async function GET() {
   });
 
   return NextResponse.json({ courses });
-}
+});
 
 // POST: create a new course
-export async function POST(req: Request) {
+export const POST = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    throw new AuthError('Unauthorized');
   }
 
   const { title, description, capacity, published } = await req.json();
   if (!title?.trim()) {
-    return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    throw new ValidationError('Title is required', { title: 'Title is required' });
   }
 
   const course = await prisma.course.create({
@@ -46,4 +48,4 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ success: true, course });
-}
+});

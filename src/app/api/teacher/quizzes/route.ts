@@ -3,15 +3,17 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { QuizType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { withErrorHandling } from "@/lib/api-handler";
+import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 
-export async function POST(req: Request) {
+export const POST = withErrorHandling(async (req: Request) => {
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw new AuthError("Unauthorized");
   }
 
   const body = await req.json().catch(() => null);
-  if (!body) return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  if (!body) throw new ValidationError("Invalid JSON");
 
   const {
     lessonId,
@@ -29,27 +31,35 @@ export async function POST(req: Request) {
     correctOptionIndex?: number;
   } = body;
 
-  if (!lessonId) return NextResponse.json({ error: "lessonId is required" }, { status: 400 });
-  if (!title?.trim()) return NextResponse.json({ error: "title is required" }, { status: 400 });
-  if (!type || !Object.values(QuizType).includes(type)) {
-    return NextResponse.json({ error: "Invalid type" }, { status: 400 });
+  if (!lessonId) {
+    throw new ValidationError("lessonId is required", { lessonId: "Lesson ID is required" });
   }
-  if (!prompt?.trim()) return NextResponse.json({ error: "prompt is required" }, { status: 400 });
+  if (!title?.trim()) {
+    throw new ValidationError("title is required", { title: "Title is required" });
+  }
+  if (!type || !Object.values(QuizType).includes(type)) {
+    throw new ValidationError("Invalid type", { type: "Quiz type must be MULTIPLE_CHOICE or VOICE" });
+  }
+  if (!prompt?.trim()) {
+    throw new ValidationError("prompt is required", { prompt: "Prompt is required" });
+  }
 
   const lesson = await prisma.lesson.findUnique({
     where: { id: lessonId },
     include: { stream: true },
   });
-  if (!lesson) return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
+  if (!lesson) throw new NotFoundError("Lesson");
   if (session.user.role !== "ADMIN" && lesson.stream.teacherId !== session.user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    throw new ForbiddenError("You do not have permission to access this lesson");
   }
 
   if (type === "MULTIPLE_CHOICE") {
     const cleaned = (options ?? []).map((s) => (s ?? "").trim()).filter(Boolean);
-    if (cleaned.length < 2) return NextResponse.json({ error: "At least 2 options required" }, { status: 400 });
+    if (cleaned.length < 2) {
+      throw new ValidationError("At least 2 options required", { options: "At least 2 options are required" });
+    }
     if (typeof correctOptionIndex !== "number" || correctOptionIndex < 0 || correctOptionIndex >= cleaned.length) {
-      return NextResponse.json({ error: "correctOptionIndex is invalid" }, { status: 400 });
+      throw new ValidationError("correctOptionIndex is invalid", { correctOptionIndex: "Correct option index is invalid" });
     }
 
     const quiz = await prisma.lessonQuiz.create({
@@ -91,5 +101,5 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ success: true, quizId: quiz.id });
-}
+});
 
