@@ -36,6 +36,10 @@ NEXTAUTH_SECRET="generate-with-openssl-rand-base64-32"
 NEXTAUTH_URL="http://localhost:3000"
 ```
 
+**Important:** See `.env.example` for complete list of variables with documentation.
+
+**Environment Validation:** The application validates required environment variables at startup via `src/lib/env.ts`. If any required variable is missing or invalid, the app will fail fast with a clear error message. This prevents runtime errors and accidental deployment with insecure defaults.
+
 ## Architecture
 
 ### Authentication & Authorization
