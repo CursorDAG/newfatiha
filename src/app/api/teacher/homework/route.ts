@@ -5,6 +5,7 @@ import { HomeworkType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
+import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 type CreateHomeworkBody = {
   streamId?: string;
@@ -16,6 +17,12 @@ type CreateHomeworkBody = {
 };
 
 export const POST = withErrorHandling(async (req: Request) => {
+  // Apply rate limiting
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.general);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
     throw new AuthError("Unauthorized");

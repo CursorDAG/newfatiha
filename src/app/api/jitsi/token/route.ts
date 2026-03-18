@@ -5,6 +5,7 @@ import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ValidationError } from "@/lib/errors";
 import { generateJitsiToken, getJitsiConfig } from "@/lib/jitsi-jwt";
 import { prisma } from "@/lib/prisma";
+import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 /**
  * POST /api/jitsi/token
@@ -19,6 +20,12 @@ import { prisma } from "@/lib/prisma";
  * - enabled: boolean - Whether JWT authentication is enabled
  */
 export const POST = withErrorHandling(async (req: Request) => {
+  // Apply rate limiting
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.token);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const session = await getServerSession(authOptions);
   if (!session) {
     throw new AuthError("Необходима авторизация");

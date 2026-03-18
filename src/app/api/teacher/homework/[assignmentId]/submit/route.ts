@@ -5,6 +5,7 @@ import { HomeworkSubmissionStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
+import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 type SubmitBody = {
   contentText?: string | null;
@@ -15,6 +16,12 @@ export const POST = withErrorHandling(async (
   req: Request,
   context?: { params: Promise<Record<string, string>> },
 ) => {
+  // Apply rate limiting
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.homework);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const params = await context!.params;
   const assignmentId = params.assignmentId;
   const session = await getServerSession(authOptions);

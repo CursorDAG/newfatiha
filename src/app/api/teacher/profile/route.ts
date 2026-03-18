@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ValidationError } from "@/lib/errors";
+import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 /**
  * PATCH /api/teacher/profile
@@ -12,6 +13,12 @@ import { AuthError, ValidationError } from "@/lib/errors";
  * At least one field must be present.
  */
 export const PATCH = withErrorHandling(async (req: Request) => {
+  // Apply rate limiting
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.general);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const session = await getServerSession(authOptions);
   if (
     !session?.user?.id ||

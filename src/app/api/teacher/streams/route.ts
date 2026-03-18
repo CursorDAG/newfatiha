@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { isValidSlot, overlaps, slotsToScheduleText, type SlotInput } from "@/lib/schedule";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError, ConflictError } from "@/lib/errors";
+import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 type CreateStreamBody = {
   courseId?: string;
@@ -53,6 +54,12 @@ export const GET = withErrorHandling(async () => {
 });
 
 export const POST = withErrorHandling(async (req: Request) => {
+  // Apply rate limiting
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.general);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
     throw new AuthError("Unauthorized");

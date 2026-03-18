@@ -6,6 +6,7 @@ import { withErrorHandling } from '@/lib/api-handler';
 import { AuthError } from '@/lib/errors';
 import { validateRequest } from '@/lib/validate-request';
 import { createCourseSchema } from '@/lib/validation';
+import { rateLimit, rateLimitConfigs } from '@/lib/rate-limit';
 
 // GET: fetch teacher's courses
 export const GET = withErrorHandling(async () => {
@@ -29,6 +30,12 @@ export const GET = withErrorHandling(async () => {
 
 // POST: create a new course
 export const POST = withErrorHandling(async (req: Request) => {
+  // Apply rate limiting
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.general);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const session = await getServerSession(authOptions);
   if (!session || (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN')) {
     throw new AuthError('Unauthorized');

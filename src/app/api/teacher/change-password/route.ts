@@ -7,6 +7,7 @@ import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ValidationError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validate-request";
 import { changePasswordSchema } from "@/lib/validation";
+import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 /**
  * POST /api/teacher/change-password
@@ -14,6 +15,12 @@ import { changePasswordSchema } from "@/lib/validation";
  * Body: { currentPassword: string; newPassword: string }
  */
 export const POST = withErrorHandling(async (req: Request) => {
+  // Apply rate limiting
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.auth);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const session = await getServerSession(authOptions);
   if (
     !session?.user?.id ||

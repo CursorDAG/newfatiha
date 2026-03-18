@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
+import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 const MAX_VOICE_BYTES = 7 * 1024 * 1024; // ~7MB
 
@@ -11,6 +12,12 @@ export const POST = withErrorHandling(async (
   req: Request,
   context?: { params: Promise<Record<string, string>> },
 ) => {
+  // Apply rate limiting
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.quiz);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const params = await context!.params;
   const quizId = params.quizId;
   const session = await getServerSession(authOptions);

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { withErrorHandling } from '@/lib/api-handler';
 import { NotFoundError, ConflictError, ValidationError } from '@/lib/errors';
+import { rateLimit, rateLimitConfigs } from '@/lib/rate-limit';
 
 // GET /api/join/[token] — validate invite token before student joins
 export const GET = withErrorHandling(async (
@@ -50,6 +51,12 @@ export const POST = withErrorHandling(async (
   req: Request,
   context?: { params: Promise<Record<string, string>> },
 ) => {
+  // Apply rate limiting
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.general);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const params = await context!.params;
   const token = params.token;
   const { userId } = await req.json();

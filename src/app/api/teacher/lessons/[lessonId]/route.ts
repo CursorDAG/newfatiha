@@ -5,6 +5,7 @@ import { LessonType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
+import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 type UpdateLessonBody = {
   title?: string;
@@ -45,6 +46,12 @@ export const PATCH = withErrorHandling(async (
   req: Request,
   context?: { params: Promise<Record<string, string>> }
 ) => {
+  // Apply rate limiting
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.general);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const sessionAndLesson = await getSessionAndLesson(context!);
 
   const body = (await req.json().catch(() => null)) as UpdateLessonBody | null;

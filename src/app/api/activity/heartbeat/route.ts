@@ -5,6 +5,7 @@ import { ActivityKind } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ValidationError } from "@/lib/errors";
+import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 const RETENTION_DAYS = 30;
 
@@ -22,6 +23,12 @@ async function purgeOldActivity() {
 }
 
 export const POST = withErrorHandling(async (req: Request) => {
+  // Apply rate limiting
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.heartbeat);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const session = await getServerSession(authOptions);
   if (!session) throw new AuthError("Unauthorized");
 
