@@ -1,0 +1,336 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  password String?
+  name     String
+  role     Role    @default(STUDENT)
+
+  // Public profile fields (used on teacher listing page)
+  avatar String?
+  bio    String?  @db.Text
+  skills String[]
+
+  // Relations
+  courses                Course[]               @relation("TeacherCourses")
+  enrollments            Enrollment[]
+  quizSubmissions        LessonQuizSubmission[]
+  checkedQuizSubmissions LessonQuizSubmission[] @relation("QuizCheckedBy")
+  activitySessions       ActivitySession[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Course {
+  id          String  @id @default(uuid())
+  title       String
+  description String?
+  capacity    Int     @default(30)
+  published   Boolean @default(false)
+  teacherId   String
+  teacher     User    @relation("TeacherCourses", fields: [teacherId], references: [id])
+
+  streams Stream[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Stream {
+  id        String @id @default(uuid())
+  name      String
+  level     String // E.g., Beginner, Intermediate, Advanced
+  schedule  String
+  teacherId String
+
+  color     String @default("#10b981")
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
+
+  inviteToken InviteToken?
+  lessons           Lesson[]
+  scheduleSlots     StreamScheduleSlot[]
+  enrollments       Enrollment[]
+  homeworkAssignments HomeworkAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StreamScheduleSlot {
+  id              String @id @default(uuid())
+  streamId         String
+  stream           Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+
+  dayOfWeek       Int
+  startMinutes    Int
+  durationMinutes Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([streamId])
+  @@index([dayOfWeek, startMinutes])
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  TRANSFERRED
+  REPEATING
+  KICKED
+}
+
+model Enrollment {
+  id       String           @id @default(uuid())
+  userId   String
+  streamId String
+  status   EnrollmentStatus @default(ACTIVE)
+
+  user   User   @relation(fields: [userId], references: [id])
+  stream Stream @relation(fields: [streamId], references: [id])
+
+  homeworkSubmissions HomeworkSubmission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, streamId])
+}
+
+model InviteToken {
+  id       String @id @default(uuid())
+  token    String @unique @default(uuid())
+  streamId String @unique
+  stream   Stream @relation(fields: [streamId], references: [id])
+
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+enum LessonType {
+  LIVE
+  VIDEO
+  TEXT
+}
+
+model Lesson {
+  id      String     @id @default(uuid())
+  title   String
+  type    LessonType
+  content String? // For text, video URL, or Jitsi room ID
+
+  // Library/template fields
+  isTemplate Boolean @default(false)
+  topic      String?
+  level      String?
+
+  sortOrder    Int      @default(0)
+  teacherNotes String?
+  published    Boolean  @default(true)
+
+  streamId String
+  stream   Stream @relation(fields: [streamId], references: [id])
+
+  homeworks           Homework[]
+  homeworkAssignments HomeworkAssignment[]
+  quizzes             LessonQuiz[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum QuizType {
+  MULTIPLE_CHOICE
+  VOICE
+}
+
+enum QuizSubmissionStatus {
+  SUBMITTED
+  PASSED
+  FAILED
+}
+
+model LessonQuiz {
+  id       String @id @default(uuid())
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  title String
+  type  QuizType
+
+  questions   LessonQuizQuestion[]
+  submissions LessonQuizSubmission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LessonQuizQuestion {
+  id     String     @id @default(uuid())
+  quizId String
+  quiz   LessonQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  prompt    String
+  sortOrder Int    @default(0)
+
+  options LessonQuizOption[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LessonQuizOption {
+  id         String             @id @default(uuid())
+  questionId String
+  question   LessonQuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  text      String
+  isCorrect Boolean @default(false)
+  sortOrder Int     @default(0)
+}
+
+model LessonQuizSubmission {
+  id     String     @id @default(uuid())
+  quizId String
+  quiz   LessonQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  studentId String
+  student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  // MCQ
+  selectedOptionId String?
+
+  // VOICE
+  voiceMimeType   String?
+  voiceData       Bytes?
+  voiceDurationMs Int?
+
+  status      QuizSubmissionStatus @default(SUBMITTED)
+  checkedById String?
+  checkedBy   User?                @relation("QuizCheckedBy", fields: [checkedById], references: [id])
+  checkedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([quizId, studentId])
+  @@index([studentId, createdAt])
+  @@index([quizId, createdAt])
+}
+
+enum ActivityKind {
+  APP
+  LESSON
+  LIVE_ROOM
+}
+
+model ActivitySession {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  kind     ActivityKind
+  streamId String?
+  lessonId String?
+
+  startedAt  DateTime  @default(now())
+  lastSeenAt DateTime  @default(now())
+  endedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, startedAt])
+  @@index([streamId, startedAt])
+  @@index([lessonId, startedAt])
+}
+
+model Homework {
+  id    String @id @default(uuid())
+  title String
+
+  lessonId String
+  lesson   Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  audioUrl String? // Recitation
+  imageUrl String? // Script image
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum HomeworkType {
+  TEXT
+  AUDIO
+}
+
+enum HomeworkSubmissionStatus {
+  SUBMITTED
+  ACCEPTED
+  NEEDS_REWORK
+  REJECTED
+}
+
+model HomeworkAssignment {
+  id          String       @id @default(uuid())
+  streamId    String
+  stream      Stream       @relation(fields: [streamId], references: [id], onDelete: Cascade)
+
+  lessonId    String?
+  lesson      Lesson?      @relation(fields: [lessonId], references: [id])
+
+  title       String
+  description String?
+  type        HomeworkType @default(TEXT)
+
+  dueAt       DateTime?
+
+  submissions HomeworkSubmission[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([streamId])
+  @@index([lessonId])
+}
+
+model HomeworkSubmission {
+  id            String                  @id @default(uuid())
+  assignmentId  String
+  assignment    HomeworkAssignment      @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  enrollmentId  String
+  enrollment    Enrollment              @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  status        HomeworkSubmissionStatus @default(SUBMITTED)
+  grade         Int?
+  teacherComment String?
+
+  contentText   String?
+  contentUrl    String?
+
+  submittedAt   DateTime @default(now())
+  checkedAt     DateTime?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([assignmentId, enrollmentId])
+  @@index([enrollmentId])
+}

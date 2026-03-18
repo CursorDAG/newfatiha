@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    container_name: fatiha_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: fatiha_user
+      POSTGRES_PASSWORD: fatiha_pass
+      POSTGRES_DB: fatiha_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - fatiha_pgdata:/var/lib/postgresql/data
+
+volumes:
+  fatiha_pgdata:

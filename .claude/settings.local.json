@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find D:wwwnewfatiha -name *.env* -o -name .env.example)",
+      "Bash(ls -la D:wwwnewfatiha.env*)",
+      "Bash(npx prisma:*)",
+      "Bash(npm run:*)",
+      "Bash(gh auth:*)",
+      "Bash(ssh -T git@github.com)",
+      "Bash(mkdir -p ~/.ssh)",
+      "Bash(chmod 700 ~/.ssh)",
+      "Bash(ssh-keyscan github.com)",
+      "Bash(~/.ssh/known_hosts)",
+      "Bash(taskkill /F /PID 21424)",
+      "Bash(timeout /t 2 /nobreak)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3000)",
+      "Bash(if exist:*)",
+      "Bash(start:*)",
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(kill 21424)",
+      "Bash(taskkill:*)",
+      "Bash(openssl rand:*)",
+      "Bash(grep:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(git add:*)"
+    ]
+  },
+  "prefersReducedMotion": false
+}
