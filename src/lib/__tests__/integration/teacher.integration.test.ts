@@ -38,6 +38,15 @@ vi.mock("@/lib/rate-limit", () => ({
   },
 }));
 
+// Mock email service to avoid slow Ethereal account creation
+vi.mock("@/lib/email-service", () => ({
+  EmailService: {
+    sendStudentJoinedNotification: vi.fn(() => Promise.resolve()),
+    sendLessonStartingNotification: vi.fn(() => Promise.resolve()),
+    sendNewLessonNotification: vi.fn(() => Promise.resolve()),
+  },
+}));
+
 describe("Teacher Management API Integration Tests", () => {
   let teacher1: Awaited<ReturnType<typeof createTestUser>>;
   let teacher2: Awaited<ReturnType<typeof createTestUser>>;
@@ -76,6 +85,7 @@ describe("Teacher Management API Integration Tests", () => {
 
   afterEach(async () => {
     // Clean up test data after each test, but preserve users
+    await testPrisma.notification.deleteMany();
     await testPrisma.activitySession.deleteMany();
     await testPrisma.homeworkSubmission.deleteMany();
     await testPrisma.homeworkAssignment.deleteMany();
@@ -90,7 +100,7 @@ describe("Teacher Management API Integration Tests", () => {
     await testPrisma.enrollment.deleteMany();
     await testPrisma.stream.deleteMany();
     await testPrisma.course.deleteMany();
-    // Don't delete users - they're reused across tests
+    // Don't delete users or teacherProfile - they're reused across tests
   });
 
   afterAll(async () => {
@@ -728,7 +738,7 @@ describe("Teacher Management API Integration Tests", () => {
       expect(data.enrollment.userId).toBe(student1.id);
       expect(data.enrollment.streamId).toBe(stream.id);
       expect(data.enrollment.status).toBe("ACTIVE");
-    });
+    }, 20000); // Increase timeout to 20 seconds for Ethereal email account creation
 
     it("should reject enrollment when stream is at capacity", async () => {
       const course = await createTestCourse({

@@ -22,7 +22,7 @@ describe("Chat Permissions", () => {
   let directRoomId: string;
 
   beforeEach(async () => {
-    // Clean up first
+    // Clean up first - proper order to avoid foreign key constraints
     await prisma.chatMessage.deleteMany();
     await prisma.chatRoom.deleteMany();
     await prisma.homeworkSubmission.deleteMany();
@@ -37,6 +37,7 @@ describe("Chat Permissions", () => {
     await prisma.streamScheduleSlot.deleteMany();
     await prisma.stream.deleteMany();
     await prisma.course.deleteMany();
+    await prisma.teacherProfile.deleteMany();
     await prisma.user.deleteMany();
 
     // Create test users

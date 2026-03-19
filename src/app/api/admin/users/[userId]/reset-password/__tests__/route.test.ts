@@ -11,6 +11,7 @@ vi.mock("@/lib/prisma", () => ({
   prisma: {
     user: {
       update: vi.fn(),
+      findUnique: vi.fn(),
     },
   },
 }));
@@ -45,6 +46,11 @@ describe("POST /api/admin/users/[userId]/reset-password", () => {
 
     vi.mocked(bcrypt.hash).mockResolvedValue("hashed_temp_password" as never);
     vi.mocked(prisma.user.update).mockResolvedValue({} as never);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: "user-1",
+      email: "user@test.com",
+      name: "Test User",
+    } as never);
 
     const req = new NextRequest("http://localhost:3000/api/admin/users/user-1/reset-password", {
       method: "POST",
@@ -55,8 +61,8 @@ describe("POST /api/admin/users/[userId]/reset-password", () => {
     const data = await response.json();
 
     expect(data.success).toBe(true);
-    expect(data.temporaryPassword).toBeDefined();
-    expect(data.temporaryPassword).toHaveLength(8);
+    expect(data.message).toBe("Временный пароль отправлен на email пользователя.");
+    expect(data.temporaryPassword).toBeUndefined(); // Password should NOT be in response
     expect(bcrypt.hash).toHaveBeenCalled();
     expect(prisma.user.update).toHaveBeenCalledWith(
       expect.objectContaining({

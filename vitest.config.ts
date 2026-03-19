@@ -8,6 +8,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
+    fileParallelism: false, // Run test files sequentially to avoid database conflicts
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

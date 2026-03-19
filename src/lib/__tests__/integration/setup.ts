@@ -44,6 +44,7 @@ export async function cleanupDatabase() {
   await testPrisma.enrollment.deleteMany();
   await testPrisma.stream.deleteMany();
   await testPrisma.course.deleteMany();
+  await testPrisma.teacherProfile.deleteMany();
   await testPrisma.user.deleteMany();
 }
 
