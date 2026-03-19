@@ -12,6 +12,13 @@ export { newMessageTemplate } from "./new-message";
 export { homeworkSubmittedTemplate } from "./homework-submitted";
 export { quizSubmittedTemplate } from "./quiz-submitted";
 export { studentJoinedTemplate } from "./student-joined";
+export { emailVerificationTemplate } from "./email-verification";
+export { teacherApplicationApprovedTemplate } from "./teacher-application-approved";
+export { teacherApplicationRejectedTemplate } from "./teacher-application-rejected";
+export { enrollmentRequestApprovedTemplate } from "./enrollment-request-approved";
+export { enrollmentRequestSubmittedTemplate } from "./enrollment-request-submitted";
+export { enrollmentRequestRejectedTemplate } from "./enrollment-request-rejected";
+export { enrollmentConfirmedTemplate } from "./enrollment-confirmed";
 
 export type {
   BaseTemplateParams,
@@ -52,3 +59,31 @@ export type {
 export type {
   StudentJoinedData,
 } from "./student-joined";
+
+export type {
+  EmailVerificationData,
+} from "./email-verification";
+
+export type {
+  TeacherApplicationApprovedData,
+} from "./teacher-application-approved";
+
+export type {
+  TeacherApplicationRejectedData,
+} from "./teacher-application-rejected";
+
+export type {
+  EnrollmentRequestApprovedData,
+} from "./enrollment-request-approved";
+
+export type {
+  EnrollmentRequestSubmittedData,
+} from "./enrollment-request-submitted";
+
+export type {
+  EnrollmentRequestRejectedData,
+} from "./enrollment-request-rejected";
+
+export type {
+  EnrollmentConfirmedData,
+} from "./enrollment-confirmed";

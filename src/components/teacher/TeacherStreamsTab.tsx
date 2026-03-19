@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/teacher/ui/Button";
-import EmptyState from "@/components/teacher/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Plus, Copy, XCircle, Users as UsersIcon } from "lucide-react";
 
 type Course = { id: string; title: string };
 type Stream = {
@@ -37,115 +39,131 @@ export default function TeacherStreamsTab({
 }) {
   return (
     <div className="p-8 flex-1">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 border-b pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-emerald-900">Потоки</h2>
-          <p className="text-sm text-slate-500 mt-1">Группы учеников внутри курсов</p>
+          <h2 className="text-3xl font-bold text-slate-900">Потоки</h2>
+          <p className="text-sm text-slate-600 mt-2">Группы учеников внутри курсов</p>
         </div>
-        <Button onClick={onCreate} disabled={courses.length === 0} variant="primary">
-          + Создать поток
+        <Button
+          onClick={onCreate}
+          disabled={courses.length === 0}
+          variant="primary"
+          size="lg"
+          icon={<Plus className="w-5 h-5" />}
+        >
+          Создать поток
         </Button>
       </div>
 
       {courses.length === 0 ? (
-        <EmptyState icon="📚" title="Сначала создайте курс" description="Потоки создаются внутри курсов." />
+        <Card padding="p-12">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <UsersIcon className="w-8 h-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Сначала создайте курс</h3>
+            <p className="text-slate-600">Потоки создаются внутри курсов</p>
+          </div>
+        </Card>
       ) : (
         <div className="space-y-8">
           {courses.map((course) => {
             const courseStreams = streams.filter((s) => s.courseId === course.id);
             return (
               <div key={course.id}>
-                {/* Course heading */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Курс</span>
-                    <h3 className="text-base font-bold text-slate-800">{course.title}</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="neutral" size="sm">КУРС</Badge>
+                    <h3 className="text-xl font-bold text-slate-900">{course.title}</h3>
                   </div>
-                  <button
-                    type="button"
+                  <Button
                     onClick={() => onCreateForCourse(course.id)}
-                    className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline"
+                    variant="ghost"
+                    size="sm"
+                    icon={<Plus className="w-4 h-4" />}
                   >
-                    + Добавить поток
-                  </button>
+                    Добавить поток
+                  </Button>
                 </div>
 
                 {courseStreams.length === 0 ? (
-                  <div className="border border-dashed border-slate-200 rounded-2xl p-5 text-center text-slate-400 text-sm">
-                    Нет потоков в этом курсе
-                  </div>
+                  <Card padding="p-8">
+                    <p className="text-center text-slate-500">Нет потоков в этом курсе</p>
+                  </Card>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {courseStreams.map((s) => (
-                      <div
-                        key={s.id}
-                        className="border border-slate-200 rounded-2xl p-4 bg-white flex flex-col gap-4 hover:shadow-sm transition-shadow"
-                      >
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                          <div className="min-w-0 flex items-start gap-3">
-                            {/* Colour stripe */}
-                            <span
-                              className="mt-1 shrink-0 inline-block w-3 h-3 rounded-full border border-slate-200"
-                              style={{ backgroundColor: s.color ?? "#10b981" }}
-                            />
-                            <div className="min-w-0">
-                              <p className="font-bold text-slate-800 truncate">{s.name}</p>
-                              <p className="text-sm text-slate-500 mt-0.5">
-                                <span className="font-semibold text-slate-600">{s.level}</span>
-                                {s.schedule ? ` · ${s.schedule}` : ""}
-                              </p>
-                              {s.genderType && s.genderType !== "MIXED" && (
-                                <span className={`inline-block mt-1.5 text-xs font-bold px-2 py-0.5 rounded-full ${
-                                  s.genderType === "MALE_ONLY"
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "bg-pink-100 text-pink-700"
-                                }`}>
-                                  {s.genderType === "MALE_ONLY" ? "♂ Только мужчины" : "♀ Только женщины"}
-                                </span>
-                              )}
+                      <Card key={s.id} hoverable padding="p-6">
+                        <div className="flex flex-col gap-4">
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                            <div className="flex items-start gap-4 min-w-0 flex-1">
+                              <span
+                                className="mt-1 shrink-0 w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                                style={{ backgroundColor: s.color ?? "#10b981" }}
+                              />
+                              <div className="min-w-0 flex-1">
+                                <h4 className="font-bold text-lg text-slate-900 mb-1">{s.name}</h4>
+                                <p className="text-sm text-slate-600 mb-2">
+                                  <span className="font-semibold">{s.level}</span>
+                                  {s.schedule && <span className="text-slate-500"> · {s.schedule}</span>}
+                                </p>
+                                {s.genderType && s.genderType !== "MIXED" && (
+                                  <Badge
+                                    variant={s.genderType === "MALE_ONLY" ? "info" : "warning"}
+                                    size="sm"
+                                  >
+                                    {s.genderType === "MALE_ONLY" ? "♂ Только мужчины" : "♀ Только женщины"}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Button onClick={() => onEdit(s)} variant="secondary" size="sm">
+                                Редактировать
+                              </Button>
+                              <Button onClick={() => onDelete(s.id)} variant="danger" size="sm">
+                                Удалить
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Button onClick={() => onEdit(s)} variant="secondary" size="sm">
-                              Редактировать
-                            </Button>
-                            <Button onClick={() => onDelete(s.id)} variant="danger" size="sm">
-                              Удалить
-                            </Button>
-                          </div>
-                        </div>
 
-                        {/* Invite link management block */}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-3 border-t border-slate-100">
-                          <span className="text-xs font-bold text-slate-500 shrink-0">Приглашение:</span>
-                          {s.inviteToken ? (
-                            <div className="flex flex-wrap gap-2 items-center">
-                              <code className="text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded px-2 py-1 font-mono max-w-[260px] truncate block">
-                                fatiha.ru/join/{s.inviteToken.token}
-                              </code>
-                              <button
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-4 border-t border-slate-200">
+                            <span className="text-sm font-bold text-slate-700 shrink-0">Приглашение:</span>
+                            {s.inviteToken ? (
+                              <div className="flex flex-wrap gap-2 items-center flex-1">
+                                <code className="text-xs text-slate-700 bg-slate-100 border border-slate-300 rounded-lg px-3 py-2 font-mono flex-1 min-w-0 truncate">
+                                  fatiha.ru/join/{s.inviteToken.token}
+                                </code>
+                                <Button
+                                  onClick={() => onCopyInvite?.(s.id)}
+                                  variant="success"
+                                  size="sm"
+                                  icon={<Copy className="w-4 h-4" />}
+                                >
+                                  Скопировать
+                                </Button>
+                                <Button
+                                  onClick={() => onRevokeInvite?.(s.id)}
+                                  variant="danger"
+                                  size="sm"
+                                  icon={<XCircle className="w-4 h-4" />}
+                                >
+                                  Отозвать
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button
                                 onClick={() => onCopyInvite?.(s.id)}
-                                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg px-3 py-1 transition-all"
+                                variant="secondary"
+                                size="sm"
+                                icon={<Plus className="w-4 h-4" />}
                               >
-                                📋 Скопировать
-                              </button>
-                              <button
-                                onClick={() => onRevokeInvite?.(s.id)}
-                                className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg px-3 py-1 transition-all"
-                              >
-                                🚫 Отозвать
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => onCopyInvite?.(s.id)}
-                              className="text-xs font-bold text-slate-600 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg px-3 py-1 transition-all"
-                            >
-                              🔗 Сгенерировать ссылку
-                            </button>
-                          )}
+                                Сгенерировать ссылку
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      </Card>
                     ))}
                   </div>
                 )}

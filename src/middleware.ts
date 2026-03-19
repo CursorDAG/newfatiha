@@ -7,6 +7,17 @@ export async function middleware(req: NextRequest) {
 
   // Protect /teacher routes
   if (pathname.startsWith("/teacher")) {
+    // Allow access to pending-approval page
+    if (pathname === "/teacher/pending-approval") {
+      if (!token) {
+        return NextResponse.redirect(new URL("/api/auth/signin", req.url));
+      }
+      if (token.role !== "TEACHER" && token.role !== "ADMIN") {
+        return NextResponse.redirect(new URL("/unauthorized", req.url));
+      }
+      return NextResponse.next();
+    }
+
     if (!token) {
       return NextResponse.redirect(new URL("/api/auth/signin", req.url));
     }
@@ -15,6 +26,17 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/student", req.url));
       }
       return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
+
+    // Block teachers with PENDING_APPROVAL or PENDING_VERIFICATION status
+    if (token.role === "TEACHER" && (token as any).status) {
+      const status = (token as any).status;
+      if (status === "PENDING_APPROVAL" || status === "PENDING_VERIFICATION") {
+        return NextResponse.redirect(new URL("/teacher/pending-approval", req.url));
+      }
+      if (status === "REJECTED") {
+        return NextResponse.redirect(new URL("/auth/register/teacher", req.url));
+      }
     }
   }
 

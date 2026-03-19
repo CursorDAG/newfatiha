@@ -2,26 +2,39 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**📋 Для ознакомления с текущим состоянием проекта см. [PROJECT.md](./PROJECT.md)**
+
 ## Project Overview
 
-Fatiha.ru is a Learning Management System (LMS) for Islamic education with live video streaming capabilities. Built with Next.js 16 (App Router), it supports role-based access for teachers and students, featuring live classes via Jitsi Meet, homework assignments, quizzes (multiple-choice and voice), and real-time activity tracking.
+Fatiha.ru is a Learning Management System (LMS) for Islamic education with live video streaming capabilities. Built with Next.js 16 (App Router), it supports role-based access for teachers and students, featuring live classes via Jitsi Meet, homework assignments, quizzes (multiple-choice and voice), real-time activity tracking, lesson recordings, and comprehensive progress analytics.
+
+**Current Status:** MVP complete. All core features implemented including:
+- ✅ Lesson recording system (Phase 1)
+- ✅ Student progress analytics (Phase 2)
+- ✅ Mobile optimization & PWA (Phase 3)
 
 ## Development Commands
 
 ```bash
 # Development
-npm run dev              # Start dev server at http://localhost:3000
+npm run dev              # Start dev server at http://localhost:3000 (uses custom server.ts with Socket.io)
 
 # Database
+docker-compose up -d     # Start PostgreSQL in Docker
 npx prisma generate      # Generate Prisma Client after schema changes
 npx prisma migrate dev   # Create and apply migration (replaces db push)
 npx prisma migrate deploy # Apply migrations in production
 npx prisma db seed       # Seed database with test data (creates admin@fatiha.ru / admin123)
 npx prisma studio        # Open Prisma Studio GUI
 
+# Testing
+npm test                 # Run tests with Vitest
+npm run test:ui          # Run tests with Vitest UI
+npm run test:coverage    # Generate coverage report
+
 # Production
 npm run build            # Build for production
-npm start                # Start production server
+npm start                # Start production server (NODE_ENV=production tsx server.ts)
 
 # Linting
 npm run lint             # Run ESLint
@@ -43,7 +56,27 @@ NEXTAUTH_URL="http://localhost:3000"
 
 **Logging:** The application uses Pino for structured logging (`src/lib/logger.ts`). Set `LOG_LEVEL` environment variable to control verbosity (trace, debug, info, warn, error, fatal). Defaults to `debug` in development and `info` in production. All API errors are automatically logged with request context (path, method, query params, error details).
 
+**Memory Monitoring:** The application includes automatic memory monitoring (`src/lib/memory-monitor.ts`) that tracks Node.js process memory usage every 30 seconds. Warnings are logged when RSS exceeds 1GB, critical alerts when exceeding 2GB. The server performs graceful shutdown if memory usage becomes critical. See `docs/PERFORMANCE.md` for optimization recommendations.
+
+**Error Tracking:** Sentry is configured for production error monitoring (`sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`). Only enabled when `NODE_ENV=production`. Captures 10% of transactions for performance monitoring, 10% of sessions for replay, and 100% of error sessions. Automatically filters sensitive data (passwords) from breadcrumbs.
+
+**Optional Services:**
+- **S3 Storage**: Configure `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` for lesson recordings. If not configured, recordings fall back to PostgreSQL storage (not recommended for production).
+- **Email**: Configure SMTP settings (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`) for notifications. Use Ethereal Email for development testing.
+- **Sentry**: Set `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` for error tracking in production.
+- **Jitsi JWT**: Configure `JITSI_DOMAIN`, `JITSI_JWT_APP_ID`, `JITSI_JWT_SECRET` for self-hosted Jitsi with authentication (optional, defaults to public meet.jit.si).
+
 ## Architecture
+
+### Custom Server Setup
+
+**Important:** This application uses a **custom Next.js server** (`server.ts`), not the default Next.js server. The custom server is required for Socket.io WebSocket integration.
+
+- Development: `npm run dev` runs `tsx server.ts`
+- Production: `npm start` runs `NODE_ENV=production tsx server.ts`
+- The server creates an HTTP server, initializes Next.js app handler, and attaches Socket.io
+- Socket.io configuration includes CORS settings and WebSocket/polling transports
+- Never use `next dev` or `next start` directly - always use the npm scripts
 
 ### Authentication & Authorization
 
@@ -52,10 +85,30 @@ NEXTAUTH_URL="http://localhost:3000"
 - Three roles: `STUDENT`, `TEACHER`, `ADMIN`
 - Middleware (`src/middleware.ts`) protects `/teacher/*` and `/student/*` routes
 - Role stored in JWT token via callbacks in `src/app/api/auth/[...nextauth]/route.ts`
+- Admin role has full access to all features plus admin-specific endpoints (`/api/admin/*`)
+
+### Rate Limiting
+
+**In-Memory Rate Limiter** (`src/lib/rate-limit.ts`):
+- Sliding window rate limiting based on IP address or user ID
+- Configurable limits per endpoint (maxRequests, windowMs)
+- Stores request counts in memory (resets on server restart)
+- **Memory protection**: Maximum 10,000 entries with automatic eviction of oldest 10% when limit reached
+- **Adaptive cleanup**: Increases cleanup frequency from 5 minutes to 1 minute when store size exceeds 5,000 entries
+- Used to prevent abuse on sensitive endpoints (quiz submissions, profile updates, etc.)
+- Example usage: `await rateLimit(req, { maxRequests: 10, windowMs: 60000 })`
+- Returns `null` if allowed, `NextResponse` with 429 status if rate limit exceeded
+- For production: consider Redis-based rate limiting for multi-instance deployments (see `docs/PERFORMANCE.md`)
 
 ### Database Patterns
 
 **Prisma Singleton**: Always import from `src/lib/prisma.ts`, never instantiate `new PrismaClient()` directly. This prevents connection pool exhaustion during Next.js hot-reload in development.
+
+**Connection Pool Optimization**: Add `connection_limit` parameter to DATABASE_URL to prevent pool exhaustion:
+```env
+DATABASE_URL="postgresql://user:pass@localhost:5432/db?connection_limit=10"
+```
+Recommended values: 10 for development, 20-50 for production. See `docs/PERFORMANCE.md` for details.
 
 **Key Relationships**:
 - `Course` → `Stream` (one-to-many): A course has multiple streams (class groups)
@@ -81,8 +134,9 @@ NEXTAUTH_URL="http://localhost:3000"
 - **Jitsi Meet SDK** embedded directly in Next.js client components
 - Room name = `stream.id` (all lessons in a stream share the same Jitsi room)
 - Script loaded from `https://meet.jit.si/external_api.js`
-- No JWT tokens currently used (public Jitsi instance) - see PRE_MORTEM.md for security concerns
+- No JWT tokens currently used (public Jitsi instance) - configure `JITSI_JWT_*` env vars for self-hosted Jitsi with authentication
 - Lesson types: `LIVE` (Jitsi), `VIDEO` (external URL), `TEXT` (Markdown content rendered with ReactMarkdown)
+- JWT token generation available in `src/lib/jitsi-jwt.ts` for authenticated Jitsi rooms
 
 ### Lesson Library System
 
@@ -99,6 +153,33 @@ NEXTAUTH_URL="http://localhost:3000"
 - Three activity kinds: `APP`, `LESSON`, `LIVE_ROOM`
 - Sessions auto-expire after 30 days
 - Used for analytics and "who's online" features
+
+### Real-Time Chat Architecture
+
+**Socket.io Integration:**
+- Custom Next.js server (`server.ts`) required for WebSocket support
+- Socket.io server initialized in `src/lib/socket-server.ts`
+- Authentication via socket handshake with user ID token
+- Middleware validates user exists and is not blocked before accepting connection
+
+**Chat Room Types:**
+- `STREAM`: Group chat for all students enrolled in a stream (one room per stream)
+- `DIRECT`: Private 1-on-1 chat between two users
+
+**Socket Events:**
+- `room:join` / `room:leave`: Join/leave chat rooms
+- `message:send`: Send new message (max 5000 chars)
+- `message:edit`: Edit own message (time-limited, see `src/lib/chat-permissions.ts`)
+- `message:delete`: Soft delete message (teachers can delete any message in their stream)
+- `typing:start` / `typing:stop`: Typing indicators
+- `user:online` / `user:offline`: Presence notifications
+
+**Permissions:**
+- Students can only access chat rooms for streams they're enrolled in
+- Teachers can access chat rooms for streams they teach
+- Direct messages require being one of the two participants
+- Message editing allowed within configurable time window (default: own messages only)
+- Teachers can delete any message in their stream's chat room
 
 ### Invite Token System
 
@@ -124,6 +205,29 @@ NEXTAUTH_URL="http://localhost:3000"
 - Conflict detection prevents overlapping slots for same stream
 - Stored as `StreamScheduleSlot` with `dayOfWeek`, `startMinutes`, `durationMinutes`
 
+**S3 Storage System** (`src/lib/s3.ts`):
+- Supports AWS S3, MinIO, Cloudflare R2, and other S3-compatible services
+- Presigned URLs for secure uploads (1 hour expiration) and downloads (4 hour expiration)
+- Optional CDN URL configuration via `S3_PUBLIC_URL` for public access
+- Recording key format: `recordings/{streamId}/{lessonId}/{timestamp}-{filename}`
+- Check `isS3Configured()` before using S3 features
+- Falls back to PostgreSQL `Bytes` storage if S3 not configured
+
+**Email Notification System** (`src/lib/email-service.ts`):
+- Nodemailer with SMTP configuration
+- Templates for: lesson starting, new lesson, homework/quiz checked, homework deadline, new message, student joined
+- Cron scheduler (`src/lib/email-scheduler.ts`) for automated notifications
+- Ethereal Email support for development (auto-generates test accounts, logs preview URLs)
+- Email failures are logged but don't break core functionality (wrapped in try-catch)
+- All emails sent from configured `SMTP_FROM` address
+
+**Gender-Based Stream Filtering**:
+- Streams have `genderType` field: `MIXED`, `MALE_ONLY`, `FEMALE_ONLY`
+- Users have `gender` field: `MALE`, `FEMALE`, `NOT_SPECIFIED`
+- Enrollment validation checks gender compatibility (see `src/lib/gender-rules.ts`)
+- `MALE_ONLY` streams only accept male students, `FEMALE_ONLY` only female students
+- `MIXED` streams accept all genders
+
 ## API Route Patterns
 
 **Teacher Routes** (`/api/teacher/*`):
@@ -134,28 +238,42 @@ NEXTAUTH_URL="http://localhost:3000"
 
 Example: `/api/teacher/manage-student` handles multiple actions via `action` field in request body.
 
+**Admin Routes** (`/api/admin/*`):
+1. Check session with `getServerSession(authOptions)`
+2. Verify role is `ADMIN` (only admins can access)
+3. No ownership checks - admins have full access
+4. Endpoints include: user management (block/unblock, reset password), course management, dashboard stats
+
 **Student Routes** (e.g., `/api/quiz/[quizId]/submit`, `/api/teacher/homework/[assignmentId]/submit`):
 1. Check session exists
 2. Verify enrollment in the relevant stream (via `Enrollment` table)
 3. Use `upsert` pattern to allow resubmissions (updates existing submission)
 4. Reset grading fields (`status: SUBMITTED`, clear `checkedById`, `checkedAt`) on resubmission
 
-## Important Scalability Considerations (from PRE_MORTEM.md)
+## Important Scalability Considerations
 
 ### Jitsi Videobridge Scaling
 - Default single JVB setup will bottleneck at ~200 concurrent participants
 - Consider Jitsi Octo for multi-bridge cascading
 - Enforce "presenter mode" for classes >15 people (teacher broadcasts, students audio-only)
+- For production, use self-hosted Jitsi with JWT authentication (see `src/lib/jitsi-jwt.ts`)
 
-### Thundering Herd on Class Start
+### Database Connection Pool
 - 500+ students joining simultaneously will saturate database connection pool
 - Mitigation: Use Redis/KV for `InviteToken` lookups instead of PostgreSQL
 - Consider PgBouncer with read-replicas for session validation
+- Prisma connection pool defaults to `num_cpus * 2 + 1` - adjust via `connection_limit` in DATABASE_URL
 
 ### Real-Time Access Revocation
 - Kicking a student updates database but doesn't terminate active Jitsi connection
 - Student remains in video call until browser refresh
-- Solution: Implement Jitsi JWT tokens + server-side XMPP API to force disconnect
+- Solution: Implement Jitsi JWT tokens with short expiration + server-side XMPP API to force disconnect
+
+### Voice Recording Storage
+- Voice quiz recordings stored in PostgreSQL `Bytes` field (max 7MB each)
+- Large voice submissions will bloat database size over time
+- For production: migrate to S3-compatible storage (see `src/lib/s3.ts`)
+- Consider implementing automatic cleanup of old recordings
 
 ## Code Conventions
 
@@ -217,6 +335,17 @@ The teacher interface (`TeacherDashboard.tsx`) is a single-page app with tab-bas
 
 All tabs share the same component (`TeacherShell`) with content swapped based on `activeTab` state.
 
+### Admin Dashboard Architecture
+
+The admin interface (`/admin`) provides system-wide management capabilities:
+- **User Management**: View all users, block/unblock accounts, reset passwords, delete users
+- **Course Management**: View all courses across all teachers
+- **Stream Management**: View all streams and enrollments
+- **System Stats**: Total users, courses, streams, enrollments
+- **Logs**: View system logs (if configured)
+- Admins have full access to all teacher features plus admin-specific endpoints
+- Admin role required for access (checked via middleware and API routes)
+
 ## Key Dependencies
 
 - **Next.js 16** (App Router): Server/client components, API routes, middleware
@@ -224,10 +353,18 @@ All tabs share the same component (`TeacherShell`) with content swapped based on
 - **NextAuth 4**: Authentication with JWT sessions
 - **React 19**: Latest React with improved server components
 - **Tailwind CSS 4**: Utility-first styling
+- **Socket.io 4**: WebSocket server and client for real-time chat
 - **@dnd-kit**: Drag-and-drop for lesson reordering in teacher UI
 - **react-markdown**: Renders lesson content for TEXT type lessons
 - **bcryptjs**: Password hashing (10 rounds)
 - **pino**: Structured logging with JSON output in production
+- **nodemailer**: Email sending with SMTP support
+- **node-cron**: Scheduled tasks for email notifications
+- **@aws-sdk/client-s3**: S3-compatible storage for lesson recordings
+- **@sentry/nextjs**: Error tracking and performance monitoring
+- **zod 4**: Schema validation for API requests
+- **Vitest**: Fast unit testing framework
+- **Husky**: Git hooks for pre-commit checks
 
 ## Error Handling
 
@@ -273,13 +410,47 @@ All user-facing text is hardcoded in **Russian**. No internationalization librar
 
 ## Testing
 
-No test suite currently exists. When adding tests, consider:
-- Prisma schema validation
-- API route authorization checks
-- Enrollment capacity limits
-- Activity session cleanup logic
+**Test Infrastructure:**
+- **Vitest** for unit and integration tests (configured in `vitest.config.ts`)
+- **Testing Library** for React component testing
+- **jsdom** environment for browser API simulation
+- Test files located in `src/__tests__` and `src/lib/__tests__`
+- Integration tests in `src/lib/__tests__/integration`
+
+**Running Tests:**
+```bash
+npm test                 # Run all tests
+npm run test:ui          # Open Vitest UI for interactive testing
+npm run test:coverage    # Generate coverage report (HTML + JSON)
+```
+
+**Test Coverage:**
+- Excludes: `node_modules/`, `src/__tests__/`, `**/*.d.ts`, config files, `src/types/`
+- Coverage reports generated in `coverage/` directory
+- Provider: v8 (faster than Istanbul)
+
+**Existing Test Suites:**
+- Unit tests: quiz logic, schedule validation, error handling, rate limiting, storage, Jitsi JWT, chat permissions, email service, gender rules
+- Integration tests: homework flow, quiz flow, teacher operations, authentication
+- API route tests: admin endpoints (users, courses, dashboard)
+
+**Git Hooks:**
+- Husky pre-commit hook runs `lint-staged`
+- Lint-staged runs ESLint and TypeScript type checking on staged `.ts`/`.tsx` files
+- Prevents commits with linting errors or type errors
 
 ## Common Tasks
+
+### Setting Up Development Environment
+1. Clone repository and install dependencies: `npm install`
+2. Start PostgreSQL: `docker-compose up -d`
+3. Copy `.env.example` to `.env` and configure database URL
+4. Generate Prisma Client: `npx prisma generate`
+5. Run migrations: `npx prisma migrate dev`
+6. Seed database: `npx prisma db seed`
+7. Start dev server: `npm run dev` (uses custom server with Socket.io)
+8. Access at `http://localhost:3000`
+9. Login with test accounts: `admin@fatiha.ru` / `admin123` (teacher) or `ali@student.ru` / `student123` (student)
 
 ### Adding a New Lesson Type
 1. Add enum value to `LessonType` in `prisma/schema.prisma`
@@ -325,6 +496,25 @@ No test suite currently exists. When adding tests, consider:
 
 **Important:** Always use migrations (`prisma migrate dev`) instead of `prisma db push` to maintain migration history. Migrations are tracked in `prisma/migrations/` and should be committed to git.
 
+**See:** `MIGRATION_PLAN.md` for detailed migration strategy and rollback procedures.
+
+### Adding a New Email Notification
+1. Create email template in `src/lib/email/templates.ts`:
+   - Export TypeScript interface for template data
+   - Export template function that returns `{ subject, html, text }`
+   - Use Russian for all user-facing text
+2. Add method to `EmailService` class in `src/lib/email-service.ts`
+3. Call the method from relevant API route or cron job
+4. Test with Ethereal Email in development (check logs for preview URL)
+
+### Adding a New Socket.io Event
+1. Define payload interface in `src/lib/socket-server.ts`
+2. Add event handler in `initSocketServer` function
+3. Implement permission checks using `canAccessRoom` or custom logic
+4. Emit response events to room or individual socket
+5. Update client-side Socket.io integration in relevant component
+6. Handle event in client with appropriate state updates
+
 ### Debugging Common Issues
 
 **"Too many clients already" error**:
@@ -343,3 +533,825 @@ No test suite currently exists. When adding tests, consider:
 - Verify `https://meet.jit.si/external_api.js` is accessible
 - Ensure lesson type is `LIVE` (not `VIDEO` or `TEXT`)
 - Check that `jitsiRoomName` equals `stream.id`
+
+**Chat not working**:
+- Verify custom server is running (not default Next.js server)
+- Check Socket.io connection in browser console
+- Ensure user is authenticated (socket handshake requires user ID)
+- Verify user has access to the chat room (enrollment or direct message participant)
+- Check that `chatEnabled` is `true` for stream-based chat rooms
+
+**Email notifications not sending**:
+- Check SMTP configuration in `.env` file
+- For development, use Ethereal Email and check logs for preview URLs
+- Verify email service doesn't throw errors (check Pino logs)
+- Email failures are non-blocking - check logs for error details
+
+**S3 upload failing**:
+- Verify S3 credentials are configured (`S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET`)
+- Check `isS3Configured()` returns `true`
+- For MinIO, ensure `S3_ENDPOINT` is set and `forcePathStyle` is enabled
+- Presigned URLs expire after 1 hour (uploads) or 4 hours (downloads)
+
+**Memory usage high**:
+- Check memory monitor logs for warnings
+- Review `docs/PERFORMANCE.md` for optimization tips
+- Consider increasing Node.js memory limit: `NODE_OPTIONS=--max-old-space-size=4096`
+- Check for memory leaks using `npm run test:memory` (if available)
+
+# New Features Documentation
+
+## Teacher Registration System
+
+### Overview
+Two-step registration process with email verification and admin approval.
+
+### API Endpoints
+
+#### POST /api/auth/register/teacher
+**Purpose:** Step 1 - Create teacher account and send verification email
+
+**Auth:** None (public)
+
+**Request:**
+```json
+{
+  "email": "teacher@example.com",
+  "password": "securepass123",
+  "name": "Иван Иванов"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Регистрация успешна. Проверьте email для подтверждения адреса.",
+  "userId": "uuid"
+}
+```
+
+**Side Effects:**
+- User created with status PENDING_VERIFICATION
+- Verification email sent
+- Verification token generated (UUID)
+
+---
+
+#### POST /api/auth/verify-email
+**Purpose:** Verify email address using token from email
+
+**Auth:** None (public)
+
+**Request:**
+```json
+{
+  "token": "uuid-verification-token"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Email успешно подтвержден",
+  "requiresProfile": true,
+  "userId": "uuid"
+}
+```
+
+**Side Effects:**
+- User.emailVerified set to true
+- User.status updated to PENDING_APPROVAL (for teachers)
+- Verification token cleared
+
+---
+
+#### POST /api/auth/resend-verification
+**Purpose:** Resend verification email
+
+**Auth:** None (public)
+
+**Request:**
+```json
+{
+  "email": "teacher@example.com"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Письмо с подтверждением отправлено повторно"
+}
+```
+
+---
+
+#### POST /api/teacher/profile
+**Purpose:** Step 2 - Complete teacher profile after email verification
+
+**Auth:** Required (teacher role, email verified)
+
+**Request:**
+```json
+{
+  "bio": "Преподаватель Корана с 10-летним опытом...",
+  "subjects": ["Коран", "Таджвид", "Арабский язык"],
+  "experience": "10 лет преподавания в медресе...",
+  "qualifications": "Иджаза по чтению Корана, диплом...",
+  "whatsappPhone": "+79991234567",
+  "documentsUrls": [
+    "https://drive.google.com/file/d/...",
+    "https://drive.google.com/file/d/..."
+  ],
+  "videoIntroUrl": "https://youtube.com/watch?v=..."
+}
+```
+
+**Validation:**
+- bio: min 50 chars, max 5000
+- subjects: array, min 1 item
+- experience: min 20 chars, max 5000
+- qualifications: min 20 chars, max 5000
+- whatsappPhone: regex `/^\+?\d{10,15}$/`
+- documentsUrls: array of valid URLs, min 1
+- videoIntroUrl: optional, valid URL
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Анкета отправлена на рассмотрение администрации"
+}
+```
+
+**Side Effects:**
+- TeacherProfile created
+- User.status updated to PENDING_APPROVAL
+- Admins notified (in-app notification)
+
+---
+
+#### GET /api/admin/teacher-applications
+**Purpose:** List teacher applications for admin review
+
+**Auth:** Required (admin role)
+
+**Query Params:**
+- `status`: "pending" | "approved" | "rejected" | (empty for all)
+
+**Response:**
+```json
+{
+  "success": true,
+  "applications": [
+    {
+      "id": "uuid",
+      "name": "Иван Иванов",
+      "email": "teacher@example.com",
+      "status": "PENDING_APPROVAL",
+      "createdAt": "2026-03-19T10:00:00Z",
+      "emailVerifiedAt": "2026-03-19T10:05:00Z",
+      "profile": {
+        "bio": "...",
+        "subjects": ["Коран", "Таджвид"],
+        "experience": "...",
+        "qualifications": "...",
+        "whatsappPhone": "+79991234567",
+        "documentsUrls": ["..."],
+        "videoIntroUrl": "...",
+        "adminNotes": null,
+        "reviewedBy": null,
+        "reviewedAt": null,
+        "rejectionReason": null
+      }
+    }
+  ]
+}
+```
+
+---
+
+#### POST /api/admin/teacher-applications/[id]/approve
+**Purpose:** Approve teacher application
+
+**Auth:** Required (admin role)
+
+**Request:**
+```json
+{
+  "adminNotes": "Отличная квалификация, одобрено"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Заявка одобрена"
+}
+```
+
+**Side Effects:**
+- User.status → ACTIVE
+- TeacherProfile updated with review info
+- Teacher notified (in-app + email)
+- Teacher can now access /teacher/* routes
+
+---
+
+#### POST /api/admin/teacher-applications/[id]/reject
+**Purpose:** Reject teacher application
+
+**Auth:** Required (admin role)
+
+**Request:**
+```json
+{
+  "rejectionReason": "Недостаточно опыта преподавания",
+  "adminNotes": "Рекомендовать повторную подачу через год"
+}
+```
+
+**Validation:**
+- rejectionReason: required, min 10 chars, max 2000
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Заявка отклонена"
+}
+```
+
+**Side Effects:**
+- User.status → REJECTED
+- TeacherProfile updated with rejection reason
+- Teacher notified (in-app + email with reason)
+- Teacher can re-apply after addressing issues
+
+---
+
+#### GET /api/user/me
+**Purpose:** Get current user profile with status
+
+**Auth:** Required
+
+**Response:**
+```json
+{
+  "success": true,
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "name": "User Name",
+    "role": "TEACHER",
+    "status": "PENDING_APPROVAL",
+    "emailVerified": true,
+    "emailVerifiedAt": "2026-03-19T10:00:00Z",
+    "teacherProfile": {
+      "bio": "...",
+      "subjects": ["..."],
+      "whatsappPhone": "+79991234567",
+      "rejectionReason": null
+    }
+  }
+}
+```
+
+---
+
+## Student Enrollment System
+
+### Overview
+Students apply to join streams, teachers/admins review applications, payment is verified, and enrollment is created.
+
+### API Endpoints
+
+#### GET /api/catalog/courses
+**Purpose:** List published courses with available streams
+
+**Auth:** Optional (public access)
+
+**Query Params:**
+- `search`: Filter by course title
+- `level`: Filter by level
+- `subject`: Filter by subject
+
+**Response:**
+```json
+{
+  "success": true,
+  "courses": [
+    {
+      "id": "uuid",
+      "title": "Основы Таджвида",
+      "description": "Изучение правил чтения Корана",
+      "teacher": {
+        "id": "uuid",
+        "name": "Устаз Ахмад"
+      },
+      "streams": [
+        {
+          "id": "uuid",
+          "name": "Группа А",
+          "level": "Начинающий",
+          "schedule": "Пн, Ср, Пт 18:00-19:30",
+          "capacity": 30,
+          "enrolledCount": 15,
+          "availableSpots": 15,
+          "price": 5000,
+          "genderType": "MIXED"
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+#### POST /api/enrollment-requests
+**Purpose:** Submit enrollment request
+
+**Auth:** Required (student role)
+
+**Request:**
+```json
+{
+  "streamId": "uuid",
+  "message": "Хочу изучать Таджвид с нуля"
+}
+```
+
+**Validation:**
+- streamId: required, valid UUID
+- message: optional, max 1000 chars
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Заявка отправлена",
+  "requestId": "uuid",
+  "paymentInstructions": {
+    "bankName": "Сбербанк",
+    "accountNumber": "1234567890",
+    "amount": 5000,
+    "recipient": "ИП Иванов И.И."
+  }
+}
+```
+
+**Business Rules:**
+- Checks stream capacity
+- Prevents duplicate requests
+- Checks gender restrictions
+- Notifies teacher
+
+---
+
+#### POST /api/enrollment-requests/[id]/payment-proof
+**Purpose:** Upload payment proof
+
+**Auth:** Required (request owner)
+
+**Request:**
+```json
+{
+  "paymentMethod": "BANK_TRANSFER",
+  "transactionId": "TXN123456",
+  "amount": 5000,
+  "paidAt": "2026-03-19T10:00:00Z",
+  "proofUrl": "https://drive.google.com/file/d/...",
+  "notes": "Оплачено через Сбербанк Онлайн"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Подтверждение оплаты загружено"
+}
+```
+
+**Side Effects:**
+- PaymentProof created
+- Request status → PAYMENT_PENDING
+- Teacher/admin notified
+
+---
+
+#### GET /api/teacher/enrollment-requests
+**Purpose:** List enrollment requests for teacher's streams
+
+**Auth:** Required (teacher role)
+
+**Query Params:**
+- `status`: Filter by status
+- `streamId`: Filter by stream
+
+**Response:**
+```json
+{
+  "success": true,
+  "requests": [
+    {
+      "id": "uuid",
+      "status": "PAYMENT_PENDING",
+      "student": {
+        "id": "uuid",
+        "name": "Студент Иван",
+        "email": "student@example.com"
+      },
+      "stream": {
+        "id": "uuid",
+        "name": "Группа А"
+      },
+      "message": "Хочу изучать Таджвид",
+      "createdAt": "2026-03-19T10:00:00Z",
+      "paymentProof": {
+        "amount": 5000,
+        "paymentMethod": "BANK_TRANSFER",
+        "proofUrl": "https://..."
+      }
+    }
+  ]
+}
+```
+
+---
+
+#### POST /api/teacher/enrollment-requests/[id]/review
+**Purpose:** Approve or reject enrollment request
+
+**Auth:** Required (teacher role, stream owner)
+
+**Request (Approve):**
+```json
+{
+  "action": "APPROVE"
+}
+```
+
+**Request (Reject):**
+```json
+{
+  "action": "REJECT",
+  "rejectionReason": "Группа заполнена"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Заявка одобрена"
+}
+```
+
+**Side Effects:**
+- Status updated
+- Student notified
+- Payment instructions sent (if approved)
+
+---
+
+#### POST /api/teacher/enrollment-requests/[id]/confirm-payment
+**Purpose:** Confirm payment and create enrollment
+
+**Auth:** Required (teacher/admin role)
+
+**Request:**
+```json
+{
+  "requestId": "uuid"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Оплата подтверждена, студент зачислен",
+  "enrollmentId": "uuid"
+}
+```
+
+**Side Effects:**
+- Request status → PAYMENT_CONFIRMED
+- Enrollment created (status: ACTIVE)
+- PaymentProof verified
+- Student notified (welcome email)
+- Teacher notified about new student
+
+---
+
+## Middleware Protection
+
+### Teacher Status Checks
+
+The middleware (`src/middleware.ts`) now checks teacher status:
+
+```typescript
+// Allow /teacher/pending-approval for pending teachers
+if (pathname === "/teacher/pending-approval") {
+  // Allow access for PENDING_APPROVAL teachers
+}
+
+// Block other /teacher/* routes for non-active teachers
+if (token.role === "TEACHER" && token.status) {
+  if (status === "PENDING_APPROVAL" || status === "PENDING_VERIFICATION") {
+    return redirect("/teacher/pending-approval");
+  }
+  if (status === "REJECTED") {
+    return redirect("/auth/register/teacher");
+  }
+}
+```
+
+### JWT Token Refresh
+
+The JWT token now includes `status` field and refreshes on each request:
+
+```typescript
+async jwt({ token, user }) {
+  if (user) {
+    token.role = user.role;
+    token.id = user.id;
+  }
+  // Refresh user status on each request
+  if (token.id) {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: token.id },
+      select: { status: true, role: true },
+    });
+    if (dbUser) {
+      token.status = dbUser.status;
+      token.role = dbUser.role;
+    }
+  }
+  return token;
+}
+```
+
+This ensures real-time access control when admin approves/rejects applications.
+
+---
+
+## Notification Types
+
+### New Notification Types
+
+Added to `NotificationType` enum:
+
+- `TEACHER_APPLICATION_APPROVED` - Teacher application approved by admin
+- `TEACHER_APPLICATION_REJECTED` - Teacher application rejected by admin
+- `TEACHER_APPLICATION_SUBMITTED` - New teacher application (for admins)
+- `STUDENT_REGISTERED` - New student registered
+- `ENROLLMENT_REQUEST_SUBMITTED` - Student submitted enrollment request
+- `ENROLLMENT_REQUEST_APPROVED` - Enrollment request approved
+- `ENROLLMENT_REQUEST_REJECTED` - Enrollment request rejected
+- `PAYMENT_CONFIRMED` - Payment verified, student enrolled
+
+---
+
+## Email Templates
+
+### New Email Templates
+
+Located in `src/lib/email/templates/`:
+
+1. **emailVerificationTemplate** - Email confirmation link
+2. **teacherApplicationApprovedTemplate** - Approval notification
+3. **teacherApplicationRejectedTemplate** - Rejection with reason
+
+All templates follow the same pattern:
+- Use `baseTemplate` for consistent styling
+- Return `{ subject, html, text }`
+- Include CTA buttons
+- Provide plain text fallback
+- All text in Russian
+
+---
+
+## Database Schema Changes
+
+### New Models
+
+#### TeacherProfile
+```prisma
+model TeacherProfile {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  bio             String?   @db.Text
+  subjects        String[]
+  experience      String?   @db.Text
+  qualifications  String?   @db.Text
+  whatsappPhone   String?
+  documentsUrls   String[]
+  videoIntroUrl   String?
+  adminNotes      String?   @db.Text
+  reviewedById    String?
+  reviewedAt      DateTime?
+  rejectionReason String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+```
+
+#### EnrollmentRequest
+```prisma
+model EnrollmentRequest {
+  id              String    @id @default(uuid())
+  studentId       String
+  streamId        String
+  status          EnrollmentRequestStatus
+  message         String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+```
+
+#### PaymentProof
+```prisma
+model PaymentProof {
+  id            String        @id @default(uuid())
+  requestId     String
+  paymentMethod PaymentMethod
+  transactionId String?
+  amount        Float
+  paidAt        DateTime
+  proofUrl      String
+  notes         String?
+  verifiedById  String?
+  verifiedAt    DateTime?
+  createdAt     DateTime      @default(now())
+}
+```
+
+### New Enums
+
+```prisma
+enum UserStatus {
+  PENDING_VERIFICATION
+  PENDING_APPROVAL
+  ACTIVE
+  REJECTED
+  SUSPENDED
+}
+
+enum EnrollmentRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAYMENT_PENDING
+  PAYMENT_CONFIRMED
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CARD
+  CASH
+  OTHER
+}
+```
+
+### Extended User Model
+
+Added fields:
+- `emailVerified: Boolean @default(false)`
+- `emailVerifiedAt: DateTime?`
+- `verificationToken: String? @unique`
+- `status: UserStatus @default(ACTIVE)`
+
+---
+
+## Validation Schemas
+
+### New Zod Schemas
+
+Located in `src/lib/validation.ts`:
+
+```typescript
+// Teacher registration
+export const registerTeacherStep1Schema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  name: z.string().min(1).max(100),
+});
+
+export const registerTeacherStep2Schema = z.object({
+  bio: z.string().min(50).max(5000),
+  subjects: z.array(z.string()).min(1),
+  experience: z.string().min(20).max(5000),
+  qualifications: z.string().min(20).max(5000),
+  whatsappPhone: z.string().regex(/^\+?\d{10,15}$/),
+  documentsUrls: z.array(z.string().url()).min(1),
+  videoIntroUrl: z.string().url().optional().nullable(),
+});
+
+// Email verification
+export const verifyEmailSchema = z.object({
+  token: z.string().uuid(),
+});
+
+// Admin review
+export const approveTeacherSchema = z.object({
+  adminNotes: z.string().max(2000).optional(),
+});
+
+export const rejectTeacherSchema = z.object({
+  rejectionReason: z.string().min(10).max(2000),
+  adminNotes: z.string().max(2000).optional(),
+});
+
+// Enrollment
+export const createEnrollmentRequestSchema = z.object({
+  streamId: z.string().uuid(),
+  message: z.string().max(1000).optional(),
+});
+
+export const reviewEnrollmentRequestSchema = z.object({
+  action: z.enum(["APPROVE", "REJECT"]),
+  rejectionReason: z.string().max(1000).optional(),
+});
+```
+
+---
+
+## Testing
+
+### Test Accounts
+
+After running `npx prisma db seed`, the following test accounts are available:
+
+**Teachers:**
+- Active: `teacher@fatiha.ru` / `admin123`
+- Pending: `pending.teacher@example.com` / `admin123`
+- Rejected: `rejected.teacher@example.com` / `admin123`
+
+**Students:**
+- Enrolled: `ali@student.ru` / `student123`
+- With enrollment request: `new.student1@example.com` / `admin123`
+
+**Admin:**
+- `admin@fatiha.ru` / `admin123`
+
+### Testing Workflows
+
+**Teacher Registration:**
+1. Visit `/auth/register/teacher`
+2. Fill Step 1 form (email, password, name)
+3. Check logs for verification email preview URL
+4. Click verification link
+5. Fill Step 2 form (profile details)
+6. Login as admin, visit `/admin/teacher-applications`
+7. Approve or reject application
+8. Check teacher can access `/teacher` (if approved)
+
+**Student Enrollment:**
+1. Login as student
+2. Visit `/catalog`
+3. Click "Подать заявку" on a course
+4. Fill enrollment form
+5. Upload payment proof
+6. Login as teacher
+7. Review request in teacher dashboard
+8. Approve and confirm payment
+9. Verify student can access course
+
+---
+
+## Additional Documentation
+
+For detailed workflow diagrams and business logic, see:
+- `docs/workflows/teacher-registration-flow.md` - Complete teacher registration workflow
+- `docs/workflows/student-enrollment-flow.md` - Complete enrollment workflow
+- `MIGRATION_PLAN.md` - Database migration guide
+- `DEPLOYMENT.md` - Production deployment instructions
+- `TEACHER_REGISTRATION.md` - Implementation summary
+
+# UI Language
+
+All user-facing text is hardcoded in **Russian**. No internationalization library is used. When adding new features:
+- Use Russian for all UI labels, buttons, error messages
+- Follow existing naming patterns (e.g., "Создать" for Create, "Удалить" for Delete)
+- Date/time formatting should match Russian conventions
+
+# Testing
+
+No test suite currently exists. When adding tests, consider:
+- Prisma schema validation
+- API route authorization checks
+- Enrollment capacity limits
+- Activity session cleanup logic
+- Teacher application workflow
+- Payment verification logic
+- Email verification flow

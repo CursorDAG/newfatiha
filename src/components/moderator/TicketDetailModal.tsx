@@ -187,7 +187,7 @@ export default function TicketDetailModal({ ticketId, onClose, onUpdate }: Props
                 <select
                   value={ticket.status}
                   onChange={(e) => handleStatusChange(e.target.value as TicketStatus)}
-                  className="px-3 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="px-3 py-1 text-sm text-slate-900 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="OPEN">Открыто</option>
                   <option value="IN_PROGRESS">В работе</option>
@@ -203,7 +203,7 @@ export default function TicketDetailModal({ ticketId, onClose, onUpdate }: Props
                 <select
                   value={ticket.priority}
                   onChange={(e) => handlePriorityChange(e.target.value as TicketPriority)}
-                  className="px-3 py-1 text-sm border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="px-3 py-1 text-sm text-slate-900 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="LOW">Низкий</option>
                   <option value="MEDIUM">Средний</option>
@@ -279,7 +279,7 @@ export default function TicketDetailModal({ ticketId, onClose, onUpdate }: Props
                 onChange={(e) => setReplyMessage(e.target.value)}
                 placeholder="Введите ответ..."
                 rows={3}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                className="w-full px-3 py-2 text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
               />
               <div className="mt-2 flex justify-end">
                 <button

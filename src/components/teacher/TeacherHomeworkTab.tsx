@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/teacher/ui/Button";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Modal } from "@/components/ui/Modal";
 import EmptyState from "@/components/teacher/ui/EmptyState";
-import ModalShell from "@/components/teacher/ui/ModalShell";
+import { Plus, RefreshCw, FileText, Calendar, User, CheckCircle, AlertCircle } from "lucide-react";
 
 // ── Exported types (also used in TeacherDashboard) ──────────────────────────
 
@@ -84,18 +87,21 @@ function CreateAssignmentModal({
   };
 
   return (
-    <ModalShell
+    <Modal
+      open={true}
+      onClose={onClose}
       title="Новое задание"
       subtitle="Создать домашнее задание для потока"
-      onClose={onClose}
+      maxWidth="max-w-xl"
       footer={
         <div className="flex gap-3">
           <Button
             variant="primary"
             disabled={!title.trim() || submitting}
             onClick={handleSubmit}
+            loading={submitting}
           >
-            {submitting ? "Создаю..." : "Создать"}
+            Создать
           </Button>
           <Button variant="secondary" onClick={onClose}>
             Отмена
@@ -103,73 +109,75 @@ function CreateAssignmentModal({
         </div>
       }
     >
-      <div>
-        <label className="block text-sm font-bold text-slate-700 mb-1.5">
-          Название <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Напишите задание..."
-          className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-bold text-slate-700 mb-1.5">Описание</label>
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={3}
-          placeholder="Дополнительные инструкции..."
-          className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white resize-none"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
+      <div className="space-y-4">
         <div>
-          <label className="block text-sm font-bold text-slate-700 mb-1.5">Тип</label>
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value as "TEXT" | "AUDIO")}
-            className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
-          >
-            <option value="TEXT">Текстовое</option>
-            <option value="AUDIO">Аудио</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-slate-700 mb-1.5">Дедлайн</label>
+          <label className="block text-sm font-bold text-slate-700 mb-2">
+            Название <span className="text-red-500">*</span>
+          </label>
           <input
-            type="datetime-local"
-            value={dueAt}
-            onChange={(e) => setDueAt(e.target.value)}
-            className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Напишите задание..."
+            className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500 outline-none"
           />
         </div>
-      </div>
 
-      {lessons.length > 0 && (
         <div>
-          <label className="block text-sm font-bold text-slate-700 mb-1.5">
-            Привязать к уроку <span className="text-slate-400 font-normal">(необязательно)</span>
-          </label>
-          <select
-            value={lessonId}
-            onChange={(e) => setLessonId(e.target.value)}
-            className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
-          >
-            <option value="">— Без привязки —</option>
-            {lessons.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.title}
-              </option>
-            ))}
-          </select>
+          <label className="block text-sm font-bold text-slate-700 mb-2">Описание</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            placeholder="Дополнительные инструкции..."
+            className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500 outline-none resize-none"
+          />
         </div>
-      )}
-    </ModalShell>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">Тип</label>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as "TEXT" | "AUDIO")}
+              className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500 outline-none"
+            >
+              <option value="TEXT">Текстовое</option>
+              <option value="AUDIO">Аудио</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">Дедлайн</label>
+            <input
+              type="datetime-local"
+              value={dueAt}
+              onChange={(e) => setDueAt(e.target.value)}
+              className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500 outline-none"
+            />
+          </div>
+        </div>
+
+        {lessons.length > 0 && (
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">
+              Привязать к уроку <span className="text-slate-400 font-normal">(необязательно)</span>
+            </label>
+            <select
+              value={lessonId}
+              onChange={(e) => setLessonId(e.target.value)}
+              className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500 outline-none"
+            >
+              <option value="">— Без привязки —</option>
+              {lessons.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+    </Modal>
   );
 }
 
@@ -194,106 +202,98 @@ function SubmissionCard({
       : "",
   );
 
-  const statusColor =
-    submission.status === "ACCEPTED"
-      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-      : submission.status === "NEEDS_REWORK"
-        ? "bg-amber-50 text-amber-700 border-amber-200"
-        : submission.status === "REJECTED"
-          ? "bg-red-50 text-red-700 border-red-200"
-          : "bg-slate-50 text-slate-600 border-slate-200";
+  const statusConfig = {
+    ACCEPTED: { variant: "success" as const, label: "Принято", icon: <CheckCircle className="w-3 h-3" /> },
+    NEEDS_REWORK: { variant: "warning" as const, label: "Нужно доработать", icon: <AlertCircle className="w-3 h-3" /> },
+    REJECTED: { variant: "error" as const, label: "Отклонено", icon: <AlertCircle className="w-3 h-3" /> },
+    SUBMITTED: { variant: "info" as const, label: "На проверке", icon: <AlertCircle className="w-3 h-3" /> },
+  };
 
-  const statusLabel =
-    submission.status === "ACCEPTED"
-      ? "Принято"
-      : submission.status === "NEEDS_REWORK"
-        ? "Нужно доработать"
-        : submission.status === "REJECTED"
-          ? "Отклонено"
-          : "На проверке";
-
+  const config = statusConfig[submission.status];
   const parsedGrade = grade !== "" ? Number(grade) : null;
 
   return (
-    <div className="p-4 border border-slate-200 rounded-2xl bg-white shadow-sm flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm border border-emerald-200 shrink-0">
-            {submission.student.name.charAt(0)}
+    <Card padding="p-6" hoverable>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white flex items-center justify-center font-bold shadow-sm shrink-0">
+              {submission.student.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-slate-900 truncate">{submission.student.name}</p>
+              <p className="text-xs text-slate-600 flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                {new Date(submission.submittedAt).toLocaleString("ru-RU")}
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="font-semibold text-slate-800 truncate">{submission.student.name}</p>
-            <p className="text-[11px] text-slate-500">
-              Сдано: {new Date(submission.submittedAt).toLocaleString("ru-RU")}
-            </p>
+          <Badge variant={config.variant} size="md" icon={config.icon}>
+            {config.label}
+          </Badge>
+        </div>
+
+        {submission.contentText && (
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-700 whitespace-pre-wrap">
+            {submission.contentText}
+          </div>
+        )}
+        {submission.contentUrl && (
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <audio controls className="w-full">
+              <source src={submission.contentUrl} />
+            </audio>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">
+              Комментарий учителя
+            </label>
+            <textarea
+              rows={3}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Оставьте комментарий..."
+              className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500 outline-none resize-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">
+              Оценка <span className="text-slate-400 font-normal">(необязательно)</span>
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={grade}
+              onChange={(e) => setGrade(e.target.value)}
+              placeholder="0 – 100"
+              className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500 outline-none"
+            />
           </div>
         </div>
-        <span
-          className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border shrink-0 ${statusColor}`}
-        >
-          {statusLabel}
-        </span>
-      </div>
 
-      {submission.contentText && (
-        <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-sm text-slate-700 whitespace-pre-wrap">
-          {submission.contentText}
-        </div>
-      )}
-      {submission.contentUrl && (
-        <div className="bg-slate-50 border border-slate-100 rounded-xl p-3">
-          <audio controls className="w-full h-9">
-            <source src={submission.contentUrl} />
-          </audio>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1">
-            Комментарий учителя
-          </label>
-          <textarea
-            rows={2}
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Оставьте комментарий..."
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white resize-none"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-bold text-slate-600 mb-1">
-            Оценка <span className="font-normal text-slate-400">(необязательно)</span>
-          </label>
-          <input
-            type="number"
-            min={0}
-            max={100}
-            value={grade}
-            onChange={(e) => setGrade(e.target.value)}
-            placeholder="0 – 100"
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
-          />
+        <div className="flex gap-3 justify-end pt-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => onCheck(submission.id, "NEEDS_REWORK", comment, parsedGrade)}
+          >
+            Попросить доработать
+          </Button>
+          <Button
+            size="sm"
+            variant="success"
+            onClick={() => onCheck(submission.id, "ACCEPTED", comment, parsedGrade)}
+            icon={<CheckCircle className="w-4 h-4" />}
+          >
+            Принять
+          </Button>
         </div>
       </div>
-
-      <div className="flex gap-2 justify-end">
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={() => onCheck(submission.id, "NEEDS_REWORK", comment, parsedGrade)}
-        >
-          Попросить доработать
-        </Button>
-        <Button
-          size="sm"
-          variant="primary"
-          onClick={() => onCheck(submission.id, "ACCEPTED", comment, parsedGrade)}
-        >
-          Принять
-        </Button>
-      </div>
-    </div>
+    </Card>
   );
 }
 
@@ -365,7 +365,7 @@ export default function TeacherHomeworkTab({
   const currentAssignment = assignments.find((a) => a.id === selectedAssignmentId) ?? null;
 
   return (
-    <div className="p-8 flex-1 flex flex-col gap-6">
+    <div className="p-8 flex-1">
       {createOpen && (
         <CreateAssignmentModal
           lessons={lessons}
@@ -377,81 +377,95 @@ export default function TeacherHomeworkTab({
       <div className="flex flex-col lg:flex-row gap-6">
         {/* ── Assignment list ── */}
         <div className="lg:w-1/2">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-emerald-900">Домашние задания</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold text-slate-900">Домашние задания</h2>
             <div className="flex gap-2">
-              <Button size="sm" variant="secondary" onClick={onRefresh}>
+              <Button size="sm" variant="secondary" onClick={onRefresh} icon={<RefreshCw className="w-4 h-4" />}>
                 Обновить
               </Button>
               {streamId && (
-                <Button size="sm" variant="primary" onClick={() => setCreateOpen(true)}>
-                  + Задание
+                <Button size="sm" variant="primary" onClick={() => setCreateOpen(true)} icon={<Plus className="w-4 h-4" />}>
+                  Задание
                 </Button>
               )}
             </div>
           </div>
 
           {!streamId ? (
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 text-center text-slate-500">
-              Выберите поток, чтобы увидеть задания.
-            </div>
+            <Card padding="p-12">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-8 h-8 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Выберите поток</h3>
+                <p className="text-slate-600">Выберите поток, чтобы увидеть задания</p>
+              </div>
+            </Card>
           ) : loading ? (
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 text-center text-slate-500">
-              Загрузка заданий...
-            </div>
+            <Card padding="p-12">
+              <div className="text-center">
+                <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-slate-600 font-semibold">Загрузка заданий...</p>
+              </div>
+            </Card>
           ) : assignments.length === 0 ? (
-            <EmptyState
-              icon="📝"
-              title="В этом потоке пока нет домашних заданий"
-              description="Нажмите «+ Задание», чтобы создать первое."
-              action={
-                <Button size="sm" variant="primary" onClick={() => setCreateOpen(true)}>
-                  + Задание
+            <Card padding="p-12">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-8 h-8 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">В этом потоке пока нет домашних заданий</h3>
+                <p className="text-slate-600 mb-6">Нажмите «Задание», чтобы создать первое</p>
+                <Button size="sm" variant="primary" onClick={() => setCreateOpen(true)} icon={<Plus className="w-4 h-4" />}>
+                  Создать задание
                 </Button>
-              }
-            />
+              </div>
+            </Card>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {assignments.map((a) => (
-                <button
+                <Card
                   key={a.id}
-                  type="button"
-                  onClick={() => setSelectedAssignmentId(a.id)}
-                  className={`w-full text-left border rounded-2xl p-4 transition-all ${
+                  padding="p-6"
+                  hoverable
+                  className={`cursor-pointer transition-all ${
                     selectedAssignmentId === a.id
-                      ? "border-emerald-300 bg-emerald-50 shadow-sm"
-                      : "border-slate-200 bg-white hover:bg-slate-50"
+                      ? "ring-2 ring-emerald-500 bg-emerald-50"
+                      : ""
                   }`}
+                  onClick={() => setSelectedAssignmentId(a.id)}
                 >
-                  <div className="flex justify-between items-start gap-3">
-                    <div className="min-w-0">
-                      <p className="font-bold text-slate-800 truncate">{a.title}</p>
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-lg text-slate-900 mb-2">{a.title}</h4>
                       {a.lesson && (
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-sm text-slate-600 mb-2 flex items-center gap-1">
+                          <FileText className="w-4 h-4" />
                           Урок: <span className="font-semibold">{a.lesson.title}</span>
                         </p>
                       )}
                       {a.dueAt && (
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-sm text-slate-600 flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
                           Дедлайн: {new Date(a.dueAt).toLocaleString("ru-RU")}
                         </p>
                       )}
+                      {a.description && (
+                        <p className="text-sm text-slate-600 mt-2 line-clamp-2">{a.description}</p>
+                      )}
                     </div>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                      <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <Badge variant="neutral" size="sm">
                         {a.type === "AUDIO" ? "Аудио" : "Текст"}
-                      </span>
+                      </Badge>
                       {a.submittedCount > 0 && (
-                        <span className="text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+                        <Badge variant="warning" size="sm">
                           На проверке: {a.pendingCount}/{a.submittedCount}
-                        </span>
+                        </Badge>
                       )}
                     </div>
                   </div>
-                  {a.description && (
-                    <p className="text-xs text-slate-600 mt-2 line-clamp-2">{a.description}</p>
-                  )}
-                </button>
+                </Card>
               ))}
             </div>
           )}
@@ -459,35 +473,48 @@ export default function TeacherHomeworkTab({
 
         {/* ── Submission list ── */}
         <div className="lg:w-1/2">
-          <h3 className="text-lg font-bold text-slate-800 mb-4">
-            Работы{" "}
+          <h3 className="text-2xl font-bold text-slate-900 mb-6">
+            Работы
             {currentAssignment && (
-              <span className="text-sm font-semibold text-slate-500">
+              <span className="text-base font-semibold text-slate-600 ml-2">
                 — {currentAssignment.title}
               </span>
             )}
           </h3>
 
           {!currentAssignment ? (
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 text-center text-slate-500">
-              Выберите задание слева, чтобы увидеть работы учеников.
-            </div>
+            <Card padding="p-12">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <User className="w-8 h-8 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Выберите задание</h3>
+                <p className="text-slate-600">Выберите задание слева, чтобы увидеть работы учеников</p>
+              </div>
+            </Card>
           ) : subLoading ? (
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 text-center text-slate-500">
-              Загрузка работ...
-            </div>
+            <Card padding="p-12">
+              <div className="text-center">
+                <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-slate-600 font-semibold">Загрузка работ...</p>
+              </div>
+            </Card>
           ) : subError ? (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-sm text-red-700">
-              {subError}
-            </div>
+            <Card padding="p-8" className="bg-red-50 border-red-200">
+              <p className="text-sm text-red-700 text-center">{subError}</p>
+            </Card>
           ) : submissions.length === 0 ? (
-            <EmptyState
-              icon="📭"
-              title="Пока нет сдач по этому заданию"
-              description="Когда ученики начнут сдавать, их работы появятся здесь."
-            />
+            <Card padding="p-12">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-8 h-8 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Пока нет сдач по этому заданию</h3>
+                <p className="text-slate-600">Когда ученики начнут сдавать, их работы появятся здесь</p>
+              </div>
+            </Card>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {submissions.map((s) => (
                 <SubmissionCard
                   key={s.id}

@@ -23,7 +23,7 @@ export const GET = withErrorHandling(async (req: Request) => {
   const where: {
     courseId?: string;
     course?: { teacherId: string };
-    genderType?: string;
+    genderType?: "MALE_ONLY" | "FEMALE_ONLY" | "MIXED";
   } = {};
 
   if (courseId) {
@@ -36,7 +36,7 @@ export const GET = withErrorHandling(async (req: Request) => {
     };
   }
 
-  if (genderType) {
+  if (genderType && (genderType === "MALE_ONLY" || genderType === "FEMALE_ONLY" || genderType === "MIXED")) {
     where.genderType = genderType;
   }
 

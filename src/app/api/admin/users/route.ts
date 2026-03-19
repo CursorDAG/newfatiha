@@ -25,15 +25,15 @@ export const GET = withErrorHandling(async (req: Request) => {
   // Построение фильтров
   const where: {
     deletedAt: null;
-    role?: string;
+    role?: "STUDENT" | "TEACHER" | "ADMIN" | "MODERATOR";
     isBlocked?: boolean;
-    OR?: Array<{ email: { contains: string; mode: string } } | { name: { contains: string; mode: string } }>;
+    OR?: Array<{ email: { contains: string; mode: "insensitive" } } | { name: { contains: string; mode: "insensitive" } }>;
   } = {
     deletedAt: null, // Не показываем удаленных пользователей
   };
 
-  if (query.role) {
-    where.role = query.role;
+  if (query.role && ["STUDENT", "TEACHER", "ADMIN", "MODERATOR"].includes(query.role)) {
+    where.role = query.role as "STUDENT" | "TEACHER" | "ADMIN" | "MODERATOR";
   }
 
   if (query.isBlocked !== undefined) {

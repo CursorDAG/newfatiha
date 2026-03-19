@@ -219,19 +219,19 @@ export function ChatWindow({
   const typingUserNames = Array.from(typingUsers.values());
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow-lg">
+    <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
-        <div>
-          <h3 className="font-semibold text-slate-900">{roomName}</h3>
-          <p className="text-xs text-slate-500">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
+        <div className="min-w-0 flex-1">
+          <h3 className="font-bold text-lg text-slate-900 truncate">{roomName}</h3>
+          <p className="text-xs text-slate-500 mt-0.5">
             {isConnected ? "Подключено" : "Отключено"}
           </p>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600"
+            className="text-slate-400 hover:text-slate-600 transition-colors ml-4 flex-shrink-0"
           >
             <svg
               className="w-6 h-6"
@@ -251,7 +251,7 @@ export function ChatWindow({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-4">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-slate-500">Загрузка...</div>
@@ -264,7 +264,7 @@ export function ChatWindow({
             </div>
           </div>
         ) : (
-          <div>
+          <div className="space-y-3">
             {messages.map((message) => (
               <MessageItem
                 key={message.id}

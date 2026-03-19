@@ -9,7 +9,7 @@ import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 /**
  * PATCH /api/teacher/profile
  * Updates the authenticated teacher's public profile fields.
- * Body: { name?: string; bio?: string | null; skills?: string[] }
+ * Body: { name?: string; bio?: string | null; skills?: string[]; gender?: string }
  * At least one field must be present.
  */
 export const PATCH = withErrorHandling(async (req: Request) => {
@@ -67,6 +67,15 @@ export const PATCH = withErrorHandling(async (req: Request) => {
       }
     }
     updateData.skills = skills;
+  }
+
+  // gender
+  if (body?.gender !== undefined) {
+    const validGenders = ["MALE", "FEMALE", "NOT_SPECIFIED"];
+    if (!validGenders.includes(body.gender)) {
+      throw new ValidationError("Недопустимое значение пола", { gender: "Invalid gender value" });
+    }
+    updateData.gender = body.gender;
   }
 
   if (Object.keys(updateData).length === 0) {

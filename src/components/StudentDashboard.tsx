@@ -3,7 +3,34 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
+import {
+  Home,
+  BookOpen,
+  FileText,
+  Calendar,
+  BarChart3,
+  FlaskConical,
+  Video,
+  FileVideo,
+  LogOut,
+  Menu,
+  X,
+  Radio,
+  ExternalLink,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
+  User,
+  Info,
+} from "lucide-react";
 import LiveJitsiEmbed from "@/components/student/LiveJitsiEmbed";
+import StudentProgressDashboard from "@/components/student/StudentProgressDashboard";
+import DetailedProgressView from "@/components/student/DetailedProgressView";
+import StudentInfoTab from "@/components/student/StudentInfoTab";
+import { useOnboarding } from "@/contexts/OnboardingContext";
+import { studentSteps } from "@/components/onboarding/studentSteps";
+import { OnboardingTooltip } from "@/components/onboarding/OnboardingTooltip";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -68,7 +95,7 @@ type QuizResult = {
   };
 };
 
-type TabId = "home" | "lessons" | "homework" | "schedule" | "results";
+type TabId = "home" | "lessons" | "homework" | "schedule" | "results" | "progress" | "info";
 
 type ActiveLiveLesson = {
   lessonId: string;
@@ -79,10 +106,10 @@ type ActiveLiveLesson = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const lessonTypeIcon = (type: string) => {
-  if (type === "LIVE") return "🔴";
-  if (type === "VIDEO") return "🎬";
-  return "📄";
+const getLessonIcon = (type: string) => {
+  if (type === "LIVE") return Radio;
+  if (type === "VIDEO") return FileVideo;
+  return FileText;
 };
 
 const statusLabel: Record<string, string> = {
@@ -113,6 +140,13 @@ const submissionStatusColor: Record<HomeworkSubmission["status"], string> = {
   REJECTED: "bg-red-50 text-red-700 border-red-200",
 };
 
+const getSubmissionIcon = (status: HomeworkSubmission["status"]) => {
+  if (status === "ACCEPTED") return CheckCircle2;
+  if (status === "NEEDS_REWORK") return AlertCircle;
+  if (status === "REJECTED") return XCircle;
+  return Clock;
+};
+
 const quizStatusLabel: Record<QuizResult["status"], string> = {
   SUBMITTED: "На проверке",
   PASSED: "Сдано",
@@ -123,6 +157,12 @@ const quizStatusColor: Record<QuizResult["status"], string> = {
   SUBMITTED: "bg-slate-100 text-slate-700 border-slate-200",
   PASSED: "bg-emerald-50 text-emerald-700 border-emerald-200",
   FAILED: "bg-red-50 text-red-700 border-red-200",
+};
+
+const getQuizIcon = (status: QuizResult["status"]) => {
+  if (status === "PASSED") return CheckCircle2;
+  if (status === "FAILED") return XCircle;
+  return Clock;
 };
 
 const DAY_NAMES = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
@@ -173,37 +213,43 @@ function HomeworkSubmitForm({
   };
 
   return (
-    <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
-      <p className="text-sm font-bold text-slate-700">
-        {assignment.submission ? "Исправить и повторно сдать" : "Сдать задание"}
-      </p>
-      {assignment.description && (
-        <p className="text-sm text-slate-600 bg-white border border-slate-200 rounded-lg p-3">
-          {assignment.description}
+    <div className="mt-6 bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
+      <div className="flex items-center gap-3">
+        <FileText className="w-5 h-5 text-emerald-600" />
+        <p className="text-base font-bold text-slate-800">
+          {assignment.submission ? "Исправить и повторно сдать" : "Сдать задание"}
         </p>
+      </div>
+      {assignment.description && (
+        <div className="bg-white border border-slate-200 rounded-xl p-4">
+          <p className="text-sm text-slate-700 leading-relaxed">{assignment.description}</p>
+        </div>
       )}
       {error && (
-        <p className="text-xs text-red-600 font-semibold">{error}</p>
+        <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 rounded-xl p-3">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <p className="text-sm font-semibold">{error}</p>
+        </div>
       )}
-      <form onSubmit={handleSubmit} className="space-y-3">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <textarea
-          className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm focus:ring-2 focus:ring-emerald-400 outline-none resize-none h-28 bg-white"
+          className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none h-32 bg-white"
           placeholder="Напишите ваш ответ..."
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-bold py-2.5 rounded-xl transition-all"
+            className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold py-3 rounded-xl transition-all shadow-sm hover:shadow"
           >
             {loading ? "Отправка..." : "Отправить"}
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold py-2.5 rounded-xl transition-all"
+            className="flex-1 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold py-3 rounded-xl transition-all border border-slate-300"
           >
             Отмена
           </button>
@@ -226,59 +272,74 @@ function HomeworkCard({
   const isOverdue =
     assignment.dueAt && new Date(assignment.dueAt) < new Date() && !assignment.submission;
 
+  const StatusIcon = assignment.submission
+    ? getSubmissionIcon(assignment.submission.status)
+    : AlertCircle;
+
   return (
     <div
-      className={`border rounded-2xl p-4 bg-white space-y-3 ${
-        isOverdue ? "border-red-200" : "border-slate-200"
+      className={`border rounded-2xl p-6 bg-white space-y-4 transition-all hover:shadow-md ${
+        isOverdue ? "border-red-300 bg-red-50/30" : "border-slate-200"
       }`}
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-bold text-slate-800 leading-tight">{assignment.title}</p>
-          {assignment.lesson && (
-            <p className="text-xs text-slate-500 mt-0.5">
-              Урок: {assignment.lesson.title}
-            </p>
-          )}
-          {assignment.dueAt && (
-            <p
-              className={`text-xs font-semibold mt-1 ${
-                isOverdue ? "text-red-600" : "text-slate-500"
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start gap-3">
+            <FileText className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <p className="font-bold text-slate-900 leading-tight text-base">{assignment.title}</p>
+              {assignment.lesson && (
+                <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5" />
+                  {assignment.lesson.title}
+                </p>
+              )}
+              {assignment.dueAt && (
+                <p
+                  className={`text-sm font-semibold mt-2 flex items-center gap-1.5 ${
+                    isOverdue ? "text-red-600" : "text-slate-600"
+                  }`}
+                >
+                  <Clock className="w-4 h-4" />
+                  Сдать до:{" "}
+                  {new Date(assignment.dueAt).toLocaleDateString("ru-RU", {
+                    day: "numeric",
+                    month: "long",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                  {isOverdue && " — просрочено"}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+        {/* Status badge */}
+        <div className="shrink-0">
+          {assignment.submission ? (
+            <span
+              className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border ${
+                submissionStatusColor[assignment.submission.status]
               }`}
             >
-              Сдать до:{" "}
-              {new Date(assignment.dueAt).toLocaleDateString("ru-RU", {
-                day: "numeric",
-                month: "long",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-              {isOverdue && " — просрочено"}
-            </p>
+              <StatusIcon className="w-3.5 h-3.5" />
+              {submissionStatusLabel[assignment.submission.status]}
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full">
+              <AlertCircle className="w-3.5 h-3.5" />
+              Не сдано
+            </span>
           )}
         </div>
-        {/* Status or submit button */}
-        {assignment.submission ? (
-          <span
-            className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-full border ${
-              submissionStatusColor[assignment.submission.status]
-            }`}
-          >
-            {submissionStatusLabel[assignment.submission.status]}
-          </span>
-        ) : (
-          <span className="shrink-0 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
-            Не сдано
-          </span>
-        )}
       </div>
 
       {/* Submitted answer preview */}
       {assignment.submission?.contentText && !formOpen && (
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-          <p className="text-xs font-bold text-slate-500 mb-1">Ваш ответ:</p>
-          <p className="text-sm text-slate-700 whitespace-pre-wrap line-clamp-4">
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+          <p className="text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider">Ваш ответ:</p>
+          <p className="text-sm text-slate-700 whitespace-pre-wrap line-clamp-4 leading-relaxed">
             {assignment.submission.contentText}
           </p>
         </div>
@@ -288,9 +349,12 @@ function HomeworkCard({
       {assignment.submission &&
         (assignment.submission.grade !== null ||
           assignment.submission.teacherComment) && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 space-y-1">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-bold text-emerald-700">Проверено учителем:</p>
+              <p className="text-sm font-bold text-emerald-800 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Проверено учителем
+              </p>
               {assignment.submission.checkedAt && (
                 <p className="text-xs text-emerald-600">
                   {new Date(assignment.submission.checkedAt).toLocaleDateString("ru-RU", {
@@ -374,7 +438,23 @@ export default function StudentDashboard({
   const [activeTab, setActiveTab] = useState<TabId>("home");
   const [activeLiveLesson, setActiveLiveLesson] = useState<ActiveLiveLesson>(null);
   const [jitsiToken, setJitsiToken] = useState<string | undefined>(undefined);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const activitySessionIdRef = useRef<string | undefined>(undefined);
+  const { startOnboarding, isCompleted, resetOnboarding } = useOnboarding();
+
+  useEffect(() => {
+    if (!isCompleted) {
+      const timer = setTimeout(() => {
+        startOnboarding(studentSteps);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isCompleted, startOnboarding]);
+
+  const handleRestartOnboarding = () => {
+    resetOnboarding();
+    startOnboarding(studentSteps);
+  };
 
   // Fetch Jitsi JWT token for a stream
   const fetchJitsiToken = async (streamId: string): Promise<string | undefined> => {
@@ -444,13 +524,20 @@ export default function StudentDashboard({
     };
   }, []);
 
-  const tabs: Array<{ id: TabId; label: string }> = [
-    { id: "home", label: "🏠 Главная" },
-    { id: "lessons", label: "📖 Мои уроки" },
-    { id: "homework", label: "📝 Домашние задания" },
-    { id: "results", label: "🧪 Тесты" },
-    { id: "schedule", label: "🗓 Расписание" },
+  const tabs: Array<{ id: TabId; label: string; icon: any }> = [
+    { id: "home", label: "Главная", icon: Home },
+    { id: "lessons", label: "Мои уроки", icon: BookOpen },
+    { id: "homework", label: "Домашние задания", icon: FileText },
+    { id: "results", label: "Тесты", icon: FlaskConical },
+    { id: "progress", label: "Мой прогресс", icon: BarChart3 },
+    { id: "schedule", label: "Расписание", icon: Calendar },
+    { id: "info", label: "Информация", icon: Info },
   ];
+
+  const handleTabChange = (tab: TabId) => {
+    setActiveTab(tab);
+    setMobileMenuOpen(false);
+  };
 
   // Count pending homework for badge
   const pendingHomeworkCount = homeworkAssignments.filter(
@@ -474,7 +561,19 @@ export default function StudentDashboard({
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
+    <div className="min-h-screen bg-slate-50 text-slate-800" data-onboarding="student-dashboard">
+      <OnboardingTooltip />
+
+      {/* Help button */}
+      <button
+        onClick={handleRestartOnboarding}
+        className="fixed top-4 right-4 z-30 bg-emerald-600 text-white rounded-xl shadow-lg p-3 hover:bg-emerald-700 transition-colors"
+        aria-label="Помощь"
+        title="Показать обучение"
+      >
+        <Info className="w-5 h-5" />
+      </button>
+
       {/* ── Full-viewport live lesson overlay ──────────────────────── */}
       {activeLiveLesson && (
         <div className="fixed inset-0 z-50 bg-white flex flex-col">
@@ -494,66 +593,117 @@ export default function StudentDashboard({
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        className="lg:hidden fixed top-4 left-4 z-30 bg-white rounded-xl shadow-lg p-3 border border-slate-200 hover:bg-slate-50 transition-colors"
+        aria-label="Открыть меню"
+      >
+        <svg
+          className="w-6 h-6 text-slate-700"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          {mobileMenuOpen ? (
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          ) : (
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          )}
+        </svg>
+      </button>
+
+      {/* Mobile menu overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-20"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* ── Sidebar ────────────────────────────────────────────────── */}
-        <nav className="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-1 h-fit">
+        <nav className={`lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-2 h-fit transition-transform lg:translate-x-0 ${
+          mobileMenuOpen
+            ? "fixed left-4 right-4 top-20 z-30 max-h-[calc(100vh-6rem)] overflow-y-auto"
+            : "hidden lg:block"
+        }`}>
           {/* User block */}
-          <div className="px-4 pb-4 mb-2 border-b border-slate-100">
-            <div className="w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-lg mb-2">
-              {userName.charAt(0).toUpperCase()}
+          <div className="pb-6 mb-4 border-b border-slate-200">
+            <div className="w-14 h-14 rounded-full bg-emerald-100 border-2 border-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-xl mb-3">
+              <User className="w-7 h-7" />
             </div>
-            <p className="font-bold text-slate-800 text-sm leading-tight truncate">
+            <p className="font-bold text-slate-900 text-base leading-tight truncate">
               {userName}
             </p>
-            <p className="text-xs text-slate-400 font-semibold mt-0.5">Студент</p>
+            <p className="text-sm text-slate-500 font-medium mt-1">Студент</p>
           </div>
 
           {/* Enrolled streams with teacher info */}
           {enrollments.length > 0 && (
-            <div className="px-4 py-3 mb-1 border-b border-slate-100">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Мои потоки</p>
-              <div className="space-y-2">
+            <div className="pb-4 mb-4 border-b border-slate-200" data-onboarding="my-streams">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Мои потоки</p>
+              <div className="space-y-3">
                 {enrollments.map((e) => (
-                  <div key={e.enrollmentId} className="text-xs">
-                    <p className="font-semibold text-slate-700 truncate">{e.stream.name}</p>
-                    <p className="text-slate-400 truncate">👨‍🏫 {e.stream.teacherName}</p>
+                  <div key={e.enrollmentId} className="text-sm">
+                    <p className="font-semibold text-slate-800 truncate">{e.stream.name}</p>
+                    <p className="text-slate-500 truncate text-xs mt-0.5 flex items-center gap-1">
+                      <User className="w-3 h-3" />
+                      {e.stream.teacherName}
+                    </p>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
-              className={`w-full text-left p-3 px-4 rounded-xl transition-colors font-semibold text-sm flex items-center justify-between ${
-                activeTab === t.id
-                  ? "bg-emerald-50 text-emerald-800 border border-emerald-100"
-                  : "text-slate-600 hover:bg-slate-50 border border-transparent"
-              }`}
-            >
-              <span>{t.label}</span>
-              {t.id === "homework" && pendingHomeworkCount > 0 && (
-                <span className="text-[11px] font-bold bg-red-500 text-white px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                  {pendingHomeworkCount}
-                </span>
-              )}
-              {t.id === "results" && pendingQuizCount > 0 && (
-                <span className="text-[11px] font-bold bg-amber-500 text-white px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                  {pendingQuizCount}
-                </span>
-              )}
-            </button>
-          ))}
+          {tabs.map((t) => {
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.id}
+                onClick={() => handleTabChange(t.id)}
+                data-onboarding={`student-tab-${t.id}`}
+                className={`w-full text-left p-4 rounded-xl transition-all font-semibold text-sm flex items-center gap-3 ${
+                  activeTab === t.id
+                    ? "bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-sm"
+                    : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"
+                }`}
+              >
+                <Icon className="w-5 h-5 shrink-0" />
+                <span className="flex-1">{t.label}</span>
+                {t.id === "homework" && pendingHomeworkCount > 0 && (
+                  <span className="text-xs font-bold bg-red-500 text-white px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                    {pendingHomeworkCount}
+                  </span>
+                )}
+                {t.id === "results" && pendingQuizCount > 0 && (
+                  <span className="text-xs font-bold bg-amber-500 text-white px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                    {pendingQuizCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
 
-          <div className="pt-3 border-t border-slate-100 mt-2">
+          <div className="pt-4 border-t border-slate-200 mt-2">
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="w-full text-left p-3 px-4 rounded-xl transition-colors font-semibold text-sm text-red-500 hover:bg-red-50 border border-transparent"
+              className="w-full text-left p-4 rounded-xl transition-all font-semibold text-sm text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 flex items-center gap-3"
             >
-              → Выйти
+              <LogOut className="w-5 h-5" />
+              <span>Выйти</span>
             </button>
           </div>
         </nav>
@@ -579,14 +729,20 @@ export default function StudentDashboard({
               </div>
 
               {/* Stat cards */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
+              <div className="grid grid-cols-3 gap-4" data-onboarding="home-stats">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center hover:shadow-sm transition-shadow">
+                  <div className="flex justify-center mb-2">
+                    <BookOpen className="w-8 h-8 text-emerald-600" />
+                  </div>
                   <p className="text-3xl font-bold text-emerald-700">
                     {enrollments.filter((e) => e.status === "ACTIVE").length}
                   </p>
                   <p className="text-xs font-semibold text-emerald-600 mt-1">Активных потоков</p>
                 </div>
-                <div className={`rounded-2xl p-4 text-center border ${pendingHomeworkCount > 0 ? "bg-amber-50 border-amber-200" : "bg-slate-50 border-slate-200"}`}>
+                <div className={`rounded-2xl p-5 text-center border hover:shadow-sm transition-shadow ${pendingHomeworkCount > 0 ? "bg-amber-50 border-amber-200" : "bg-slate-50 border-slate-200"}`}>
+                  <div className="flex justify-center mb-2">
+                    <FileText className={`w-8 h-8 ${pendingHomeworkCount > 0 ? "text-amber-600" : "text-slate-400"}`} />
+                  </div>
                   <p className={`text-3xl font-bold ${pendingHomeworkCount > 0 ? "text-amber-600" : "text-slate-400"}`}>
                     {pendingHomeworkCount}
                   </p>
@@ -594,7 +750,10 @@ export default function StudentDashboard({
                     Заданий к сдаче
                   </p>
                 </div>
-                <div className={`rounded-2xl p-4 text-center border ${pendingQuizCount > 0 ? "bg-blue-50 border-blue-200" : "bg-slate-50 border-slate-200"}`}>
+                <div className={`rounded-2xl p-5 text-center border hover:shadow-sm transition-shadow ${pendingQuizCount > 0 ? "bg-blue-50 border-blue-200" : "bg-slate-50 border-slate-200"}`}>
+                  <div className="flex justify-center mb-2">
+                    <FlaskConical className={`w-8 h-8 ${pendingQuizCount > 0 ? "text-blue-600" : "text-slate-400"}`} />
+                  </div>
                   <p className={`text-3xl font-bold ${pendingQuizCount > 0 ? "text-blue-600" : "text-slate-400"}`}>
                     {pendingQuizCount}
                   </p>
@@ -605,8 +764,8 @@ export default function StudentDashboard({
               </div>
 
               {/* Upcoming lessons */}
-              <div>
-                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-3">
+              <div data-onboarding="upcoming-lessons">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">
                   Ближайшие уроки
                 </h3>
                 {(() => {
@@ -621,44 +780,54 @@ export default function StudentDashboard({
                     )
                     .slice(0, 5);
                   return upcoming.length === 0 ? (
-                    <p className="text-sm text-slate-400">Уроков пока нет</p>
+                    <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-200">
+                      <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                      <p className="text-sm text-slate-400">Уроков пока нет</p>
+                    </div>
                   ) : (
-                    <div className="space-y-2">
-                      {upcoming.map((l) => (
-                        <div
-                          key={l.id}
-                          className="flex items-center gap-3 border border-slate-200 rounded-xl p-3 bg-white hover:shadow-sm transition-shadow"
-                        >
-                          <span className="text-xl shrink-0">{lessonTypeIcon(l.type)}</span>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-slate-800 truncate text-sm">{l.title}</p>
-                            <p className="text-xs text-slate-400 truncate">{l.streamName}</p>
+                    <div className="space-y-3">
+                      {upcoming.map((l) => {
+                        const LessonIcon = getLessonIcon(l.type);
+                        return (
+                          <div
+                            key={l.id}
+                            className="flex items-center gap-4 border border-slate-200 rounded-xl p-4 bg-white hover:shadow-md transition-all"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
+                              <LessonIcon className="w-5 h-5 text-emerald-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-slate-800 truncate">{l.title}</p>
+                              <p className="text-xs text-slate-500 truncate mt-0.5">{l.streamName}</p>
+                            </div>
+                            {l.type === "LIVE" && (
+                              <button
+                                onClick={() =>
+                                  joinLiveLesson({
+                                    lessonId: l.id,
+                                    lessonTitle: l.title,
+                                    jitsiRoomName: l.streamId,
+                                    streamName: l.streamName,
+                                  })
+                                }
+                                className="shrink-0 flex items-center gap-2 text-sm font-bold bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
+                              >
+                                <Radio className="w-4 h-4" />
+                                Войти
+                              </button>
+                            )}
+                            {l.type !== "LIVE" && (
+                              <button
+                                onClick={() => router.push(`/lesson/${l.id}`)}
+                                className="shrink-0 flex items-center gap-2 text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                                Открыть
+                              </button>
+                            )}
                           </div>
-                          {l.type === "LIVE" && (
-                            <button
-                              onClick={() =>
-                                joinLiveLesson({
-                                  lessonId: l.id,
-                                  lessonTitle: l.title,
-                                  jitsiRoomName: l.streamId,
-                                  streamName: l.streamName,
-                                })
-                              }
-                              className="shrink-0 text-xs font-bold bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition-colors"
-                            >
-                              Войти
-                            </button>
-                          )}
-                          {l.type !== "LIVE" && (
-                            <button
-                              onClick={() => router.push(`/lesson/${l.id}`)}
-                              className="shrink-0 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg transition-colors"
-                            >
-                              Открыть
-                            </button>
-                          )}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   );
                 })()}
@@ -667,37 +836,42 @@ export default function StudentDashboard({
               {/* Recent results */}
               {(quizResults.length > 0 || homeworkAssignments.some((a) => a.submission)) && (
                 <div>
-                  <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-3">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">
                     Последние результаты
                   </h3>
-                  <div className="space-y-2">
-                    {quizResults.slice(0, 3).map((qr) => (
-                      <div
-                        key={qr.id}
-                        className="flex items-center justify-between gap-3 border border-slate-200 rounded-xl p-3 bg-white"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-700 truncate">{qr.quiz.title}</p>
-                          <p className="text-xs text-slate-400">{qr.quiz.lesson.title}</p>
+                  <div className="space-y-3">
+                    {quizResults.slice(0, 3).map((qr) => {
+                      const StatusIcon = getQuizIcon(qr.status);
+                      return (
+                        <div
+                          key={qr.id}
+                          className="flex items-center justify-between gap-4 border border-slate-200 rounded-xl p-4 bg-white hover:shadow-sm transition-shadow"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-slate-800 truncate">{qr.quiz.title}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">{qr.quiz.lesson.title}</p>
+                          </div>
+                          <span className={`shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border ${quizStatusColor[qr.status]}`}>
+                            <StatusIcon className="w-3.5 h-3.5" />
+                            {quizStatusLabel[qr.status]}
+                          </span>
                         </div>
-                        <span className={`shrink-0 text-xs font-bold px-2.5 py-1 rounded-full border ${quizStatusColor[qr.status]}`}>
-                          {quizStatusLabel[qr.status]}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                     {homeworkAssignments
                       .filter((a) => a.submission?.status === "ACCEPTED")
                       .slice(0, 3)
                       .map((a) => (
                         <div
                           key={a.id}
-                          className="flex items-center justify-between gap-3 border border-slate-200 rounded-xl p-3 bg-white"
+                          className="flex items-center justify-between gap-4 border border-slate-200 rounded-xl p-4 bg-white hover:shadow-sm transition-shadow"
                         >
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-slate-700 truncate">{a.title}</p>
-                            <p className="text-xs text-slate-400">{a.streamName}</p>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold text-slate-800 truncate">{a.title}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">{a.streamName}</p>
                           </div>
-                          <span className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
+                          <span className="shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
                             Принято
                           </span>
                         </div>
@@ -710,111 +884,131 @@ export default function StudentDashboard({
 
           {/* ── Lessons Tab ──────────────────────────────────────────── */}
           {activeTab === "lessons" && (
-            <div className="p-6 flex-1">
-              <div className="mb-6 border-b pb-4">
-                <h2 className="text-2xl font-bold text-emerald-900">Мои уроки</h2>
-                <p className="text-sm text-slate-500 mt-1">
+            <div className="p-8 flex-1">
+              <div className="mb-8 pb-6 border-b border-slate-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <BookOpen className="w-7 h-7 text-emerald-600" />
+                  <h2 className="text-3xl font-bold text-slate-900">Мои уроки</h2>
+                </div>
+                <p className="text-sm text-slate-500 mt-2">
                   Все уроки ваших потоков
                 </p>
               </div>
 
               {enrollments.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-                  <span className="text-5xl mb-4">📭</span>
-                  <p className="font-semibold text-lg">Вы ещё не зачислены ни в один поток</p>
-                  <p className="text-sm mt-1">Попросите преподавателя прислать пригласительную ссылку</p>
+                  <BookOpen className="w-16 h-16 text-slate-300 mb-4" />
+                  <p className="font-semibold text-lg text-slate-600">Вы ещё не зачислены ни в один поток</p>
+                  <p className="text-sm mt-2">Попросите преподавателя прислать пригласительную ссылку</p>
                 </div>
               ) : (
-                <div className="space-y-8">
+                <div className="space-y-10" data-onboarding="lessons-list">
                   {enrollments.map((e) => (
                     <div key={e.enrollmentId}>
                       {/* Stream header */}
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between mb-5">
                         <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-slate-800 text-lg">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-bold text-slate-900 text-xl">
                               {e.stream.name}
                             </h3>
                             <span
-                              className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+                              className={`text-xs font-bold px-3 py-1 rounded-full border ${
                                 statusColor[e.status] ?? "bg-slate-100 text-slate-700 border-slate-200"
                               }`}
                             >
                               {statusLabel[e.status] ?? e.status}
                             </span>
                           </div>
-                          <p className="text-sm text-slate-500 mt-0.5">
-                            {e.stream.courseName} · {e.stream.level} · {e.stream.schedule}
+                          <p className="text-sm text-slate-600 mt-1.5 flex items-center gap-2">
+                            <span>{e.stream.courseName}</span>
+                            <span className="text-slate-300">•</span>
+                            <span>{e.stream.level}</span>
+                            <span className="text-slate-300">•</span>
+                            <span>{e.stream.schedule}</span>
                           </p>
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            Учитель: <span className="font-semibold text-slate-600">{e.stream.teacherName}</span>
+                          <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+                            <User className="w-3.5 h-3.5" />
+                            Учитель: <span className="font-semibold text-slate-700">{e.stream.teacherName}</span>
                           </p>
                         </div>
                       </div>
 
                       {e.stream.lessons.length === 0 ? (
-                        <div className="border border-dashed border-slate-200 rounded-xl p-5 text-center text-slate-400 text-sm">
-                          Уроков пока нет
+                        <div className="border border-dashed border-slate-300 rounded-xl p-8 text-center text-slate-400 text-sm bg-slate-50">
+                          <BookOpen className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                          <p>Уроков пока нет</p>
                         </div>
                       ) : (
-                        <div className="space-y-2">
-                          {e.stream.lessons.map((lesson, idx) => (
-                            <div
-                              key={lesson.id}
-                              className="border border-slate-200 rounded-xl p-4 bg-white flex items-center justify-between gap-4 hover:shadow-sm transition-shadow"
-                            >
-                              <div className="flex items-center gap-3 min-w-0">
-                                <span className="text-xl shrink-0">
-                                  {lessonTypeIcon(lesson.type)}
-                                </span>
-                                <div className="min-w-0">
-                                  <p className="text-xs font-bold text-slate-400 mb-0.5">
-                                    #{idx + 1} · {lesson.type}
-                                  </p>
-                                  <p className="font-semibold text-slate-800 truncate">
-                                    {lesson.title}
-                                  </p>
+                        <div className="space-y-3">
+                          {e.stream.lessons.map((lesson, idx) => {
+                            const LessonIcon = getLessonIcon(lesson.type);
+                            return (
+                              <div
+                                key={lesson.id}
+                                className="border border-slate-200 rounded-xl p-5 bg-white flex items-center justify-between gap-4 hover:shadow-md hover:border-emerald-200 transition-all"
+                              >
+                                <div className="flex items-center gap-4 min-w-0 flex-1">
+                                  <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
+                                    <LessonIcon className="w-6 h-6 text-emerald-600" />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                                        #{idx + 1}
+                                      </span>
+                                      <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">
+                                        {lesson.type}
+                                      </span>
+                                    </div>
+                                    <p className="font-semibold text-slate-900 truncate text-base">
+                                      {lesson.title}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="shrink-0">
+                                  {lesson.type === "LIVE" && (
+                                    <button
+                                      onClick={() =>
+                                        joinLiveLesson({
+                                          lessonId: lesson.id,
+                                          lessonTitle: lesson.title,
+                                          jitsiRoomName: e.stream.id,
+                                          streamName: e.stream.name,
+                                        })
+                                      }
+                                      className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm hover:shadow"
+                                    >
+                                      <Radio className="w-4 h-4" />
+                                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                      Войти
+                                    </button>
+                                  )}
+                                  {lesson.type === "TEXT" && (
+                                    <button
+                                      onClick={() => router.push(`/lesson/${lesson.id}`)}
+                                      className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold px-5 py-2.5 rounded-xl transition-all"
+                                    >
+                                      <FileText className="w-4 h-4" />
+                                      Открыть
+                                    </button>
+                                  )}
+                                  {lesson.type === "VIDEO" && lesson.content && (
+                                    <a
+                                      href={lesson.content}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold px-5 py-2.5 rounded-xl transition-all inline-flex"
+                                    >
+                                      <Video className="w-4 h-4" />
+                                      Смотреть
+                                    </a>
+                                  )}
                                 </div>
                               </div>
-
-                              <div className="shrink-0">
-                                {lesson.type === "LIVE" && (
-                                  <button
-                                    onClick={() =>
-                                      joinLiveLesson({
-                                        lessonId: lesson.id,
-                                        lessonTitle: lesson.title,
-                                        jitsiRoomName: e.stream.id,
-                                        streamName: e.stream.name,
-                                      })
-                                    }
-                                    className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
-                                  >
-                                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                                    Войти
-                                  </button>
-                                )}
-                                {lesson.type === "TEXT" && (
-                                  <button
-                                    onClick={() => router.push(`/lesson/${lesson.id}`)}
-                                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2 rounded-lg transition-colors"
-                                  >
-                                    Открыть
-                                  </button>
-                                )}
-                                {lesson.type === "VIDEO" && lesson.content && (
-                                  <a
-                                    href={lesson.content}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-4 py-2 rounded-lg transition-colors inline-block"
-                                  >
-                                    Смотреть
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -843,7 +1037,7 @@ export default function StudentDashboard({
                   <p className="text-sm mt-1">Преподаватель ещё не добавил домашние задания</p>
                 </div>
               ) : (
-                <div className="space-y-8">
+                <div className="space-y-8" data-onboarding="homework-section">
                   {/* Group by stream */}
                   {enrollments.map((e) => {
                     const streamAssignments = homeworkAssignments.filter(
@@ -882,76 +1076,93 @@ export default function StudentDashboard({
 
           {/* ── Quiz Results Tab ─────────────────────────────────────── */}
           {activeTab === "results" && (
-            <div className="p-6 flex-1">
-              <div className="mb-6 border-b pb-4">
-                <h2 className="text-2xl font-bold text-emerald-900">Мои тесты</h2>
-                <p className="text-sm text-slate-500 mt-1">
+            <div className="p-8 flex-1">
+              <div className="mb-8 pb-6 border-b border-slate-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <FlaskConical className="w-7 h-7 text-emerald-600" />
+                  <h2 className="text-3xl font-bold text-slate-900">Мои тесты</h2>
+                </div>
+                <p className="text-sm text-slate-500 mt-2">
                   История результатов по квизам и тестам
                 </p>
               </div>
 
               {quizResults.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-                  <span className="text-5xl mb-4">🧪</span>
-                  <p className="font-semibold text-lg">Тестов пока нет</p>
-                  <p className="text-sm mt-1">Результаты появятся после прохождения тестов на уроках</p>
+                  <FlaskConical className="w-16 h-16 text-slate-300 mb-4" />
+                  <p className="font-semibold text-lg text-slate-600">Тестов пока нет</p>
+                  <p className="text-sm mt-2">Результаты появятся после прохождения тестов на уроках</p>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-10">
                   {Object.values(quizResultsByLesson).map((group) => (
                     <div key={group.lessonId}>
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Урок</span>
-                        <h3 className="text-base font-bold text-slate-800">{group.lessonTitle}</h3>
-                        <span className="text-xs text-slate-400">· {group.results.length} тест(а)</span>
+                      <div className="flex items-center gap-3 mb-5">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                          Урок
+                        </span>
+                        <h3 className="text-lg font-bold text-slate-900">{group.lessonTitle}</h3>
+                        <span className="text-sm text-slate-500">· {group.results.length} тест(а)</span>
                       </div>
-                      <div className="space-y-2">
-                        {group.results.map((qr) => (
-                          <div
-                            key={qr.id}
-                            className="border border-slate-200 rounded-xl p-4 bg-white flex items-center justify-between gap-4"
-                          >
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-base">
-                                  {qr.quiz.type === "VOICE" ? "🎤" : "📋"}
-                                </span>
-                                <p className="font-semibold text-slate-800 truncate">{qr.quiz.title}</p>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <span className="text-xs text-slate-400">
-                                  {qr.quiz.type === "VOICE" ? "Голосовой" : "Тест с выбором"}
-                                </span>
-                                <span className="text-slate-300">·</span>
-                                <span className="text-xs text-slate-400">
-                                  Сдано{" "}
-                                  {new Date(qr.createdAt).toLocaleDateString("ru-RU", {
-                                    day: "numeric",
-                                    month: "long",
-                                    year: "numeric",
-                                  })}
-                                </span>
-                                {qr.checkedAt && (
-                                  <>
-                                    <span className="text-slate-300">·</span>
-                                    <span className="text-xs text-slate-400">
-                                      Проверено{" "}
-                                      {new Date(qr.checkedAt).toLocaleDateString("ru-RU", {
-                                        day: "numeric",
-                                        month: "long",
-                                      })}
-                                    </span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                            <span
-                              className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full border ${quizStatusColor[qr.status]}`}
+                      <div className="space-y-3">
+                        {group.results.map((qr) => {
+                          const StatusIcon = getQuizIcon(qr.status);
+                          return (
+                            <div
+                              key={qr.id}
+                              className="border border-slate-200 rounded-xl p-5 bg-white flex items-center justify-between gap-4 hover:shadow-md transition-all"
                             >
-                              {quizStatusLabel[qr.status]}
-                            </span>
-                          </div>
-                        ))}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
+                                    {qr.quiz.type === "VOICE" ? (
+                                      <Video className="w-5 h-5 text-blue-600" />
+                                    ) : (
+                                      <FileText className="w-5 h-5 text-blue-600" />
+                                    )}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-semibold text-slate-900 truncate">{qr.quiz.title}</p>
+                                    <div className="flex items-center gap-3 mt-1">
+                                      <span className="text-xs text-slate-500">
+                                        {qr.quiz.type === "VOICE" ? "Голосовой" : "Тест с выбором"}
+                                      </span>
+                                      <span className="text-slate-300">•</span>
+                                      <span className="text-xs text-slate-500 flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        Сдано{" "}
+                                        {new Date(qr.createdAt).toLocaleDateString("ru-RU", {
+                                          day: "numeric",
+                                          month: "long",
+                                          year: "numeric",
+                                        })}
+                                      </span>
+                                      {qr.checkedAt && (
+                                        <>
+                                          <span className="text-slate-300">•</span>
+                                          <span className="text-xs text-slate-500 flex items-center gap-1">
+                                            <CheckCircle2 className="w-3 h-3" />
+                                            Проверено{" "}
+                                            {new Date(qr.checkedAt).toLocaleDateString("ru-RU", {
+                                              day: "numeric",
+                                              month: "long",
+                                            })}
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <span
+                                className={`shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-full border ${quizStatusColor[qr.status]}`}
+                              >
+                                <StatusIcon className="w-4 h-4" />
+                                {quizStatusLabel[qr.status]}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
@@ -960,12 +1171,33 @@ export default function StudentDashboard({
             </div>
           )}
 
+          {/* ── Progress Tab ─────────────────────────────────────────── */}
+          {activeTab === "progress" && (
+            <div className="p-8 flex-1">
+              <div className="mb-8 pb-6 border-b border-slate-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <BarChart3 className="w-7 h-7 text-emerald-600" />
+                  <h2 className="text-3xl font-bold text-slate-900">Мой прогресс</h2>
+                </div>
+                <p className="text-sm text-slate-500 mt-2">
+                  Отслеживайте свою успеваемость и достижения
+                </p>
+              </div>
+              <div data-onboarding="progress-section">
+                <StudentProgressDashboard />
+              </div>
+            </div>
+          )}
+
           {/* ── Schedule Tab ─────────────────────────────────────────── */}
           {activeTab === "schedule" && (
-            <div className="p-6 flex-1">
-              <div className="mb-6 border-b pb-4">
-                <h2 className="text-2xl font-bold text-emerald-900">Расписание</h2>
-                <p className="text-sm text-slate-500 mt-1">
+            <div className="p-8 flex-1">
+              <div className="mb-8 pb-6 border-b border-slate-200">
+                <div className="flex items-center gap-3 mb-2">
+                  <Calendar className="w-7 h-7 text-emerald-600" />
+                  <h2 className="text-3xl font-bold text-slate-900">Расписание</h2>
+                </div>
+                <p className="text-sm text-slate-500 mt-2">
                   Расписание занятий по вашим потокам
                 </p>
               </div>
@@ -1079,6 +1311,13 @@ export default function StudentDashboard({
                   </div>
                 );
               })()}
+            </div>
+          )}
+
+          {/* ── Info Tab ─────────────────────────────────────────────── */}
+          {activeTab === "info" && (
+            <div className="p-6 flex-1">
+              <StudentInfoTab />
             </div>
           )}
         </section>

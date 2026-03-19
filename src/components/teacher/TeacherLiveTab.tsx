@@ -97,81 +97,84 @@ export default function TeacherLiveTab({
   return (
     <div className="h-full flex flex-col bg-slate-900 text-white">
       {/* ── Header ─────────────────────────────────────────────────── */}
-      <div className="px-6 py-3 bg-slate-800 border-b border-slate-700 flex items-center gap-3 shadow-md z-10 shrink-0">
+      <div className="px-4 sm:px-6 py-3 bg-slate-800 border-b border-slate-700 flex items-center gap-2 sm:gap-3 shadow-md z-10 shrink-0 overflow-x-auto">
         {/* Exit button */}
         <button
           type="button"
           onClick={onExit}
-          className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600 transition-colors shrink-0"
+          className="flex items-center gap-1.5 text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-full border border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600 transition-colors shrink-0"
           title="Вернуться в кабинет"
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Выйти из Live
+          <span className="hidden sm:inline">Выйти из Live</span>
+          <span className="sm:hidden">Выйти</span>
         </button>
 
-        <h2 className="font-bold text-base flex items-center gap-2.5 min-w-0">
+        <h2 className="font-bold text-sm sm:text-base flex items-center gap-2 min-w-0 flex-1">
           <div
             className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shrink-0"
             style={{ boxShadow: "0 0 8px #ef4444" }}
           />
-          <span className="truncate">Live: {streamName}</span>
+          <span className="truncate">{streamName}</span>
         </h2>
 
-        <div className="ml-auto flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Hints toggle */}
           <button
             type="button"
             onClick={() => { setHintsOpen((v) => !v); setNotesOpen(false); }}
-            className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-colors ${
+            className={`flex items-center gap-1 sm:gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 rounded-full border transition-colors ${
               hintsOpen
                 ? "bg-amber-500 text-white border-amber-500"
                 : "bg-slate-700 text-slate-200 border-slate-600 hover:border-amber-400 hover:text-amber-300"
             }`}
             title="Подсказки урока"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
             </svg>
-            Подсказки
+            <span className="hidden sm:inline">Подсказки</span>
           </button>
 
           {/* Notes toggle */}
           <button
             type="button"
             onClick={() => { setNotesOpen((v) => !v); setHintsOpen(false); }}
-            className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-colors ${
+            className={`flex items-center gap-1 sm:gap-1.5 text-xs font-bold px-2 sm:px-3 py-1.5 rounded-full border transition-colors ${
               notesOpen
                 ? "bg-emerald-500 text-white border-emerald-500"
                 : "bg-slate-700 text-slate-200 border-slate-600 hover:border-emerald-400 hover:text-emerald-300"
             }`}
             title="Личные заметки"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
-            Заметки
+            <span className="hidden sm:inline">Заметки</span>
           </button>
 
-          <div className="w-px h-5 bg-slate-600" />
+          <div className="w-px h-5 bg-slate-600 hidden sm:block" />
 
           {/* Share screen */}
           <button
             type="button"
             onClick={onShareScreen}
-            className="bg-emerald-600 px-3 py-1.5 rounded-full hover:bg-emerald-500 transition-colors text-xs font-bold disabled:opacity-40"
+            className="bg-emerald-600 px-2.5 sm:px-3 py-1.5 rounded-full hover:bg-emerald-500 transition-colors text-xs font-bold disabled:opacity-40 shrink-0"
           >
-            Демонстрация
+            <span className="hidden sm:inline">Демонстрация</span>
+            <span className="sm:hidden">📺</span>
           </button>
 
           {/* End lesson */}
           <button
             type="button"
             onClick={onEndLesson}
-            className="bg-red-600 px-3 py-1.5 rounded-full hover:bg-red-500 transition-colors text-xs font-bold disabled:opacity-40"
+            className="bg-red-600 px-2.5 sm:px-3 py-1.5 rounded-full hover:bg-red-500 transition-colors text-xs font-bold disabled:opacity-40 shrink-0"
           >
-            Завершить
+            <span className="hidden sm:inline">Завершить</span>
+            <span className="sm:hidden">⏹</span>
           </button>
         </div>
       </div>

@@ -32,15 +32,22 @@ interface RateLimitEntry {
 }
 
 /**
+ * Maximum number of entries in the store
+ * Prevents unbounded memory growth
+ */
+const MAX_STORE_SIZE = 10000;
+
+/**
  * In-memory store for rate limiting
  * In production, this should be replaced with Redis or similar
  */
 class RateLimitStore {
   private store: Map<string, RateLimitEntry> = new Map();
   private cleanupInterval: NodeJS.Timeout;
+  private lastCleanupSize = 0;
 
   constructor() {
-    // Cleanup expired entries every 5 minutes
+    // Cleanup expired entries every 5 minutes (or more frequently if store is large)
     this.cleanupInterval = setInterval(() => {
       this.cleanup();
     }, 5 * 60 * 1000);
@@ -75,6 +82,11 @@ class RateLimitStore {
       return existing;
     }
 
+    // Проверка размера хранилища перед добавлением новой записи
+    if (this.store.size >= MAX_STORE_SIZE) {
+      this.evictOldest();
+    }
+
     const newEntry: RateLimitEntry = {
       count: 1,
       resetTime: now + windowMs,
@@ -84,10 +96,36 @@ class RateLimitStore {
   }
 
   /**
+   * Evict oldest entries when max size is reached
+   * Removes 10% of entries (sorted by reset time)
+   */
+  private evictOldest(): void {
+    const entriesToRemove = Math.ceil(MAX_STORE_SIZE * 0.1);
+
+    // Сортируем записи по времени сброса (самые старые первыми)
+    const sortedEntries = Array.from(this.store.entries()).sort(
+      (a, b) => a[1].resetTime - b[1].resetTime
+    );
+
+    // Удаляем 10% самых старых записей
+    for (let i = 0; i < entriesToRemove && i < sortedEntries.length; i++) {
+      this.store.delete(sortedEntries[i][0]);
+    }
+
+    logger.warn({
+      msg: "Rate limit store eviction (max size reached)",
+      removed: entriesToRemove,
+      currentSize: this.store.size,
+      maxSize: MAX_STORE_SIZE,
+    });
+  }
+
+  /**
    * Remove expired entries
    */
   private cleanup(): void {
     const now = Date.now();
+    const sizeBefore = this.store.size;
     let removed = 0;
 
     for (const [key, entry] of this.store.entries()) {
@@ -97,9 +135,41 @@ class RateLimitStore {
       }
     }
 
-    if (removed > 0) {
-      logger.debug({ msg: "Rate limit store cleanup", removed });
+    const sizeAfter = this.store.size;
+
+    // Логируем если удалили записи или размер значительно вырос
+    if (removed > 0 || sizeAfter > 5000) {
+      logger.debug({
+        msg: "Rate limit store cleanup",
+        removed,
+        sizeBefore,
+        sizeAfter,
+      });
     }
+
+    // Если хранилище большое (>5000 записей), запускаем cleanup чаще
+    if (sizeAfter > 5000 && this.lastCleanupSize <= 5000) {
+      logger.info({
+        msg: "Rate limit store is large, increasing cleanup frequency",
+        size: sizeAfter,
+      });
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = setInterval(() => {
+        this.cleanup();
+      }, 60 * 1000); // Каждую минуту вместо 5 минут
+    } else if (sizeAfter <= 5000 && this.lastCleanupSize > 5000) {
+      // Возвращаем обычную частоту когда размер уменьшился
+      logger.info({
+        msg: "Rate limit store size normalized, restoring cleanup frequency",
+        size: sizeAfter,
+      });
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = setInterval(() => {
+        this.cleanup();
+      }, 5 * 60 * 1000);
+    }
+
+    this.lastCleanupSize = sizeAfter;
   }
 
   /**

@@ -12,18 +12,22 @@ import TeacherLessonsTab from "@/components/teacher/TeacherLessonsTab";
 import TeacherStudentsTab from "@/components/teacher/TeacherStudentsTab";
 import TeacherLiveTab from "@/components/teacher/TeacherLiveTab";
 import TeacherHomeworkTab from "@/components/teacher/TeacherHomeworkTab";
+import TeacherApplicationsTab from "@/components/teacher/TeacherApplicationsTab";
 import TeacherGradebookTab from "@/components/teacher/TeacherGradebookTab";
 import TeacherAnalyticsTab from "@/components/teacher/TeacherAnalyticsTab";
+import TeacherProgressAnalytics from "@/components/teacher/TeacherProgressAnalytics";
 import ToastStack, { type ToastItem } from "@/components/teacher/ui/ToastStack";
 import ConfirmModal from "@/components/teacher/ui/ConfirmModal";
 import ImportLessonsModal from "@/components/teacher/ImportLessonsModal";
 import StudentProgressModal from "@/components/teacher/StudentProgressModal";
 import LessonLibraryModal from "@/components/teacher/LessonLibraryModal";
+import { RecordingUploadModal } from "@/components/teacher/RecordingUploadModal";
 import type { StudentProgressPayload } from "@/app/api/teacher/students/[enrollmentId]/progress/route";
 import { useAnalytics } from "@/components/teacher/hooks/useAnalytics";
 import { useGradebook } from "@/components/teacher/hooks/useGradebook";
 import { useHomework } from "@/components/teacher/hooks/useHomework";
 import ReactMarkdown from "react-markdown";
+import TeacherInfoTab from "@/components/teacher/TeacherInfoTab";
 
 type Course = {
   id: string;
@@ -116,6 +120,8 @@ declare global {
         parentNode: HTMLElement;
         userInfo?: { displayName?: string };
         jwt?: string;
+        configOverwrite?: Record<string, unknown>;
+        interfaceConfigOverwrite?: Record<string, unknown>;
       }
     ) => { dispose: () => void; executeCommand: (cmd: string) => void };
   }
@@ -184,9 +190,30 @@ function LiveJitsiRoom({
           roomName: string;
           parentNode: HTMLElement;
           jwt?: string;
+          configOverwrite?: Record<string, unknown>;
+          interfaceConfigOverwrite?: Record<string, unknown>;
         } = {
           roomName: streamId,
           parentNode: containerRef.current,
+          configOverwrite: {
+            // Скрыть информацию о телефонных номерах для подключения
+            disableInviteFunctions: true,
+            // Отключить показ dial-in номеров
+            dialInNumbersUrl: '',
+            dialInConfCodeUrl: '',
+          },
+          interfaceConfigOverwrite: {
+            // Скрыть кнопку "Пригласить" с телефонными номерами
+            TOOLBAR_BUTTONS: [
+              'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
+              'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
+              'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
+              'videoquality', 'filmstrip', 'feedback', 'stats', 'shortcuts',
+              'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
+            ],
+            // Скрыть информацию о dial-in
+            HIDE_INVITE_MORE_HEADER: true,
+          },
         };
 
         if (jitsiToken) {
@@ -365,6 +392,10 @@ export default function TeacherDashboard({
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [studentProgressData, setStudentProgressData] = useState<StudentProgressPayload | null>(null);
   const [libraryModalOpen, setLibraryModalOpen] = useState(false);
+  const [recordingUploadState, setRecordingUploadState] = useState<{
+    lessonId: string;
+    lessonTitle: string;
+  } | null>(null);
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [jitsiCommands, setJitsiCommands] = useState<{ shareScreen: () => void; endLesson: () => void } | null>(null);
@@ -402,10 +433,14 @@ export default function TeacherDashboard({
   const [showCreateQuizForLessonId, setShowCreateQuizForLessonId] = useState<string | null>(null);
   const [quizForm, setQuizForm] = useState({
     title: "Тест по уроку",
-    type: "MULTIPLE_CHOICE" as "MULTIPLE_CHOICE" | "VOICE",
-    prompt: "",
-    options: ["", "", "", ""],
-    correctOptionIndex: 0,
+    questions: [
+      {
+        prompt: "",
+        type: "MULTIPLE_CHOICE" as "MULTIPLE_CHOICE" | "TEXT" | "VOICE",
+        options: ["", "", "", ""],
+        correctOptionIndex: 0,
+      },
+    ],
   });
   const [questionLibraryOpen, setQuestionLibraryOpen] = useState(false);
   const [questionSearch, setQuestionSearch] = useState("");
@@ -557,10 +592,12 @@ export default function TeacherDashboard({
         body: JSON.stringify({
           lessonId: showCreateQuizForLessonId,
           title: quizForm.title,
-          type: quizForm.type,
-          prompt: quizForm.prompt,
-          options: quizForm.type === "MULTIPLE_CHOICE" ? quizForm.options : undefined,
-          correctOptionIndex: quizForm.type === "MULTIPLE_CHOICE" ? quizForm.correctOptionIndex : undefined,
+          questions: quizForm.questions.map((q) => ({
+            prompt: q.prompt,
+            type: q.type,
+            options: q.type === "MULTIPLE_CHOICE" ? q.options : undefined,
+            correctOptionIndex: q.type === "MULTIPLE_CHOICE" ? q.correctOptionIndex : undefined,
+          })),
         }),
       });
       const data = (await res.json()) as { error?: string };
@@ -569,17 +606,22 @@ export default function TeacherDashboard({
       setShowCreateQuizForLessonId(null);
       setQuizForm({
         title: "Тест по уроку",
-        type: "MULTIPLE_CHOICE",
-        prompt: "",
-        options: ["", "", "", ""],
-        correctOptionIndex: 0,
+        questions: [
+          {
+            prompt: "",
+            type: "MULTIPLE_CHOICE",
+            options: ["", "", "", ""],
+            correctOptionIndex: 0,
+          },
+        ],
       });
+      router.refresh();
     } catch (e: unknown) {
       pushToast({ type: "error", title: "Ошибка создания теста", message: e instanceof Error ? e.message : undefined });
     } finally {
       setLoading(false);
     }
-  }, [quizForm, showCreateQuizForLessonId, pushToast]);
+  }, [quizForm, showCreateQuizForLessonId, pushToast, router]);
 
   const fetchQuestionLibrary = useCallback(
     async (search?: string) => {
@@ -1026,6 +1068,23 @@ export default function TeacherDashboard({
         <StudentProgressModal
           data={studentProgressData}
           onClose={() => setStudentProgressData(null)}
+        />
+      )}
+
+      {recordingUploadState && (
+        <RecordingUploadModal
+          lessonId={recordingUploadState.lessonId}
+          lessonTitle={recordingUploadState.lessonTitle}
+          onClose={() => setRecordingUploadState(null)}
+          onSuccess={() => {
+            setRecordingUploadState(null);
+            pushToast({
+              type: "success",
+              title: "Запись загружена",
+              message: "Студенты смогут просмотреть запись урока",
+            });
+            router.refresh();
+          }}
         />
       )}
 
@@ -1701,6 +1760,15 @@ export default function TeacherDashboard({
                 });
               }
             }}
+            onUploadRecording={(lessonId) => {
+              const lesson = selectedStream?.lessons.find((l) => l.id === lessonId);
+              if (lesson) {
+                setRecordingUploadState({
+                  lessonId: lesson.id,
+                  lessonTitle: lesson.title,
+                });
+              }
+            }}
           />
         )}
 
@@ -1716,6 +1784,13 @@ export default function TeacherDashboard({
             onPlayVoice={playVoice}
             onCheckSubmission={checkSubmission}
           />
+        )}
+
+        {/* ── Progress Tab ──────────────────────────────────────────────── */}
+        {activeTab === "progress" && selectedStreamId && (
+          <div className="p-8 flex-1">
+            <TeacherProgressAnalytics streamId={selectedStreamId} />
+          </div>
         )}
 
         {/* ── Gradebook Tab ────────────────────────────────────────────── */}
@@ -1746,13 +1821,13 @@ export default function TeacherDashboard({
         )}
 
           {showCreateQuizForLessonId && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl my-8">
                 <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 p-6 text-white">
                   <h2 className="text-2xl font-bold">Новый тест</h2>
                   <p className="text-emerald-200 text-sm mt-1">Тест будет виден ученику на странице урока</p>
                 </div>
-                <div className="p-6 space-y-4">
+                <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1.5">Название</label>
                     <input
@@ -1761,90 +1836,180 @@ export default function TeacherDashboard({
                       onChange={(e) => setQuizForm((f) => ({ ...f, title: e.target.value }))}
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Тип</label>
-                    <select
-                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
-                      value={quizForm.type}
-                      onChange={(e) =>
-                        setQuizForm((f) => ({
-                          ...f,
-                          type: e.target.value === "VOICE" ? "VOICE" : "MULTIPLE_CHOICE",
-                        }))
-                      }
-                    >
-                      <option value="MULTIPLE_CHOICE">Выбор из вариантов</option>
-                      <option value="VOICE">Голосом (настройка записи — следующий шаг)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Вопрос/задание</label>
-                    <textarea
-                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white resize-none h-24"
-                      value={quizForm.prompt}
-                      onChange={(e) => setQuizForm((f) => ({ ...f, prompt: e.target.value }))}
-                    />
-                  </div>
-                  {quizForm.type === "MULTIPLE_CHOICE" && (
-                    <div className="space-y-3">
-                      <p className="text-sm font-extrabold text-slate-800">Варианты ответа</p>
-                      <div className="flex justify-between items-center gap-2">
-                        <p className="text-sm font-extrabold text-slate-800">Варианты ответа</p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setQuestionLibraryOpen(true);
-                            void fetchQuestionLibrary();
-                          }}
-                          className="text-xs font-bold text-emerald-700 hover:text-emerald-800 underline underline-offset-2"
-                        >
-                          Выбрать из банка вопросов
-                        </button>
+
+                  {quizForm.questions.map((question, qIdx) => (
+                    <div key={qIdx} className="border border-slate-200 rounded-2xl p-5 bg-slate-50">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-bold text-slate-800">Вопрос {qIdx + 1}</h3>
+                        {quizForm.questions.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuizForm((f) => ({
+                                ...f,
+                                questions: f.questions.filter((_, i) => i !== qIdx),
+                              }));
+                            }}
+                            className="text-xs font-bold text-red-600 hover:text-red-700 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200"
+                          >
+                            🗑 Удалить
+                          </button>
+                        )}
                       </div>
-                      {quizForm.options.map((opt, idx) => (
-                        <div key={idx} className="flex gap-2 items-center">
-                          <input
-                            className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
-                            placeholder={`Вариант ${idx + 1}`}
-                            value={opt}
+
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1.5">Тип вопроса</label>
+                          <select
+                            className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-white"
+                            value={question.type}
+                            onChange={(e) => {
+                              const newType = e.target.value as "MULTIPLE_CHOICE" | "TEXT" | "VOICE";
+                              setQuizForm((f) => ({
+                                ...f,
+                                questions: f.questions.map((q, i) =>
+                                  i === qIdx ? { ...q, type: newType } : q
+                                ),
+                              }));
+                            }}
+                          >
+                            <option value="MULTIPLE_CHOICE">Выбор из вариантов</option>
+                            <option value="TEXT">Текстовый ответ</option>
+                            <option value="VOICE">Голосовой ответ</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-bold text-slate-700 mb-1.5">Вопрос/задание</label>
+                          <textarea
+                            className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-white resize-none h-24"
+                            value={question.prompt}
                             onChange={(e) =>
                               setQuizForm((f) => ({
                                 ...f,
-                                options: f.options.map((v, i) => (i === idx ? e.target.value : v)),
+                                questions: f.questions.map((q, i) =>
+                                  i === qIdx ? { ...q, prompt: e.target.value } : q
+                                ),
                               }))
                             }
+                            placeholder="Введите текст вопроса..."
                           />
-                          <label className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                            <input
-                              type="radio"
-                              name="correctOption"
-                              checked={quizForm.correctOptionIndex === idx}
-                              onChange={() => setQuizForm((f) => ({ ...f, correctOptionIndex: idx }))}
-                            />
-                            Верный
-                          </label>
                         </div>
-                      ))}
-                      <p className="text-xs text-slate-500">
-                        Минимум 2 непустых варианта. «Верный» нужен, чтобы автоматически подсвечивать правильность при
-                        просмотре (а решение всё равно ставит учитель).
-                      </p>
+
+                        {question.type === "MULTIPLE_CHOICE" && (
+                          <div className="space-y-3">
+                            <p className="text-sm font-bold text-slate-700">Варианты ответа</p>
+                            {question.options.map((opt, optIdx) => (
+                              <div key={optIdx} className="flex gap-2 items-center">
+                                <input
+                                  className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-white"
+                                  placeholder={`Вариант ${optIdx + 1}`}
+                                  value={opt}
+                                  onChange={(e) =>
+                                    setQuizForm((f) => ({
+                                      ...f,
+                                      questions: f.questions.map((q, i) =>
+                                        i === qIdx
+                                          ? {
+                                              ...q,
+                                              options: q.options.map((v, j) =>
+                                                j === optIdx ? e.target.value : v
+                                              ),
+                                            }
+                                          : q
+                                      ),
+                                    }))
+                                  }
+                                />
+                                <label className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                                  <input
+                                    type="radio"
+                                    name={`correctOption-${qIdx}`}
+                                    checked={question.correctOptionIndex === optIdx}
+                                    onChange={() =>
+                                      setQuizForm((f) => ({
+                                        ...f,
+                                        questions: f.questions.map((q, i) =>
+                                          i === qIdx ? { ...q, correctOptionIndex: optIdx } : q
+                                        ),
+                                      }))
+                                    }
+                                  />
+                                  Верный
+                                </label>
+                              </div>
+                            ))}
+                            <p className="text-xs text-slate-500">
+                              Минимум 2 непустых варианта. Отметьте правильный ответ.
+                            </p>
+                          </div>
+                        )}
+
+                        {question.type === "TEXT" && (
+                          <p className="text-sm text-slate-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            ℹ️ Студент введёт текстовый ответ. Проверка вручную учителем.
+                          </p>
+                        )}
+
+                        {question.type === "VOICE" && (
+                          <p className="text-sm text-slate-600 bg-purple-50 border border-purple-200 rounded-lg p-3">
+                            🎤 Студент запишет голосовой ответ. Проверка вручную учителем.
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  )}
-                  <div className="flex gap-3 pt-2">
-                    <button
-                      onClick={createQuizForLesson}
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold transition-all shadow-sm"
-                    >
-                      Создать
-                    </button>
-                    <button
-                      onClick={() => setShowCreateQuizForLessonId(null)}
-                      className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold transition-all"
-                    >
-                      Отмена
-                    </button>
-                  </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuizForm((f) => ({
+                        ...f,
+                        questions: [
+                          ...f.questions,
+                          {
+                            prompt: "",
+                            type: "MULTIPLE_CHOICE",
+                            options: ["", "", "", ""],
+                            correctOptionIndex: 0,
+                          },
+                        ],
+                      }));
+                    }}
+                    className="w-full border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 py-3 rounded-xl font-bold transition-all"
+                  >
+                    + Добавить вопрос
+                  </button>
+                </div>
+
+                <div className="p-6 border-t border-slate-200 bg-slate-50 flex gap-3">
+                  <button
+                    onClick={createQuizForLesson}
+                    disabled={loading}
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white py-3 rounded-xl font-bold transition-all shadow-sm"
+                  >
+                    {loading ? "Создание..." : "Создать"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCreateQuizForLessonId(null);
+                      setQuizForm({
+                        title: "Тест по уроку",
+                        questions: [
+                          {
+                            prompt: "",
+                            type: "MULTIPLE_CHOICE",
+                            options: ["", "", "", ""],
+                            correctOptionIndex: 0,
+                          },
+                        ],
+                      });
+                    }}
+                    disabled={loading}
+                    className="flex-1 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 py-3 rounded-xl font-bold transition-all"
+                  >
+                    Отмена
+                  </button>
                 </div>
               </div>
             </div>
@@ -1904,15 +2069,20 @@ export default function TeacherDashboard({
                           onClick={() => {
                             setQuizForm((prev) => ({
                               ...prev,
-                              prompt: q.prompt,
-                              options:
-                                q.options.length >= 2
-                                  ? q.options.map((o) => o.text).slice(0, 4)
-                                  : prev.options,
-                              correctOptionIndex: Math.max(
-                                0,
-                                q.options.findIndex((o) => o.isCorrect),
-                              ),
+                              questions: [
+                                {
+                                  prompt: q.prompt,
+                                  type: "MULTIPLE_CHOICE" as "MULTIPLE_CHOICE" | "TEXT" | "VOICE",
+                                  options:
+                                    q.options.length >= 2
+                                      ? q.options.map((o) => o.text).slice(0, 4)
+                                      : ["", "", "", ""],
+                                  correctOptionIndex: Math.max(
+                                    0,
+                                    q.options.findIndex((o) => o.isCorrect),
+                                  ),
+                                },
+                              ],
                             }));
                             setQuestionLibraryOpen(false);
                           }}
@@ -1996,6 +2166,12 @@ export default function TeacherDashboard({
             }}
           />
         )}
+
+        {/* ── Applications Tab ──────────────────────────────────────────────── */}
+        {activeTab === "applications" && <TeacherApplicationsTab />}
+
+        {/* ── Info Tab ──────────────────────────────────────────────── */}
+        {activeTab === "info" && <TeacherInfoTab />}
       </TeacherShell>
 
       {/* ── Live overlay (full-screen, outside shell — same pattern as StudentDashboard) */}

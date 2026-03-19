@@ -118,10 +118,31 @@ export default function LiveJitsiEmbed({
           parentNode: HTMLElement;
           userInfo?: { displayName?: string };
           jwt?: string;
+          configOverwrite?: Record<string, unknown>;
+          interfaceConfigOverwrite?: Record<string, unknown>;
         } = {
           roomName: jitsiRoomName,
           parentNode: jitsiContainerRef.current,
           userInfo: userName ? { displayName: userName } : undefined,
+          configOverwrite: {
+            // Скрыть информацию о телефонных номерах для подключения
+            disableInviteFunctions: true,
+            // Отключить показ dial-in номеров
+            dialInNumbersUrl: '',
+            dialInConfCodeUrl: '',
+          },
+          interfaceConfigOverwrite: {
+            // Скрыть кнопку "Пригласить" с телефонными номерами
+            TOOLBAR_BUTTONS: [
+              'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
+              'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
+              'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
+              'videoquality', 'filmstrip', 'feedback', 'stats', 'shortcuts',
+              'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
+            ],
+            // Скрыть информацию о dial-in
+            HIDE_INVITE_MORE_HEADER: true,
+          },
         };
 
         if (jitsiToken) {

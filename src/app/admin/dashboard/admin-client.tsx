@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 
-type TabId = "dashboard" | "users" | "courses" | "streams" | "logs";
+type TabId = "dashboard" | "users" | "courses" | "streams" | "logs" | "applications";
 
 type DashboardMetrics = {
   users: {
@@ -242,48 +243,8 @@ export default function AdminClient() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-slate-900">Админ панель</h1>
-            <button
-              onClick={() => router.push("/")}
-              className="text-sm text-slate-600 hover:text-slate-900"
-            >
-              На главную
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
-            {[
-              { id: "dashboard", label: "Dashboard" },
-              { id: "users", label: "Пользователи" },
-              { id: "courses", label: "Курсы" },
-              { id: "streams", label: "Потоки" },
-              { id: "logs", label: "Логи" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as TabId)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
-                    ? "border-emerald-500 text-emerald-600"
-                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AdminLayout>
+      <div className="p-8">
         {activeTab === "dashboard" && (
           <div>
             <h2 className="text-xl font-semibold text-slate-900 mb-6">Метрики системы</h2>
@@ -601,7 +562,7 @@ export default function AdminClient() {
             </div>
           </div>
         )}
-      </main>
+      </div>
 
       <div className="fixed bottom-4 right-4 space-y-2 z-50">
         {toasts.map((toast) => (
@@ -619,6 +580,6 @@ export default function AdminClient() {
           </div>
         ))}
       </div>
-    </div>
+    </AdminLayout>
   );
 }

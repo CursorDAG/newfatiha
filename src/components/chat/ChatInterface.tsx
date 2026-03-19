@@ -25,9 +25,9 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="flex h-[600px] max-w-5xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="flex h-[calc(100vh-200px)] min-h-[600px] bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-200">
       {/* Chat list sidebar */}
-      <div className="w-80 border-r border-slate-200">
+      <div className="w-80 border-r border-slate-200 flex-shrink-0">
         <ChatList
           onSelectRoom={handleSelectRoom}
           selectedRoomId={selectedRoom?.id}
@@ -35,7 +35,7 @@ export function ChatInterface() {
       </div>
 
       {/* Chat window */}
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col">
         {selectedRoom ? (
           <ChatWindow
             roomId={selectedRoom.id}

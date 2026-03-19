@@ -18,8 +18,21 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Button } from "@/components/teacher/ui/Button";
-import EmptyState from "@/components/teacher/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import {
+  GripVertical,
+  Eye,
+  EyeOff,
+  ExternalLink,
+  Edit,
+  Plus,
+  Trash2,
+  Video,
+  FileText,
+  BookOpen,
+} from "lucide-react";
 
 type Lesson = {
   id: string;
@@ -41,6 +54,7 @@ function SortableLessonCard({
   onCreateQuiz,
   onDeleteLesson,
   onTogglePublish,
+  onUploadRecording,
 }: {
   lesson: Lesson;
   index: number;
@@ -49,6 +63,7 @@ function SortableLessonCard({
   onCreateQuiz: (id: string) => void;
   onDeleteLesson: (id: string) => void;
   onTogglePublish: (id: string, published: boolean) => void;
+  onUploadRecording: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: lesson.id,
@@ -60,101 +75,111 @@ function SortableLessonCard({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`border rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors ${
-        lesson.published
-          ? "border-slate-200 bg-white"
-          : "border-slate-200 bg-slate-50 opacity-80"
-      }`}
-    >
-      <div className="flex items-center gap-3 min-w-0">
-        {/* Drag handle */}
-        <button
-          type="button"
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 shrink-0 touch-none"
-          title="Перетащить для изменения порядка"
-          aria-label="Перетащить"
-        >
-          <svg
-            width="16"
-            height="20"
-            viewBox="0 0 16 20"
-            fill="currentColor"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle cx="4" cy="4" r="2" />
-            <circle cx="12" cy="4" r="2" />
-            <circle cx="4" cy="10" r="2" />
-            <circle cx="12" cy="10" r="2" />
-            <circle cx="4" cy="16" r="2" />
-            <circle cx="12" cy="16" r="2" />
-          </svg>
-        </button>
+  const typeConfig = {
+    LIVE: { label: "LIVE", icon: <Video className="w-4 h-4" />, variant: "error" as const },
+    VIDEO: { label: "VIDEO", icon: <Video className="w-4 h-4" />, variant: "info" as const },
+    TEXT: { label: "TEXT", icon: <FileText className="w-4 h-4" />, variant: "neutral" as const },
+  };
 
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold text-slate-400">#{index + 1}</span>
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              {lesson.type === "LIVE" ? "LIVE" : lesson.type === "VIDEO" ? "VIDEO" : "TEXT"}
-            </span>
-            {!lesson.published && (
-              <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">
-                Скрыт
-              </span>
+  const config = typeConfig[lesson.type as keyof typeof typeConfig] || typeConfig.TEXT;
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card hoverable padding="p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 shrink-0 touch-none self-start"
+            title="Перетащить для изменения порядка"
+            aria-label="Перетащить"
+          >
+            <GripVertical className="w-5 h-5" />
+          </button>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <Badge variant="neutral" size="sm">#{index + 1}</Badge>
+              <Badge variant={config.variant} size="sm" icon={config.icon}>
+                {config.label}
+              </Badge>
+              {!lesson.published && (
+                <Badge variant="warning" size="sm" icon={<EyeOff className="w-3 h-3" />}>
+                  Скрыт
+                </Badge>
+              )}
+            </div>
+            <h4 className="font-bold text-lg text-slate-900 mb-1">{lesson.title}</h4>
+            <p className="text-sm text-slate-600 mb-2">
+              Создан: {new Date(lesson.createdAt).toLocaleDateString("ru-RU")}
+            </p>
+            {lesson.teacherNotes && (
+              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-xs font-semibold text-amber-900 mb-1">Заметки преподавателя:</p>
+                <p className="text-sm text-amber-800 line-clamp-2">{lesson.teacherNotes}</p>
+              </div>
             )}
           </div>
-          <p className="font-bold text-slate-800 truncate">{lesson.title}</p>
-          <p className="text-xs text-slate-500 mt-1">
-            Создан: {new Date(lesson.createdAt).toLocaleDateString("ru-RU")}
-          </p>
-          {lesson.teacherNotes && (
-            <p className="text-xs text-slate-600 mt-2 line-clamp-2">
-              <span className="font-semibold text-slate-700">Заметки: </span>
-              {lesson.teacherNotes}
-            </p>
-          )}
-        </div>
-      </div>
 
-      <div className="flex items-center gap-2 flex-wrap justify-end">
-        {/* Publish toggle */}
-        <button
-          type="button"
-          onClick={() => onTogglePublish(lesson.id, !lesson.published)}
-          title={lesson.published ? "Скрыть от студентов" : "Опубликовать для студентов"}
-          className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-lg border transition-all ${
-            lesson.published
-              ? "text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100"
-              : "text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100"
-          }`}
-        >
-          {lesson.published ? "👁 Виден" : "🔒 Скрыт"}
-        </button>
-        <Button
-          onClick={() => window.open(`/lesson/${lesson.id}`, "_blank")}
-          variant="secondary"
-          size="sm"
-        >
-          Предпросмотр
-        </Button>
-        <Button onClick={() => onOpenLesson(lesson.id)} variant="secondary" size="sm">
-          Открыть
-        </Button>
-        <Button onClick={() => onEditLesson(lesson.id)} variant="secondary" size="sm">
-          Редактировать
-        </Button>
-        <Button onClick={() => onCreateQuiz(lesson.id)} variant="primary" size="sm">
-          + Тест
-        </Button>
-        <Button onClick={() => onDeleteLesson(lesson.id)} variant="danger" size="sm">
-          Удалить
-        </Button>
-      </div>
+          <div className="flex flex-col gap-2 shrink-0">
+            <Button
+              onClick={() => onTogglePublish(lesson.id, !lesson.published)}
+              variant={lesson.published ? "success" : "secondary"}
+              size="sm"
+              icon={lesson.published ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            >
+              {lesson.published ? "Виден" : "Скрыт"}
+            </Button>
+            <Button
+              onClick={() => window.open(`/lesson/${lesson.id}`, "_blank")}
+              variant="ghost"
+              size="sm"
+              icon={<ExternalLink className="w-4 h-4" />}
+            >
+              Предпросмотр
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap mt-4 pt-4 border-t border-slate-200">
+          <Button onClick={() => onOpenLesson(lesson.id)} variant="secondary" size="sm">
+            Открыть
+          </Button>
+          <Button
+            onClick={() => onEditLesson(lesson.id)}
+            variant="secondary"
+            size="sm"
+            icon={<Edit className="w-4 h-4" />}
+          >
+            Редактировать
+          </Button>
+          <Button
+            onClick={() => onCreateQuiz(lesson.id)}
+            variant="primary"
+            size="sm"
+            icon={<Plus className="w-4 h-4" />}
+          >
+            Тест
+          </Button>
+          <Button
+            onClick={() => onUploadRecording(lesson.id)}
+            variant="secondary"
+            size="sm"
+            icon={<Video className="w-4 h-4" />}
+          >
+            Запись
+          </Button>
+          <Button
+            onClick={() => onDeleteLesson(lesson.id)}
+            variant="danger"
+            size="sm"
+            icon={<Trash2 className="w-4 h-4" />}
+          >
+            Удалить
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 }
@@ -178,6 +203,7 @@ export default function TeacherLessonsTab({
   onDeleteLesson,
   onReorder,
   onTogglePublish,
+  onUploadRecording,
 }: {
   hasStream: boolean;
   streamHasLessons: boolean;
@@ -193,6 +219,8 @@ export default function TeacherLessonsTab({
   onReorder: (orderedIds: string[]) => void;
   /** Toggle lesson visibility for students. */
   onTogglePublish: (lessonId: string, published: boolean) => void;
+  /** Upload recording for a lesson. */
+  onUploadRecording: (lessonId: string) => void;
 }) {
   const [orderedLessons, setOrderedLessons] = useState<Lesson[]>(lessons);
 
@@ -221,50 +249,56 @@ export default function TeacherLessonsTab({
 
   return (
     <div className="p-8 flex-1">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-emerald-900">Уроки и тесты</h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <h2 className="text-3xl font-bold text-slate-900">Уроки и тесты</h2>
+          <p className="text-sm text-slate-600 mt-2">
             План уроков выбранного потока · перетащите карточку для изменения порядка
           </p>
         </div>
         {hasStream && (
           <div className="flex gap-2 flex-wrap">
-            <Button onClick={onCreateLesson} variant="primary">
-              + Создать урок
+            <Button onClick={onCreateLesson} variant="primary" size="lg" icon={<Plus className="w-5 h-5" />}>
+              Создать урок
             </Button>
-            <Button onClick={onImport} variant="secondary">
-              Импортировать из другого потока
+            <Button onClick={onImport} variant="secondary" size="lg">
+              Импортировать
             </Button>
-            <Button onClick={onLibrary} variant="secondary">
-              Из библиотеки
+            <Button onClick={onLibrary} variant="secondary" size="lg" icon={<BookOpen className="w-5 h-5" />}>
+              Библиотека
             </Button>
           </div>
         )}
       </div>
 
       {!hasStream ? (
-        <EmptyState
-          icon="📚"
-          title="У вас нет потоков"
-          description="Создайте поток, чтобы планировать уроки."
-        />
+        <Card padding="p-12">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BookOpen className="w-8 h-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">У вас нет потоков</h3>
+            <p className="text-slate-600">Создайте поток, чтобы планировать уроки</p>
+          </div>
+        </Card>
       ) : !streamHasLessons ? (
-        <EmptyState
-          icon="🗂"
-          title="В этом потоке ещё нет уроков"
-          description="Создайте урок или импортируйте уроки из другого потока."
-          action={
-            <div className="flex gap-2">
-              <Button onClick={onCreateLesson} variant="primary">
-                + Создать урок
+        <Card padding="p-12">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileText className="w-8 h-8 text-slate-400" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">В этом потоке ещё нет уроков</h3>
+            <p className="text-slate-600 mb-6">Создайте урок или импортируйте уроки из другого потока</p>
+            <div className="flex gap-3 justify-center">
+              <Button onClick={onCreateLesson} variant="primary" icon={<Plus className="w-5 h-5" />}>
+                Создать урок
               </Button>
               <Button onClick={onImport} variant="secondary">
                 Импортировать
               </Button>
             </div>
-          }
-        />
+          </div>
+        </Card>
       ) : (
         <DndContext
           sensors={sensors}
@@ -286,6 +320,7 @@ export default function TeacherLessonsTab({
                   onCreateQuiz={onCreateQuiz}
                   onDeleteLesson={onDeleteLesson}
                   onTogglePublish={onTogglePublish}
+                  onUploadRecording={onUploadRecording}
                 />
               ))}
             </div>

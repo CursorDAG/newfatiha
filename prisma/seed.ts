@@ -7,13 +7,27 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('Seeding database...')
 
-  // 1. Create Teacher
+  // 1. Create Admin
   const hashedPassword = await bcrypt.hash('admin123', 10)
-  const teacher = await prisma.user.upsert({
+  const admin = await prisma.user.upsert({
     where: { email: 'admin@fatiha.ru' },
-    update: {},
+    update: { role: 'ADMIN' },
     create: {
       email: 'admin@fatiha.ru',
+      name: 'Администратор',
+      password: hashedPassword,
+      role: 'ADMIN',
+      gender: 'MALE',
+    },
+  })
+  console.log(`Admin created: ${admin.email}`)
+
+  // 1.1 Create Teacher
+  const teacher = await prisma.user.upsert({
+    where: { email: 'teacher@fatiha.ru' },
+    update: {},
+    create: {
+      email: 'teacher@fatiha.ru',
       name: 'Устаз Ахмад',
       password: hashedPassword,
       role: 'TEACHER',
@@ -233,6 +247,189 @@ async function main() {
     },
   })
   console.log('Test content report created.')
+
+  // 9. Create TeacherProfile applications
+  const pendingTeacher = await prisma.user.upsert({
+    where: { email: 'pending.teacher@example.com' },
+    update: {},
+    create: {
+      email: 'pending.teacher@example.com',
+      name: 'Ибрагим Хасанов',
+      password: hashedPassword,
+      role: 'TEACHER',
+      gender: 'MALE',
+      status: 'PENDING_APPROVAL',
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+  })
+
+  await prisma.teacherProfile.upsert({
+    where: { userId: pendingTeacher.id },
+    update: {},
+    create: {
+      userId: pendingTeacher.id,
+      bio: 'Закончил Исламский университет Медины. 10 лет опыта преподавания арабского языка и основ Ислама.',
+      subjects: ['Арабский язык', 'Акыда', 'Фикх'],
+      experience: 'Преподавал в медресе "Нур" (2014-2020), онлайн-курсы на платформе "Ислам Онлайн" (2020-2024)',
+      qualifications: 'Бакалавр исламских наук, Исламский университет Медины (2014)',
+      whatsappPhone: '+79991234567',
+      documentsUrls: ['https://example.com/diploma.pdf', 'https://example.com/certificate.pdf'],
+      videoIntroUrl: 'https://youtube.com/watch?v=intro-video',
+    },
+  })
+
+  const rejectedTeacher = await prisma.user.upsert({
+    where: { email: 'rejected.teacher@example.com' },
+    update: {},
+    create: {
+      email: 'rejected.teacher@example.com',
+      name: 'Марат Сидоров',
+      password: hashedPassword,
+      role: 'TEACHER',
+      gender: 'MALE',
+      status: 'REJECTED',
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+  })
+
+  await prisma.teacherProfile.upsert({
+    where: { userId: rejectedTeacher.id },
+    update: {},
+    create: {
+      userId: rejectedTeacher.id,
+      bio: 'Интересуюсь исламом, хочу преподавать.',
+      subjects: ['Основы Ислама'],
+      experience: 'Нет опыта преподавания',
+      qualifications: 'Самообразование',
+      reviewedById: admin.id,
+      reviewedAt: new Date(),
+      rejectionReason: 'Недостаточная квалификация. Требуется формальное исламское образование.',
+      adminNotes: 'Отсутствуют документы об образовании. Рекомендовано пройти обучение.',
+    },
+  })
+  console.log('Test teacher profiles created.')
+
+  // 10. Create NotificationPreferences for test users
+  for (const user of [admin, teacher, moderator, ...students, pendingTeacher, rejectedTeacher]) {
+    await prisma.notificationPreference.upsert({
+      where: { userId: user.id },
+      update: {},
+      create: {
+        userId: user.id,
+        emailNewLesson: true,
+        emailHomeworkAssigned: true,
+        emailHomeworkChecked: true,
+        emailQuizChecked: true,
+        emailAnnouncement: true,
+        emailHomeworkSubmitted: user.role === 'TEACHER' || user.role === 'ADMIN',
+        emailQuizSubmitted: user.role === 'TEACHER' || user.role === 'ADMIN',
+        emailStudentJoined: user.role === 'TEACHER' || user.role === 'ADMIN',
+        emailDigestEnabled: false,
+        emailDigestTime: 540, // 9:00 AM
+        soundEnabled: true,
+      },
+    })
+  }
+  console.log('Notification preferences created for all users.')
+
+  // 11. Create EnrollmentRequests
+  // Open one stream for enrollment
+  await prisma.stream.update({
+    where: { id: morningStream.id },
+    data: {
+      isOpenForEnrollment: true,
+      price: 5000,
+      currency: 'RUB',
+      enrollmentDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+      paymentInstructions: 'Оплата через Сбербанк или Тинькофф. Реквизиты будут высланы после одобрения заявки.',
+    },
+  })
+
+  const newStudent1 = await prisma.user.upsert({
+    where: { email: 'new.student1@example.com' },
+    update: {},
+    create: {
+      email: 'new.student1@example.com',
+      name: 'Зайнаб Ахмедова',
+      password: hashedPassword,
+      role: 'STUDENT',
+      gender: 'FEMALE',
+      status: 'ACTIVE',
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+  })
+
+  const newStudent2 = await prisma.user.upsert({
+    where: { email: 'new.student2@example.com' },
+    update: {},
+    create: {
+      email: 'new.student2@example.com',
+      name: 'Юсуф Магомедов',
+      password: hashedPassword,
+      role: 'STUDENT',
+      gender: 'MALE',
+      status: 'ACTIVE',
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+  })
+
+  await prisma.enrollmentRequest.upsert({
+    where: { studentId_streamId: { studentId: newStudent1.id, streamId: morningStream.id } },
+    update: {},
+    create: {
+      studentId: newStudent1.id,
+      streamId: morningStream.id,
+      status: 'PENDING_REVIEW',
+      message: 'Здравствуйте! Хочу записаться на курс по основам Ислама. Есть базовые знания.',
+    },
+  })
+
+  await prisma.enrollmentRequest.upsert({
+    where: { studentId_streamId: { studentId: newStudent2.id, streamId: morningStream.id } },
+    update: {},
+    create: {
+      studentId: newStudent2.id,
+      streamId: morningStream.id,
+      status: 'APPROVED_PENDING_PAYMENT',
+      message: 'Хочу изучать Ислам с нуля.',
+      reviewedById: admin.id,
+      reviewedAt: new Date(),
+    },
+  })
+
+  const newStudent3 = await prisma.user.upsert({
+    where: { email: 'new.student3@example.com' },
+    update: {},
+    create: {
+      email: 'new.student3@example.com',
+      name: 'Амина Исмаилова',
+      password: hashedPassword,
+      role: 'STUDENT',
+      gender: 'FEMALE',
+      status: 'ACTIVE',
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+    },
+  })
+
+  await prisma.enrollmentRequest.upsert({
+    where: { studentId_streamId: { studentId: newStudent3.id, streamId: eveningStream.id } },
+    update: {},
+    create: {
+      studentId: newStudent3.id,
+      streamId: eveningStream.id,
+      status: 'REJECTED',
+      message: 'Хочу записаться на продвинутый курс.',
+      reviewedById: admin.id,
+      reviewedAt: new Date(),
+      rejectionReason: 'Курс предназначен для студентов с базовыми знаниями. Рекомендуем начать с начального уровня.',
+    },
+  })
+  console.log('Test enrollment requests created.')
 
   console.log('Seeding finished.')
 }

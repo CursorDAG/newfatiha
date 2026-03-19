@@ -116,6 +116,36 @@ export const registerUserSchema = z.object({
   }),
 });
 
+// Teacher registration schemas
+export const registerTeacherStep1Schema = z.object({
+  email: z.string().email("Неверный формат email"),
+  password: z.string().min(8, "Пароль должен содержать минимум 8 символов"),
+  name: z.string().min(1, "Имя обязательно").max(100, "Имя слишком длинное"),
+});
+
+export const registerTeacherStep2Schema = z.object({
+  bio: z.string().min(50, "Расскажите о себе подробнее (минимум 50 символов)").max(5000, "Текст слишком длинный"),
+  subjects: z.array(z.string()).min(1, "Укажите хотя бы один предмет"),
+  experience: z.string().min(20, "Опишите ваш опыт подробнее (минимум 20 символов)").max(5000, "Текст слишком длинный"),
+  qualifications: z.string().min(20, "Опишите вашу квалификацию подробнее (минимум 20 символов)").max(5000, "Текст слишком длинный"),
+  whatsappPhone: z.string().regex(/^\+?\d{10,15}$/, "Неверный формат номера телефона"),
+  documentsUrls: z.array(z.string().url("Неверный формат URL")).min(1, "Загрузите хотя бы один документ"),
+  videoIntroUrl: z.string().url("Неверный формат URL").optional().nullable(),
+});
+
+export const verifyEmailSchema = z.object({
+  token: z.string().uuid("Неверный токен"),
+});
+
+export const approveTeacherSchema = z.object({
+  adminNotes: z.string().max(2000, "Заметки слишком длинные").optional(),
+});
+
+export const rejectTeacherSchema = z.object({
+  rejectionReason: z.string().min(10, "Укажите причину отклонения (минимум 10 символов)").max(2000, "Текст слишком длинный"),
+  adminNotes: z.string().max(2000, "Заметки слишком длинные").optional(),
+});
+
 // Student management schemas
 export const transferStudentSchema = z.object({
   enrollmentId: z.string().uuid("Invalid enrollment ID"),
@@ -124,6 +154,21 @@ export const transferStudentSchema = z.object({
 
 export const kickStudentSchema = z.object({
   enrollmentId: z.string().uuid("Invalid enrollment ID"),
+});
+
+// Enrollment request schemas
+export const createEnrollmentRequestSchema = z.object({
+  streamId: z.string().uuid("Invalid stream ID"),
+  message: z.string().max(1000, "Message too long").optional(),
+});
+
+export const reviewEnrollmentRequestSchema = z.object({
+  action: z.enum(["APPROVE", "REJECT"]),
+  rejectionReason: z.string().max(1000, "Rejection reason too long").optional(),
+});
+
+export const confirmPaymentSchema = z.object({
+  requestId: z.string().uuid("Invalid request ID"),
 });
 
 // Type exports for use in API routes
@@ -185,3 +230,11 @@ export type ReplyToTicketInput = z.infer<typeof replyToTicketSchema>;
 export type UpdateTicketInput = z.infer<typeof updateTicketSchema>;
 export type ReviewReportInput = z.infer<typeof reviewReportSchema>;
 export type RegisterUserInput = z.infer<typeof registerUserSchema>;
+export type CreateEnrollmentRequestInput = z.infer<typeof createEnrollmentRequestSchema>;
+export type ReviewEnrollmentRequestInput = z.infer<typeof reviewEnrollmentRequestSchema>;
+export type ConfirmPaymentInput = z.infer<typeof confirmPaymentSchema>;
+export type RegisterTeacherStep1Input = z.infer<typeof registerTeacherStep1Schema>;
+export type RegisterTeacherStep2Input = z.infer<typeof registerTeacherStep2Schema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+export type ApproveTeacherInput = z.infer<typeof approveTeacherSchema>;
+export type RejectTeacherInput = z.infer<typeof rejectTeacherSchema>;

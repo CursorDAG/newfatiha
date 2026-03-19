@@ -84,8 +84,28 @@ export const GET = withErrorHandling(async (req: Request) => {
         createdAt: { gte: c },
         quiz: { lesson: { streamId } },
       },
-      include: {
-        quiz: { include: { lesson: true } },
+      select: {
+        id: true,
+        studentId: true,
+        status: true,
+        createdAt: true,
+        checkedAt: true,
+        voiceMimeType: true,
+        voiceDurationMs: true,
+        voiceUrl: true,
+        quiz: {
+          select: {
+            id: true,
+            title: true,
+            type: true,
+            lesson: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
+          },
+        },
         checkedBy: { select: { name: true } },
       },
       orderBy: { createdAt: "desc" },
@@ -151,7 +171,7 @@ export const GET = withErrorHandling(async (req: Request) => {
         quizTitle: s.quiz.title,
         quizType: s.quiz.type,
         lessonTitle: s.quiz.lesson.title,
-        hasVoice: Boolean(s.voiceData && s.voiceMimeType),
+        hasVoice: Boolean(s.voiceMimeType),
         checkedAt: s.checkedAt,
         checkedByName: s.checkedBy?.name ?? null,
       })),

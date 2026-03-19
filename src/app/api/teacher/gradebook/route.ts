@@ -20,6 +20,12 @@ export type GradebookQuizStatus =
   | QuizSubmissionStatus
   | "NO_SUBMISSION";
 
+export type QuizSubmissionDetail = {
+  id: string;
+  status: QuizSubmissionStatus;
+  questionDetails?: unknown;
+};
+
 export type GradebookLesson = {
   id: string;
   title: string;
@@ -31,6 +37,7 @@ export type GradebookCell = {
   lessonId: string;
   homeworkStatus: GradebookHomeworkStatus | null;
   quizStatus: GradebookQuizStatus | null;
+  quizSubmissions?: QuizSubmissionDetail[];
 };
 
 export type GradebookStudentRow = {
@@ -122,9 +129,11 @@ export const GET = withErrorHandling(async (req: Request) => {
           studentId: { in: stream.enrollments.map((e) => e.userId) },
         },
         select: {
+          id: true,
           quizId: true,
           studentId: true,
           status: true,
+          questionDetails: true,
         },
       }),
     ]);
@@ -150,11 +159,11 @@ export const GET = withErrorHandling(async (req: Request) => {
     quizzesByLesson.set(q.lessonId, arr);
   }
 
-  const quizStatusesByQuizAndStudent = new Map<string, QuizSubmissionStatus[]>();
+  const quizStatusesByQuizAndStudent = new Map<string, { status: QuizSubmissionStatus; id: string; questionDetails?: unknown }[]>();
   for (const sub of quizSubmissions) {
     const key = `${sub.quizId}:${sub.studentId}`;
     const arr = quizStatusesByQuizAndStudent.get(key) ?? [];
-    arr.push(sub.status);
+    arr.push({ status: sub.status, id: sub.id, questionDetails: sub.questionDetails });
     quizStatusesByQuizAndStudent.set(key, arr);
   }
 
@@ -194,15 +203,23 @@ export const GET = withErrorHandling(async (req: Request) => {
       }
 
       let quizStatus: GradebookQuizStatus | null = null;
+      let quizSubmissionsForCell: QuizSubmissionDetail[] = [];
       if (quizIds.length) {
-        const allStatuses: QuizSubmissionStatus[] = [];
+        const allSubmissions: { status: QuizSubmissionStatus; id: string; questionDetails?: unknown }[] = [];
         for (const quizId of quizIds) {
           const key = `${quizId}:${e.userId}`;
-          const statuses = quizStatusesByQuizAndStudent.get(key);
-          if (statuses && statuses.length) allStatuses.push(...statuses);
+          const submissions = quizStatusesByQuizAndStudent.get(key);
+          if (submissions && submissions.length) {
+            allSubmissions.push(...submissions);
+            quizSubmissionsForCell.push(...submissions.map(s => ({
+              id: s.id,
+              status: s.status,
+              questionDetails: s.questionDetails,
+            })));
+          }
         }
-        if (allStatuses.length) {
-          quizStatus = bestQuizStatus(allStatuses);
+        if (allSubmissions.length) {
+          quizStatus = bestQuizStatus(allSubmissions.map(s => s.status));
         } else {
           quizStatus = "NO_SUBMISSION";
         }
@@ -212,6 +229,7 @@ export const GET = withErrorHandling(async (req: Request) => {
         lessonId: lesson.id,
         homeworkStatus,
         quizStatus,
+        quizSubmissions: quizSubmissionsForCell.length > 0 ? quizSubmissionsForCell : undefined,
       };
     });
 

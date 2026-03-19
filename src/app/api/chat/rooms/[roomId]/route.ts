@@ -45,6 +45,7 @@ export const GET = withErrorHandling(
           select: {
             id: true,
             name: true,
+            email: true,
             avatar: true,
             role: true,
           },
@@ -53,6 +54,7 @@ export const GET = withErrorHandling(
           select: {
             id: true,
             name: true,
+            email: true,
             avatar: true,
             role: true,
           },
@@ -87,7 +89,13 @@ export const GET = withErrorHandling(
       const otherUser =
         room.participant1Id === userId ? room.participant2 : room.participant1;
       response.name = otherUser?.name || "Unknown";
-      response.otherUser = otherUser;
+      if (otherUser) {
+        response.otherUser = {
+          id: otherUser.id,
+          name: otherUser.name,
+          email: otherUser.email,
+        };
+      }
     }
 
     return NextResponse.json(response);

@@ -15,6 +15,7 @@ type Props = {
   avatar: string | null;
   bio: string | null;
   skills: string[];
+  gender: string;
 };
 
 type Section = "profile" | "security" | "account";
@@ -145,6 +146,7 @@ export default function TeacherSettingsPage({
   avatar: initialAvatar,
   bio: initialBio,
   skills: initialSkills,
+  gender: initialGender,
 }: Props) {
   const [activeSection, setActiveSection] = useState<Section>("profile");
   const globalToast = useToast();
@@ -154,6 +156,7 @@ export default function TeacherSettingsPage({
   const [bio, setBio] = useState(initialBio ?? "");
   const [skills, setSkills] = useState<string[]>(initialSkills);
   const [skillInput, setSkillInput] = useState("");
+  const [gender, setGender] = useState(initialGender);
   const [profileSaving, setProfileSaving] = useState(false);
 
   // ── Avatar state ───────────────────────────────────────────────────────────
@@ -180,6 +183,7 @@ export default function TeacherSettingsPage({
   const profileChanged =
     name.trim() !== userName ||
     bio !== (initialBio ?? "") ||
+    gender !== initialGender ||
     JSON.stringify(skills) !== JSON.stringify(initialSkills);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -226,7 +230,7 @@ export default function TeacherSettingsPage({
       const res = await fetch("/api/teacher/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), bio: bio.trim() || null, skills }),
+        body: JSON.stringify({ name: name.trim(), bio: bio.trim() || null, skills, gender }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? "Не удалось сохранить");
@@ -290,7 +294,7 @@ export default function TeacherSettingsPage({
 
   // ── Shared styles ─────────────────────────────────────────────────────────
   const inputClass =
-    "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed";
+    "w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed";
 
   // ── Section: Public Profile ───────────────────────────────────────────────
   const ProfileSection = (
@@ -375,6 +379,24 @@ export default function TeacherSettingsPage({
         <label className="block text-xs font-semibold text-slate-600 mb-1.5">Email</label>
         <input type="email" className={inputClass} value={userEmail} disabled />
         <p className="text-xs text-slate-400 mt-1">Email используется для входа и не может быть изменён здесь</p>
+      </div>
+
+      {/* Gender */}
+      <div>
+        <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+          Пол <span className="text-red-500">*</span>
+        </label>
+        <select
+          className={inputClass}
+          value={gender}
+          onChange={(e) => setGender(e.target.value)}
+          required
+        >
+          <option value="NOT_SPECIFIED">Не указан</option>
+          <option value="MALE">Мужской</option>
+          <option value="FEMALE">Женский</option>
+        </select>
+        <p className="text-xs text-slate-400 mt-1">Необходимо для создания потоков с разделением по полу</p>
       </div>
 
       {/* Bio */}

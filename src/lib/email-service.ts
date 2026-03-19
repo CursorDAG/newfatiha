@@ -11,6 +11,13 @@ import {
   homeworkSubmittedTemplate,
   quizSubmittedTemplate,
   studentJoinedTemplate,
+  emailVerificationTemplate,
+  teacherApplicationApprovedTemplate,
+  teacherApplicationRejectedTemplate,
+  enrollmentRequestApprovedTemplate,
+  enrollmentRequestSubmittedTemplate,
+  enrollmentRequestRejectedTemplate,
+  enrollmentConfirmedTemplate,
   type LessonStartingData,
   type NewLessonData,
   type HomeworkCheckedData,
@@ -20,6 +27,13 @@ import {
   type HomeworkSubmittedData,
   type QuizSubmittedData,
   type StudentJoinedData,
+  type EmailVerificationData,
+  type TeacherApplicationApprovedData,
+  type TeacherApplicationRejectedData,
+  type EnrollmentRequestApprovedData,
+  type EnrollmentRequestSubmittedData,
+  type EnrollmentRequestRejectedData,
+  type EnrollmentConfirmedData,
 } from "@/lib/email/templates";
 
 /**
@@ -151,6 +165,62 @@ export class EmailService {
    */
   static async sendStudentJoined(to: string, data: StudentJoinedData): Promise<void> {
     const { subject, html, text } = studentJoinedTemplate(data);
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  /**
+   * Send email verification link
+   */
+  static async sendEmailVerification(to: string, data: EmailVerificationData): Promise<void> {
+    const { subject, html, text } = emailVerificationTemplate(data);
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  /**
+   * Send teacher application approved notification
+   */
+  static async sendTeacherApplicationApproved(to: string, data: TeacherApplicationApprovedData): Promise<void> {
+    const { subject, html, text } = teacherApplicationApprovedTemplate(data);
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  /**
+   * Send teacher application rejected notification
+   */
+  static async sendTeacherApplicationRejected(to: string, data: TeacherApplicationRejectedData): Promise<void> {
+    const { subject, html, text } = teacherApplicationRejectedTemplate(data);
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  /**
+   * Send enrollment request submitted notification (for teachers)
+   */
+  static async sendEnrollmentRequestSubmitted(to: string, data: EnrollmentRequestSubmittedData): Promise<void> {
+    const { subject, html, text } = enrollmentRequestSubmittedTemplate(data);
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  /**
+   * Send enrollment request approved notification (for students)
+   */
+  static async sendEnrollmentRequestApproved(to: string, data: EnrollmentRequestApprovedData): Promise<void> {
+    const { subject, html, text } = enrollmentRequestApprovedTemplate(data);
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  /**
+   * Send enrollment request rejected notification (for students)
+   */
+  static async sendEnrollmentRequestRejected(to: string, data: EnrollmentRequestRejectedData): Promise<void> {
+    const { subject, html, text } = enrollmentRequestRejectedTemplate(data);
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  /**
+   * Send enrollment confirmed notification (for students)
+   */
+  static async sendEnrollmentConfirmed(to: string, data: EnrollmentConfirmedData): Promise<void> {
+    const { subject, html, text } = enrollmentConfirmedTemplate(data);
     await this.sendEmail({ to, subject, html, text });
   }
 }

@@ -135,12 +135,12 @@ export default function LessonLibraryModal({
           placeholder="Поиск по теме…"
           value={topic}
           onChange={(e) => handleTopicChange(e.target.value)}
-          className="flex-1 min-w-[160px] border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
+          className="flex-1 min-w-[160px] border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
         />
         <select
           value={level}
           onChange={(e) => setLevel(e.target.value)}
-          className="border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
+          className="border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
         >
           {LEVEL_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>

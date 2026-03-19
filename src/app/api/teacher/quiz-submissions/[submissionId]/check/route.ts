@@ -7,6 +7,7 @@ import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 import { NotificationService } from "@/lib/notification-service";
+import { recalculateStudentProgress } from "@/lib/progress";
 
 export const POST = withErrorHandling(async (
   req: Request,
@@ -39,7 +40,27 @@ export const POST = withErrorHandling(async (
 
   const submission = await prisma.lessonQuizSubmission.findUnique({
     where: { id: submissionId },
-    include: { quiz: { include: { lesson: { include: { stream: true } } } } },
+    select: {
+      id: true,
+      studentId: true,
+      status: true,
+      quiz: {
+        select: {
+          id: true,
+          lesson: {
+            select: {
+              id: true,
+              stream: {
+                select: {
+                  id: true,
+                  teacherId: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!submission) throw new NotFoundError("Submission");
@@ -61,6 +82,14 @@ export const POST = withErrorHandling(async (
   await NotificationService.notifyQuizChecked(updated.id).catch((err) => {
     console.error("Failed to send notification:", err);
   });
+
+  // Trigger progress recalculation for student
+  if (status === "PASSED" || status === "FAILED") {
+    recalculateStudentProgress(
+      submission.studentId,
+      submission.quiz.lesson.stream.id
+    ).catch((err) => console.error("Failed to recalculate progress:", err));
+  }
 
   return NextResponse.json({ success: true, submissionId: updated.id, status: updated.status });
 });

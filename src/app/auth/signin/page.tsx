@@ -59,7 +59,7 @@ function SignInForm() {
             placeholder="student@fatiha.ru"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all shadow-sm"
+            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all shadow-sm"
           />
         </div>
       </div>
@@ -74,7 +74,7 @@ function SignInForm() {
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all shadow-sm"
+            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all shadow-sm"
           />
         </div>
         <div className="flex justify-end mt-2">
@@ -127,9 +127,9 @@ export default function SignInPage() {
           </Suspense>
 
           <p className="text-center text-sm font-medium text-slate-500 mt-8 pt-6 border-t border-slate-100">
-            Доступ предоставляется по приглашению учителя.{" "}
-            <Link href="/" className="text-emerald-600 hover:text-emerald-500 font-bold transition-colors">
-              На главную
+            Нет аккаунта?{" "}
+            <Link href="/auth/register/student" className="text-emerald-600 hover:text-emerald-500 font-bold transition-colors">
+              Зарегистрироваться
             </Link>
           </p>
         </div>

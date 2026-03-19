@@ -15,27 +15,32 @@ export const GET = withErrorHandling(async () => {
   }
 
   const userId = session.user.id;
+  const userRole = session.user.role;
 
-  // Get GROUP chats (from enrollments)
-  const enrollments = await prisma.enrollment.findMany({
-    where: {
-      userId,
-      status: "ACTIVE",
-    },
-    include: {
-      stream: {
-        include: {
-          chatRoom: {
-            include: {
-              messages: {
-                orderBy: { createdAt: "desc" },
-                take: 1,
-                include: {
-                  sender: {
-                    select: {
-                      id: true,
-                      name: true,
-                      avatar: true,
+  let groupChats: any[] = [];
+
+  // For STUDENTS: Get GROUP chats from enrollments
+  if (userRole === "STUDENT") {
+    const enrollments = await prisma.enrollment.findMany({
+      where: {
+        userId,
+        status: "ACTIVE",
+      },
+      include: {
+        stream: {
+          include: {
+            chatRoom: {
+              include: {
+                messages: {
+                  orderBy: { createdAt: "desc" },
+                  take: 1,
+                  include: {
+                    sender: {
+                      select: {
+                        id: true,
+                        name: true,
+                        avatar: true,
+                      },
                     },
                   },
                 },
@@ -44,23 +49,72 @@ export const GET = withErrorHandling(async () => {
           },
         },
       },
-    },
-  });
-
-  const groupChats = enrollments
-    .filter((e) => e.stream.chatRoom && e.stream.chatEnabled)
-    .map((e) => {
-      const room = e.stream.chatRoom!;
-      return {
-        id: room.id,
-        type: "GROUP" as const,
-        name: e.stream.name,
-        streamId: e.stream.id,
-        lastMessage: room.messages[0] || null,
-        unreadCount: 0, // TODO: implement unread tracking
-        createdAt: room.createdAt,
-      };
     });
+
+    groupChats = enrollments
+      .filter((e) => e.stream.chatRoom && e.stream.chatEnabled)
+      .map((e) => {
+        const room = e.stream.chatRoom!;
+        return {
+          id: room.id,
+          type: "GROUP" as const,
+          name: e.stream.name,
+          streamId: e.stream.id,
+          lastMessage: room.messages[0] || null,
+          unreadCount: 0, // TODO: implement unread tracking
+          createdAt: room.createdAt,
+        };
+      });
+  }
+
+  // For TEACHERS/ADMINS: Get GROUP chats from streams they teach
+  if (userRole === "TEACHER" || userRole === "ADMIN") {
+    const teacherStreams = await prisma.stream.findMany({
+      where: {
+        teacherId: userId,
+        chatEnabled: true,
+      },
+      include: {
+        chatRoom: {
+          include: {
+            messages: {
+              orderBy: { createdAt: "desc" },
+              take: 1,
+              include: {
+                sender: {
+                  select: {
+                    id: true,
+                    name: true,
+                    avatar: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        course: {
+          select: {
+            title: true,
+          },
+        },
+      },
+    });
+
+    groupChats = teacherStreams
+      .filter((s) => s.chatRoom)
+      .map((s) => {
+        const room = s.chatRoom!;
+        return {
+          id: room.id,
+          type: "GROUP" as const,
+          name: `${s.name} (${s.course.title})`,
+          streamId: s.id,
+          lastMessage: room.messages[0] || null,
+          unreadCount: 0, // TODO: implement unread tracking
+          createdAt: room.createdAt,
+        };
+      });
+  }
 
   // Get DIRECT chats
   const directChats = await prisma.chatRoom.findMany({

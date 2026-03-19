@@ -27,6 +27,7 @@ export default async function SettingsPage() {
       avatar: true,
       bio: true,
       skills: true,
+      gender: true,
     },
   });
 
@@ -42,6 +43,7 @@ export default async function SettingsPage() {
       avatar={user.avatar ?? null}
       bio={user.bio ?? null}
       skills={user.skills}
+      gender={user.gender}
     />
   );
 }

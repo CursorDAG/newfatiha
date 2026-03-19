@@ -77,7 +77,7 @@ export default function CreateTicketModal({ onClose, onSuccess }: Props) {
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Кратко опишите проблему"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               maxLength={200}
             />
           </div>
@@ -91,7 +91,7 @@ export default function CreateTicketModal({ onClose, onSuccess }: Props) {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Подробно опишите вашу проблему или вопрос"
               rows={6}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+              className="w-full px-3 py-2 text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
               maxLength={10000}
             />
           </div>
@@ -103,7 +103,7 @@ export default function CreateTicketModal({ onClose, onSuccess }: Props) {
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as typeof priority)}
-              className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="px-3 py-2 text-slate-900 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="LOW">Низкий</option>
               <option value="MEDIUM">Средний</option>

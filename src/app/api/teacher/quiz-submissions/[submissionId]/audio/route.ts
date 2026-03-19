@@ -17,7 +17,25 @@ export const GET = withErrorHandling(async (
 
   const submission = await prisma.lessonQuizSubmission.findUnique({
     where: { id: submissionId },
-    include: { quiz: { include: { lesson: { include: { stream: true } } } } },
+    select: {
+      id: true,
+      voiceData: true,
+      voiceMimeType: true,
+      voiceUrl: true,
+      quiz: {
+        select: {
+          lesson: {
+            select: {
+              stream: {
+                select: {
+                  teacherId: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   });
   if (!submission) throw new NotFoundError("Submission");
 

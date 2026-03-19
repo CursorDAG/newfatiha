@@ -35,6 +35,11 @@ export default async function LessonPage({
         },
         orderBy: { createdAt: "desc" },
       },
+      recordings: {
+        where: { status: "READY" },
+        select: { id: true },
+        take: 1,
+      },
     },
   });
 
@@ -79,6 +84,7 @@ export default async function LessonPage({
         streamName: lesson.stream.name,
         courseName: lesson.stream.course.title,
         jitsiRoomName: lesson.stream.id,
+        hasRecording: lesson.recordings.length > 0,
         quizzes: lesson.quizzes.map((q) => ({
           id: q.id,
           title: q.title,
@@ -86,6 +92,7 @@ export default async function LessonPage({
           questions: q.questions.map((qq) => ({
             id: qq.id,
             prompt: qq.prompt,
+            type: qq.type,
             options: qq.options
               .sort((a, b) => a.sortOrder - b.sortOrder)
               .map((o) => ({ id: o.id, text: o.text })),

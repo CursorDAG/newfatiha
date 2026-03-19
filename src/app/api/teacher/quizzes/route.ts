@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { QuizType } from "@prisma/client";
+import { QuizType, QuestionType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
@@ -25,17 +25,16 @@ export const POST = withErrorHandling(async (req: Request) => {
   const {
     lessonId,
     title,
-    type,
-    prompt,
-    options,
-    correctOptionIndex,
+    questions,
   }: {
     lessonId?: string;
     title?: string;
-    type?: QuizType;
-    prompt?: string;
-    options?: string[];
-    correctOptionIndex?: number;
+    questions?: Array<{
+      prompt: string;
+      type: QuestionType;
+      options?: string[];
+      correctOptionIndex?: number;
+    }>;
   } = body;
 
   if (!lessonId) {
@@ -44,11 +43,8 @@ export const POST = withErrorHandling(async (req: Request) => {
   if (!title?.trim()) {
     throw new ValidationError("title is required", { title: "Title is required" });
   }
-  if (!type || !Object.values(QuizType).includes(type)) {
-    throw new ValidationError("Invalid type", { type: "Quiz type must be MULTIPLE_CHOICE or VOICE" });
-  }
-  if (!prompt?.trim()) {
-    throw new ValidationError("prompt is required", { prompt: "Prompt is required" });
+  if (!questions || !Array.isArray(questions) || questions.length === 0) {
+    throw new ValidationError("At least one question is required", { questions: "At least one question is required" });
   }
 
   const lesson = await prisma.lesson.findUnique({
@@ -60,53 +56,63 @@ export const POST = withErrorHandling(async (req: Request) => {
     throw new ForbiddenError("You do not have permission to access this lesson");
   }
 
-  if (type === "MULTIPLE_CHOICE") {
-    const cleaned = (options ?? []).map((s) => (s ?? "").trim()).filter(Boolean);
-    if (cleaned.length < 2) {
-      throw new ValidationError("At least 2 options required", { options: "At least 2 options are required" });
+  // Validate all questions
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    if (!q.prompt?.trim()) {
+      throw new ValidationError(`Question ${i + 1} prompt is required`, { [`questions[${i}].prompt`]: "Prompt is required" });
     }
-    if (typeof correctOptionIndex !== "number" || correctOptionIndex < 0 || correctOptionIndex >= cleaned.length) {
-      throw new ValidationError("correctOptionIndex is invalid", { correctOptionIndex: "Correct option index is invalid" });
+    if (!q.type || !["MULTIPLE_CHOICE", "TEXT", "VOICE"].includes(q.type)) {
+      throw new ValidationError(`Question ${i + 1} type is invalid`, { [`questions[${i}].type`]: "Type must be MULTIPLE_CHOICE, TEXT, or VOICE" });
     }
-
-    const quiz = await prisma.lessonQuiz.create({
-      data: {
-        lessonId,
-        title: title.trim(),
-        type,
-        questions: {
-          create: {
-            prompt: prompt.trim(),
-            sortOrder: 0,
-            options: {
-              create: cleaned.map((text, idx) => ({
-                text,
-                isCorrect: idx === correctOptionIndex,
-                sortOrder: idx,
-              })),
-            },
-          },
-        },
-      },
-    });
-
-    return NextResponse.json({ success: true, quizId: quiz.id });
+    if (q.type === "MULTIPLE_CHOICE") {
+      const cleaned = (q.options ?? []).map((s) => (s ?? "").trim()).filter(Boolean);
+      if (cleaned.length < 2) {
+        throw new ValidationError(`Question ${i + 1} needs at least 2 options`, { [`questions[${i}].options`]: "At least 2 options are required" });
+      }
+      if (typeof q.correctOptionIndex !== "number" || q.correctOptionIndex < 0 || q.correctOptionIndex >= cleaned.length) {
+        throw new ValidationError(`Question ${i + 1} correctOptionIndex is invalid`, { [`questions[${i}].correctOptionIndex`]: "Correct option index is invalid" });
+      }
+    }
   }
+
+  // Determine quiz type based on questions
+  const hasMultipleChoice = questions.some((q) => q.type === "MULTIPLE_CHOICE");
+  const hasVoice = questions.some((q) => q.type === "VOICE");
+  const quizType: QuizType = hasVoice ? "VOICE" : "MULTIPLE_CHOICE";
 
   const quiz = await prisma.lessonQuiz.create({
     data: {
       lessonId,
       title: title.trim(),
-      type,
+      type: quizType,
       questions: {
-        create: {
-          prompt: prompt.trim(),
-          sortOrder: 0,
-        },
+        create: questions.map((q, idx) => {
+          const baseQuestion = {
+            prompt: q.prompt.trim(),
+            type: q.type,
+            sortOrder: idx,
+          };
+
+          if (q.type === "MULTIPLE_CHOICE") {
+            const cleaned = (q.options ?? []).map((s) => (s ?? "").trim()).filter(Boolean);
+            return {
+              ...baseQuestion,
+              options: {
+                create: cleaned.map((text, optIdx) => ({
+                  text,
+                  isCorrect: optIdx === q.correctOptionIndex,
+                  sortOrder: optIdx,
+                })),
+              },
+            };
+          }
+
+          return baseQuestion;
+        }),
       },
     },
   });
 
   return NextResponse.json({ success: true, quizId: quiz.id });
 });
-
