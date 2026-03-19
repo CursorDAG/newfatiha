@@ -8,33 +8,35 @@ datasource db {
 }
 
 model User {
-  id                     String                 @id @default(uuid())
-  email                  String                 @unique
-  password               String?
-  name                   String
-  role                   Role                   @default(STUDENT)
-  createdAt              DateTime               @default(now())
-  updatedAt              DateTime               @updatedAt
-  avatar                 String?
-  bio                    String?
-  skills                 String[]
-  isBlocked              Boolean                @default(false)
-  deletedAt              DateTime?
-  gender                 Gender                 @default(NOT_SPECIFIED)
-  activitySessions       ActivitySession[]
-  courses                Course[]               @relation("TeacherCourses")
-  enrollments            Enrollment[]
-  checkedQuizSubmissions LessonQuizSubmission[] @relation("QuizCheckedBy")
-  quizSubmissions        LessonQuizSubmission[]
-  notifications          Notification[]
-  supportTickets         SupportTicket[]
-  assignedTickets        SupportTicket[]        @relation("AssignedTickets")
-  supportTicketReplies   SupportTicketReply[]
-  contentReports         ContentReport[]
-  reviewedReports        ContentReport[]        @relation("ReviewedReports")
-  chatParticipant1Rooms  ChatRoom[]             @relation("ChatParticipant1")
-  chatParticipant2Rooms  ChatRoom[]             @relation("ChatParticipant2")
-  chatMessages           ChatMessage[]
+  id                       String                 @id @default(uuid())
+  email                    String                 @unique
+  password                 String?
+  name                     String
+  role                     Role                   @default(STUDENT)
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+  avatar                   String?
+  bio                      String?
+  skills                   String[]
+  isBlocked                Boolean                @default(false)
+  deletedAt                DateTime?
+  gender                   Gender                 @default(NOT_SPECIFIED)
+  activitySessions         ActivitySession[]
+  courses                  Course[]               @relation("TeacherCourses")
+  enrollments              Enrollment[]
+  checkedQuizSubmissions   LessonQuizSubmission[] @relation("QuizCheckedBy")
+  quizSubmissions          LessonQuizSubmission[]
+  notifications            Notification[]
+  supportTickets           SupportTicket[]
+  assignedTickets          SupportTicket[]        @relation("AssignedTickets")
+  supportTicketReplies     SupportTicketReply[]
+  contentReports           ContentReport[]
+  reviewedReports          ContentReport[]        @relation("ReviewedReports")
+  chatParticipant1Rooms    ChatRoom[]             @relation("ChatParticipant1")
+  chatParticipant2Rooms    ChatRoom[]             @relation("ChatParticipant2")
+  chatMessages             ChatMessage[]
+  questionSubmissions      QuestionSubmission[]
+  checkedQuestionSubmissions QuestionSubmission[] @relation("QuestionCheckedBy")
 }
 
 model Course {
@@ -126,6 +128,8 @@ model Lesson {
   homeworkAssignments HomeworkAssignment[]
   stream              Stream               @relation(fields: [streamId], references: [id])
   quizzes             LessonQuiz[]
+  recordings          LessonRecording[]
+  progress            LessonProgress[]
 }
 
 model LessonQuiz {
@@ -141,14 +145,16 @@ model LessonQuiz {
 }
 
 model LessonQuizQuestion {
-  id        String             @id @default(uuid())
-  quizId    String
-  prompt    String
-  sortOrder Int                @default(0)
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-  options   LessonQuizOption[]
-  quiz      LessonQuiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  id                String                 @id @default(uuid())
+  quizId            String
+  prompt            String
+  type              QuestionType           @default(MULTIPLE_CHOICE)
+  sortOrder         Int                    @default(0)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  options           LessonQuizOption[]
+  quiz              LessonQuiz             @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  questionSubmissions QuestionSubmission[]
 }
 
 model LessonQuizOption {
@@ -174,6 +180,7 @@ model LessonQuizSubmission {
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
   voiceUrl         String?
+  questionDetails  Json?
   checkedBy        User?                @relation("QuizCheckedBy", fields: [checkedById], references: [id])
   quiz             LessonQuiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
   student          User                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -181,6 +188,90 @@ model LessonQuizSubmission {
   @@unique([quizId, studentId])
   @@index([studentId, createdAt])
   @@index([quizId, createdAt])
+}
+
+model QuestionSubmission {
+  id               String               @id @default(uuid())
+  questionId       String
+  studentId        String
+  selectedOptionId String?
+  textAnswer       String?
+  voiceMimeType    String?
+  voiceData        Bytes?
+  voiceDurationMs  Int?
+  voiceUrl         String?
+  status           QuizSubmissionStatus @default(SUBMITTED)
+  checkedById      String?
+  checkedAt        DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  question         LessonQuizQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  student          User                 @relation(fields: [studentId], references: [id])
+  checkedBy        User?                @relation("QuestionCheckedBy", fields: [checkedById], references: [id])
+
+  @@unique([questionId, studentId])
+  @@index([studentId, createdAt])
+  @@index([questionId, createdAt])
+}
+
+model LessonRecording {
+  id          String          @id @default(uuid())
+  lessonId    String
+  lesson      Lesson          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  streamId    String
+  videoUrl    String
+  thumbnailUrl String?
+  duration    Int?
+  fileSize    BigInt?
+  recordedAt  DateTime        @default(now())
+  processedAt DateTime?
+  status      RecordingStatus @default(PROCESSING)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([lessonId])
+  @@index([streamId])
+  @@index([status])
+}
+
+model LessonProgress {
+  id               String   @id @default(uuid())
+  userId           String
+  lessonId         String
+  lesson           Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  streamId         String
+  watchedSeconds   Int      @default(0)
+  totalSeconds     Int?
+  completed        Boolean  @default(false)
+  lastWatchedAt    DateTime @default(now())
+  completedAt      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+  @@index([userId, streamId])
+  @@index([lessonId])
+}
+
+model StudentProgress {
+  id                    String   @id @default(uuid())
+  userId                String
+  streamId              String
+  lessonsCompleted      Int      @default(0)
+  lessonsTotal          Int      @default(0)
+  quizzesPassed         Int      @default(0)
+  quizzesTotal          Int      @default(0)
+  homeworksAccepted     Int      @default(0)
+  homeworksTotal        Int      @default(0)
+  averageQuizScore      Float?
+  totalWatchTimeSeconds Int      @default(0)
+  lastActivityAt        DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([userId, streamId])
+  @@index([streamId])
+  @@index([userId])
 }
 
 model ActivitySession {
@@ -443,6 +534,12 @@ enum QuizType {
   VOICE
 }
 
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TEXT
+  VOICE
+}
+
 enum QuizSubmissionStatus {
   SUBMITTED
   PASSED
@@ -465,4 +562,10 @@ enum HomeworkSubmissionStatus {
   ACCEPTED
   NEEDS_REWORK
   REJECTED
+}
+
+enum RecordingStatus {
+  PROCESSING
+  READY
+  FAILED
 }
