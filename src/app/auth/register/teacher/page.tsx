@@ -48,8 +48,8 @@ export default function TeacherRegisterPage() {
 
       setSuccess(data.message);
       setStep(2);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка регистрации");
     } finally {
       setLoading(false);
     }
@@ -106,8 +106,8 @@ export default function TeacherRegisterPage() {
 
       setSuccess(data.message);
       setTimeout(() => router.push("/teacher/pending-approval"), 2000);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка отправки анкеты");
     } finally {
       setLoading(false);
     }

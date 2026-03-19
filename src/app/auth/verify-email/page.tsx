@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,7 @@ export default async function VerifyEmailPage({
     } else {
       throw new Error(data.error || "Verification failed");
     }
-  } catch (error) {
+  } catch {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-50 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
@@ -64,12 +65,12 @@ export default async function VerifyEmailPage({
             <p className="text-slate-600 mb-6">
               Не удалось подтвердить email. Возможно, ссылка устарела или уже была использована.
             </p>
-            <a
+            <Link
               href="/"
               className="inline-block px-6 py-3 bg-slate-600 hover:bg-slate-500 text-white font-bold rounded-xl shadow-lg transition-all"
             >
               На главную
-            </a>
+            </Link>
           </div>
         </div>
       </main>

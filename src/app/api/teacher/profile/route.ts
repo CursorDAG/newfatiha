@@ -3,8 +3,92 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
-import { AuthError, ValidationError } from "@/lib/errors";
+import { AuthError, ValidationError, ForbiddenError } from "@/lib/errors";
 import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
+import { validateRequest } from "@/lib/validate-request";
+import { registerTeacherStep2Schema } from "@/lib/validation";
+import { NotificationService } from "@/lib/notification-service";
+
+/**
+ * POST /api/teacher/profile
+ * Creates teacher profile after email verification (Step 2 of registration)
+ * Body: { bio, subjects, experience, qualifications, whatsappPhone, documentsUrls, videoIntroUrl? }
+ */
+export const POST = withErrorHandling(async (req: Request) => {
+  // Apply rate limiting
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.general);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id || session.user.role !== "TEACHER") {
+    throw new AuthError("Unauthorized");
+  }
+
+  // Check if user has verified email
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { emailVerified: true, status: true, teacherProfile: true },
+  });
+
+  if (!user) {
+    throw new AuthError("User not found");
+  }
+
+  if (!user.emailVerified) {
+    throw new ForbiddenError("Email must be verified before creating profile");
+  }
+
+  if (user.teacherProfile) {
+    throw new ValidationError("Profile already exists. Use PATCH to update.");
+  }
+
+  // Validate request body
+  const data = await validateRequest(req, registerTeacherStep2Schema);
+
+  // Create teacher profile
+  await prisma.teacherProfile.create({
+    data: {
+      userId: session.user.id,
+      bio: data.bio,
+      subjects: data.subjects,
+      experience: data.experience,
+      qualifications: data.qualifications,
+      whatsappPhone: data.whatsappPhone,
+      documentsUrls: data.documentsUrls,
+      videoIntroUrl: data.videoIntroUrl || null,
+    },
+  });
+
+  // Update user status to PENDING_APPROVAL
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { status: "PENDING_APPROVAL" },
+  });
+
+  // Notify admins about new teacher application
+  const admins = await prisma.user.findMany({
+    where: { role: "ADMIN" },
+    select: { id: true },
+  });
+
+  for (const admin of admins) {
+    await NotificationService.create({
+      userId: admin.id,
+      type: "TEACHER_APPLICATION_SUBMITTED",
+      title: "Новая заявка учителя",
+      message: `Учитель ${session.user.name} подал заявку на регистрацию`,
+      actionUrl: "/admin/teacher-applications",
+      priority: "NORMAL",
+    });
+  }
+
+  return NextResponse.json({
+    success: true,
+    message: "Анкета отправлена на рассмотрение администрации",
+  });
+});
 
 /**
  * PATCH /api/teacher/profile

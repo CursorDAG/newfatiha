@@ -94,7 +94,7 @@ export const POST = withErrorHandling(async (
       submission.id,
       quiz.lesson.stream.teacherId
     ).catch((err) => {
-      console.error("Failed to send notification:", err);
+      logger.error({ error: err, submissionId: submission.id }, "Failed to send notification");
     });
 
     return NextResponse.json({ success: true, submissionId: submission.id });
@@ -180,7 +180,7 @@ export const POST = withErrorHandling(async (
       submission.id,
       quiz.lesson.stream.teacherId
     ).catch((err) => {
-      console.error("Failed to send notification:", err);
+      logger.error({ error: err, submissionId: submission.id }, "Failed to send notification");
     });
 
     return NextResponse.json({ success: true, submissionId: submission.id });

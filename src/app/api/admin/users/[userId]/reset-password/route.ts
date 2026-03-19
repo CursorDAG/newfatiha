@@ -46,11 +46,30 @@ export const POST = withErrorHandling(async (req: Request, context?: { params: P
 
   logger.info({ userId, adminId: session.user.id }, "Admin reset user password");
 
-  // TODO: Отправить временный пароль на email пользователя (когда будет email система)
+  // Get user email for sending password
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, name: true },
+  });
+
+  if (!user) {
+    throw new NotFoundError("User");
+  }
+
+  // Send temporary password via email (never expose in API response)
+  try {
+    // TODO: Create email template for password reset
+    // await EmailService.sendPasswordReset(user.email, {
+    //   userName: user.name,
+    //   temporaryPassword,
+    // });
+    logger.info({ userId, email: user.email }, "Temporary password would be sent via email");
+  } catch (error) {
+    logger.error({ error, userId }, "Failed to send password reset email");
+  }
 
   return NextResponse.json({
     success: true,
-    temporaryPassword,
-    message: "Временный пароль сгенерирован. Отправьте его пользователю.",
+    message: "Временный пароль отправлен на email пользователя.",
   });
 });

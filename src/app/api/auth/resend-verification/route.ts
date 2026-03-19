@@ -7,6 +7,7 @@ import { validateRequest } from "@/lib/validate-request";
 import { randomUUID } from "crypto";
 import { EmailService } from "@/lib/email-service";
 import { logger } from "@/lib/logger";
+import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 const resendSchema = z.object({
   email: z.string().email("Неверный формат email"),
@@ -17,6 +18,12 @@ const resendSchema = z.object({
  * Resend verification email
  */
 export const POST = withErrorHandling(async (req: Request) => {
+  // Apply rate limiting to prevent email bombing
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.auth);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const { email } = await validateRequest(req, resendSchema);
 
   // Find user

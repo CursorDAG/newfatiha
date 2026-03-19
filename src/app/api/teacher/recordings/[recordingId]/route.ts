@@ -13,6 +13,7 @@ import {
   ForbiddenError,
 } from "@/lib/errors";
 import { deleteObject } from "@/lib/s3";
+import { logger } from "@/lib/logger";
 
 export const DELETE = withErrorHandling(
   async (req: Request, context?: { params: Promise<Record<string, string>> }) => {
@@ -69,7 +70,7 @@ export const DELETE = withErrorHandling(
         await deleteObject(recording.thumbnailUrl);
       }
     } catch (error) {
-      console.error("Failed to delete from S3:", error);
+      logger.error({ error, recordingId, videoUrl: recording.videoUrl }, "Failed to delete from S3");
       // Continue with database deletion even if S3 deletion fails
     }
 

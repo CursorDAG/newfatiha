@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ValidationError, ForbiddenError } from "@/lib/errors";
 import { recalculateStudentProgress } from "@/lib/progress";
+import { logger } from "@/lib/logger";
 
 export const POST = withErrorHandling(async (req: Request) => {
   // 1. Check authentication
@@ -112,7 +113,7 @@ export const POST = withErrorHandling(async (req: Request) => {
   // 5. Trigger progress recalculation if lesson just became completed
   if (completed && wasIncomplete && session.user.role === "STUDENT") {
     recalculateStudentProgress(session.user.id, streamId).catch((err) =>
-      console.error("Failed to recalculate progress:", err)
+      logger.error({ error: err, userId: session.user.id, streamId }, "Failed to recalculate progress")
     );
   }
 

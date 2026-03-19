@@ -7,6 +7,7 @@ import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 import { NotificationService } from "@/lib/notification-service";
+import { logger } from "@/lib/logger";
 
 type SubmitBody = {
   contentText?: string | null;
@@ -79,7 +80,7 @@ export const POST = withErrorHandling(async (
     submission.id,
     assignment.stream.teacherId
   ).catch((err) => {
-    console.error("Failed to send notification:", err);
+    logger.error({ error: err, submissionId: submission.id }, "Failed to send notification");
   });
 
   return NextResponse.json({ success: true, submissionId: submission.id });

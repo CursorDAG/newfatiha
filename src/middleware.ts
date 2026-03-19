@@ -29,8 +29,8 @@ export async function middleware(req: NextRequest) {
     }
 
     // Block teachers with PENDING_APPROVAL or PENDING_VERIFICATION status
-    if (token.role === "TEACHER" && (token as any).status) {
-      const status = (token as any).status;
+    if (token.role === "TEACHER" && token.status) {
+      const status = token.status as string;
       if (status === "PENDING_APPROVAL" || status === "PENDING_VERIFICATION") {
         return NextResponse.redirect(new URL("/teacher/pending-approval", req.url));
       }

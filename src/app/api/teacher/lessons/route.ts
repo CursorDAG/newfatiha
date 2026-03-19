@@ -7,6 +7,7 @@ import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 import { NotificationService } from "@/lib/notification-service";
+import { logger } from "@/lib/logger";
 
 type CreateLessonBody = {
   streamId?: string;
@@ -97,7 +98,7 @@ export const POST = withErrorHandling(async (req: Request) => {
   if (lesson.published) {
     await NotificationService.notifyNewLesson(stream.id, lesson.id).catch((err) => {
       // Не блокировать создание урока, если уведомления не отправились
-      console.error("Failed to send notifications:", err);
+      logger.error({ error: err, streamId: stream.id, lessonId: lesson.id }, "Failed to send notifications");
     });
   }
 

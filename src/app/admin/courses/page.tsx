@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { BookOpen, Users, TrendingUp } from "lucide-react";
 
@@ -30,9 +30,9 @@ export default function AdminCoursesPage() {
 
   useEffect(() => {
     fetchCourses();
-  }, [filter]);
+  }, [filter, fetchCourses]);
 
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -48,7 +48,7 @@ export default function AdminCoursesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
 
   const filteredCourses = courses;
 
@@ -72,7 +72,7 @@ export default function AdminCoursesPage() {
               ].map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => setFilter(option.value as any)}
+                  onClick={() => setFilter(option.value as "all" | "published" | "draft")}
                   className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                     filter === option.value
                       ? "bg-emerald-100 text-emerald-700"

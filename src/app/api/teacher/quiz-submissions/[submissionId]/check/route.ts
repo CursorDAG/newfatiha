@@ -8,6 +8,7 @@ import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib
 import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 import { NotificationService } from "@/lib/notification-service";
 import { recalculateStudentProgress } from "@/lib/progress";
+import { logger } from "@/lib/logger";
 
 export const POST = withErrorHandling(async (
   req: Request,
@@ -80,7 +81,7 @@ export const POST = withErrorHandling(async (
 
   // Уведомить студента о проверке
   await NotificationService.notifyQuizChecked(updated.id).catch((err) => {
-    console.error("Failed to send notification:", err);
+    logger.error({ error: err, submissionId: updated.id }, "Failed to send notification");
   });
 
   // Trigger progress recalculation for student
@@ -88,7 +89,7 @@ export const POST = withErrorHandling(async (
     recalculateStudentProgress(
       submission.studentId,
       submission.quiz.lesson.stream.id
-    ).catch((err) => console.error("Failed to recalculate progress:", err));
+    ).catch((err) => logger.error({ error: err, studentId: submission.studentId }, "Failed to recalculate progress"));
   }
 
   return NextResponse.json({ success: true, submissionId: updated.id, status: updated.status });

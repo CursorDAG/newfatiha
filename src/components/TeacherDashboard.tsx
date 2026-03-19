@@ -524,11 +524,18 @@ export default function TeacherDashboard({
       .join(", ");
   }, []);
 
+  type AnalyticsPayload = {
+    totalStudents: number;
+    activeStudents: number;
+    completedLessons: number;
+    averageProgress: number;
+  };
+
   const { analyticsLoading, analyticsError, analyticsData, fetchAnalytics } = useAnalytics<AnalyticsPayload>(selectedStreamId);
   const { gradebookLoading, gradebookError, gradebookData, fetchGradebook } = useGradebook(selectedStreamId);
   const { homeworkLoading, homeworkAssignments, fetchHomework } = useHomework(
     selectedStreamId,
-    (msg) => pushToast({ type: "error", title: "Ошибка загрузки заданий", message: msg }),
+    (msg: string) => pushToast({ type: "error", title: "Ошибка загрузки заданий", message: msg }),
   );
 
   const checkSubmission = useCallback(

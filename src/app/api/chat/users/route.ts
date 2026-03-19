@@ -19,7 +19,15 @@ export const GET = withErrorHandling(async (req: Request) => {
   const userRole = session.user.role;
   const userId = session.user.id;
 
-  let users: any[] = [];
+  type UserResult = {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    avatar: string | null;
+  };
+
+  let users: UserResult[] = [];
 
   // ADMINS can message anyone
   if (userRole === "ADMIN") {

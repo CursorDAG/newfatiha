@@ -6,13 +6,13 @@ import { useOnboarding } from "@/contexts/OnboardingContext";
 
 export function OnboardingTooltip() {
   const { isActive, currentStep, steps, completeStep, previousStep, skipOnboarding } = useOnboarding();
-  const [position, setPosition] = useState({ top: 0, left: 0 });
   const [tooltipPosition, setTooltipPosition] = useState<"top" | "bottom" | "left" | "right">("bottom");
   const [mounted, setMounted] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
   }, []);
 
   useEffect(() => {
@@ -26,13 +26,6 @@ export function OnboardingTooltip() {
       if (!targetElement) return;
 
       const rect = targetElement.getBoundingClientRect();
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-
-      setPosition({
-        top: rect.top + scrollTop,
-        left: rect.left + scrollLeft,
-      });
 
       // Calculate tooltip position
       const preferredPosition = step.position || "bottom";

@@ -34,8 +34,8 @@ export function VideoPlayer({
     if (savedPosition && videoRef.current) {
       const position = parseFloat(savedPosition);
       videoRef.current.currentTime = position;
-      setCurrentTime(position);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessonId]);
 
   // Save position to localStorage

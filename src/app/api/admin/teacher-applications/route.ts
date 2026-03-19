@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
-import { AuthError, ForbiddenError } from "@/lib/errors";
+import { AuthError } from "@/lib/errors";
 
 /**
  * GET /api/admin/teacher-applications
@@ -20,7 +20,11 @@ export const GET = withErrorHandling(async (req: Request) => {
   const status = searchParams.get("status");
 
   // Build where clause
-  const where: any = {
+  const where: {
+    role: string;
+    emailVerified: boolean;
+    status?: string;
+  } = {
     role: "TEACHER",
     emailVerified: true,
   };

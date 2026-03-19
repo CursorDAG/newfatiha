@@ -91,7 +91,7 @@ export default async function HomePage() {
       where: { page: "home" },
     });
     if (contentData) {
-      pageContent = contentData.sections as any;
+      pageContent = contentData.sections as Record<string, unknown>;
     }
   } catch (error) {
     // Fallback to static content if CMS content not available
@@ -261,7 +261,7 @@ export default async function HomePage() {
             </span>
             <h2 className="text-4xl sm:text-5xl font-extrabold text-slate-900 mt-2 mb-4">Как начать обучение</h2>
             <p className="text-slate-600 text-lg mt-3 max-w-2xl mx-auto">
-              Всего три простых шага — и ты уже занимаешься с живым учителем
+              Всего три простых шага — и ты уже занимаешься с &ldquo;живым&rdquo; учителем
             </p>
           </div>
 

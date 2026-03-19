@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { Send, Clock, Users, CheckCircle } from "lucide-react";
+import { Send, Clock, Users } from "lucide-react";
 
 type Broadcast = {
   id: string;
@@ -10,7 +10,7 @@ type Broadcast = {
   message: string;
   priority: string;
   createdAt: string;
-  metadata: any;
+  metadata: Record<string, unknown>;
 };
 
 type TargetAudienceType = "ALL" | "STUDENTS" | "TEACHERS" | "SPECIFIC";
@@ -32,21 +32,21 @@ export default function BroadcastsPage() {
 
   useEffect(() => {
     fetchBroadcasts();
-  }, []);
+  }, [fetchBroadcasts]);
 
-  const fetchBroadcasts = async () => {
+  const fetchBroadcasts = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/broadcasts");
       if (!res.ok) throw new Error("Failed to fetch broadcasts");
       const data = await res.json();
       setBroadcasts(data.broadcasts);
-    } catch (error) {
+    } catch {
       showToast("Ошибка загрузки истории рассылок", "error");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const sendBroadcast = async () => {
     if (!formData.title || !formData.message) {
@@ -86,7 +86,7 @@ export default function BroadcastsPage() {
       });
       setShowForm(false);
       fetchBroadcasts();
-    } catch (error) {
+    } catch {
       showToast("Ошибка отправки рассылки", "error");
     } finally {
       setSending(false);

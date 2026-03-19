@@ -203,7 +203,7 @@ export const GET = withErrorHandling(async (req: Request) => {
       }
 
       let quizStatus: GradebookQuizStatus | null = null;
-      let quizSubmissionsForCell: QuizSubmissionDetail[] = [];
+      const quizSubmissionsForCell: QuizSubmissionDetail[] = [];
       if (quizIds.length) {
         const allSubmissions: { status: QuizSubmissionStatus; id: string; questionDetails?: unknown }[] = [];
         for (const quizId of quizIds) {

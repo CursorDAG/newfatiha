@@ -45,7 +45,7 @@ export default function DetailedProgressView({
   streamId,
   onBack,
 }: DetailedProgressViewProps) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

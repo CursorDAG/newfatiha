@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { BookOpen, FlaskConical, FileText, Clock } from "lucide-react";
+import { BookOpen, FlaskConical, FileText, Clock, LucideIcon } from "lucide-react";
 
 interface ProgressMetricCardProps {
   icon: string;
@@ -12,7 +12,7 @@ interface ProgressMetricCardProps {
   color?: "emerald" | "blue" | "amber" | "purple";
 }
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, LucideIcon> = {
   "📚": BookOpen,
   "📝": FlaskConical,
   "✍️": FileText,

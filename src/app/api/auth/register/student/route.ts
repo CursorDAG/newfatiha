@@ -7,6 +7,7 @@ import { validateRequest } from "@/lib/validate-request";
 import { registerUserSchema } from "@/lib/validation";
 import { randomBytes } from "crypto";
 import { NotificationService } from "@/lib/notification-service";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/auth/register/student
@@ -49,7 +50,7 @@ export const POST = withErrorHandling(async (req: Request) => {
 
   // Notify admins about new student registration
   await NotificationService.notifyStudentRegistered(user.id).catch((err) => {
-    console.error("Failed to send notification:", err);
+    logger.error({ error: err, userId: user.id }, "Failed to send notification");
   });
 
   return NextResponse.json(

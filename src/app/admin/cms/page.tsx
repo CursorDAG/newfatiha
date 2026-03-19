@@ -1,17 +1,28 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Save, RotateCcw, Eye, EyeOff, GripVertical } from "lucide-react";
 
-type SectionType = "hero" | "stats" | "howItWorks" | "about" | "cta";
+type HeroSection = {
+  badge: string;
+  title: string;
+  subtitle: string;
+  primaryButton: string;
+  primaryButtonLink: string;
+};
+
+type AboutSection = {
+  title: string;
+  description: string[];
+};
 
 type PageContent = {
-  hero: any;
-  stats: any[];
-  howItWorks: any;
-  about: any;
-  cta: any;
+  hero: HeroSection;
+  stats: Record<string, unknown>[];
+  howItWorks: Record<string, unknown>;
+  about: AboutSection;
+  cta: Record<string, unknown>;
 };
 
 export default function CMSPage() {
@@ -24,9 +35,9 @@ export default function CMSPage() {
 
   useEffect(() => {
     fetchContent();
-  }, []);
+  }, [fetchContent]);
 
-  const fetchContent = async () => {
+  const fetchContent = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/cms/home");
@@ -34,12 +45,12 @@ export default function CMSPage() {
       const data = await res.json();
       setContent(data.sections);
       setHasChanges(false);
-    } catch (error) {
+    } catch {
       showToast("Ошибка загрузки контента", "error");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const saveContent = async () => {
     if (!content) return;
@@ -56,7 +67,7 @@ export default function CMSPage() {
 
       showToast("Контент успешно сохранен", "success");
       setHasChanges(false);
-    } catch (error) {
+    } catch {
       showToast("Ошибка сохранения", "error");
     } finally {
       setSaving(false);
@@ -69,7 +80,7 @@ export default function CMSPage() {
     }
   };
 
-  const updateSection = (section: keyof PageContent, data: any) => {
+  const updateSection = (section: keyof PageContent, data: PageContent[keyof PageContent]) => {
     if (!content) return;
     setContent({ ...content, [section]: data });
     setHasChanges(true);

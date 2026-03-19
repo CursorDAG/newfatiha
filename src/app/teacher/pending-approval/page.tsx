@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -8,18 +8,15 @@ import Link from "next/link";
 export default function PendingApprovalPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{
+    status: string;
+    teacherProfile?: {
+      whatsappPhone?: string;
+    };
+  } | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/api/auth/signin");
-    } else if (status === "authenticated") {
-      checkStatus();
-    }
-  }, [status]);
-
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async () => {
     try {
       const res = await fetch("/api/user/me");
       const data = await res.json();
@@ -37,7 +34,15 @@ export default function PendingApprovalPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/api/auth/signin");
+    } else if (status === "authenticated") {
+      checkStatus();
+    }
+  }, [status, router, checkStatus]);
 
   if (loading || status === "loading") {
     return (

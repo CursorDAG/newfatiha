@@ -33,7 +33,7 @@ export default function TeacherProgressAnalytics({
   streamId,
 }: TeacherProgressAnalyticsProps) {
   const [students, setStudents] = useState<StudentProgress[]>([]);
-  const [aggregates, setAggregates] = useState<any>(null);
+  const [aggregates, setAggregates] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
@@ -94,7 +94,8 @@ export default function TeacherProgressAnalytics({
 
     // Apply sort
     const sorted = [...filtered].sort((a, b) => {
-      let aVal: any, bVal: any;
+      let aVal: string | number;
+      let bVal: string | number;
 
       switch (sortField) {
         case "name":

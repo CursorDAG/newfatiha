@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
 
 interface TeacherApplication {
   id: string;
@@ -26,7 +25,6 @@ interface TeacherApplication {
 }
 
 export default function TeacherApplicationsPage() {
-  const router = useRouter();
   const [applications, setApplications] = useState<TeacherApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
@@ -38,11 +36,7 @@ export default function TeacherApplicationsPage() {
   const [rejectionReason, setRejectionReason] = useState("");
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchApplications();
-  }, [filter]);
-
-  const fetchApplications = async () => {
+  const fetchApplications = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -58,12 +52,16 @@ export default function TeacherApplicationsPage() {
       }
 
       setApplications(data.applications);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка загрузки");
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
 
   const handleApprove = async () => {
     if (!selectedApp) return;
@@ -88,8 +86,8 @@ export default function TeacherApplicationsPage() {
       setSelectedApp(null);
       setAdminNotes("");
       fetchApplications();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка одобрения");
     } finally {
       setActionLoading(false);
     }
@@ -122,8 +120,8 @@ export default function TeacherApplicationsPage() {
       setRejectionReason("");
       setAdminNotes("");
       fetchApplications();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ошибка отклонения");
     } finally {
       setActionLoading(false);
     }
@@ -157,7 +155,7 @@ export default function TeacherApplicationsPage() {
             ].map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setFilter(tab.key as any)}
+                onClick={() => setFilter(tab.key as "all" | "pending" | "approved" | "rejected")}
                 className={`px-6 py-3 font-medium ${
                   filter === tab.key
                     ? "border-b-2 border-emerald-600 text-emerald-600"

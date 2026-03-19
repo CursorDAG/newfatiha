@@ -17,7 +17,17 @@ export const GET = withErrorHandling(async () => {
   const userId = session.user.id;
   const userRole = session.user.role;
 
-  let groupChats: any[] = [];
+  type GroupChat = {
+    id: string;
+    type: "GROUP";
+    name: string;
+    streamId: string;
+    lastMessage: unknown;
+    unreadCount: number;
+    createdAt: Date;
+  };
+
+  let groupChats: GroupChat[] = [];
 
   // For STUDENTS: Get GROUP chats from enrollments
   if (userRole === "STUDENT") {

@@ -62,6 +62,7 @@ interface CreateTestUserOptions {
   password?: string;
   name?: string;
   role?: "STUDENT" | "TEACHER" | "ADMIN" | "MODERATOR";
+  gender?: "MALE" | "FEMALE" | "NOT_SPECIFIED";
 }
 
 /**
@@ -73,6 +74,7 @@ export async function createTestUser(options: CreateTestUserOptions = {}) {
     password = "password123",
     name = "Test User",
     role = "STUDENT",
+    gender = "MALE", // Default to MALE for tests to pass gender validation
   } = options;
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -83,6 +85,7 @@ export async function createTestUser(options: CreateTestUserOptions = {}) {
       password: hashedPassword,
       name,
       role,
+      gender,
     },
   });
 }
@@ -125,6 +128,7 @@ interface CreateTestStreamOptions {
   level?: string;
   schedule?: string;
   color?: string;
+  genderType?: "MALE_ONLY" | "FEMALE_ONLY" | "MIXED";
 }
 
 /**
@@ -138,6 +142,7 @@ export async function createTestStream(options: CreateTestStreamOptions) {
     level = "Beginner",
     schedule = "Mon/Wed 10:00",
     color = "#10b981",
+    genderType = "MIXED", // Default to MIXED for tests
   } = options;
 
   return testPrisma.stream.create({
@@ -148,6 +153,7 @@ export async function createTestStream(options: CreateTestStreamOptions) {
       level,
       schedule,
       color,
+      genderType,
     },
   });
 }

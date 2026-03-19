@@ -2,8 +2,15 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { ValidationError } from "@/lib/errors";
+import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 
 export const GET = withErrorHandling(async (req: Request) => {
+  // Apply rate limiting to prevent token enumeration
+  const rateLimitResponse = await rateLimit(req, rateLimitConfigs.auth);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const { searchParams } = new URL(req.url);
   const token = searchParams.get("token");
 

@@ -13,8 +13,6 @@ import {
   Video,
   FileVideo,
   LogOut,
-  Menu,
-  X,
   Radio,
   ExternalLink,
   Clock,
@@ -28,6 +26,19 @@ import LiveJitsiEmbed from "@/components/student/LiveJitsiEmbed";
 import StudentProgressDashboard from "@/components/student/StudentProgressDashboard";
 import DetailedProgressView from "@/components/student/DetailedProgressView";
 import StudentInfoTab from "@/components/student/StudentInfoTab";
+
+const getSubmissionIcon = (status: string) => {
+  switch (status) {
+    case "ACCEPTED":
+      return CheckCircle2;
+    case "NEEDS_REWORK":
+      return AlertCircle;
+    case "REJECTED":
+      return XCircle;
+    default:
+      return Clock;
+  }
+};
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { studentSteps } from "@/components/onboarding/studentSteps";
 import { OnboardingTooltip } from "@/components/onboarding/OnboardingTooltip";
@@ -272,9 +283,8 @@ function HomeworkCard({
   const isOverdue =
     assignment.dueAt && new Date(assignment.dueAt) < new Date() && !assignment.submission;
 
-  const StatusIcon = assignment.submission
-    ? getSubmissionIcon(assignment.submission.status)
-    : AlertCircle;
+  const submissionStatus = assignment.submission?.status || "SUBMITTED";
+  const StatusIcon = getSubmissionIcon(submissionStatus);
 
   return (
     <div

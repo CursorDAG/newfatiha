@@ -7,6 +7,7 @@ import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 import { NotificationService } from "@/lib/notification-service";
+import { logger } from "@/lib/logger";
 
 type CreateHomeworkBody = {
   streamId?: string;
@@ -74,7 +75,7 @@ export const POST = withErrorHandling(async (req: Request) => {
 
   // Уведомить студентов о новом домашнем задании
   await NotificationService.notifyHomeworkAssigned(stream.id, assignment.id).catch((err) => {
-    console.error("Failed to send notifications:", err);
+    logger.error({ error: err, streamId: stream.id, assignmentId: assignment.id }, "Failed to send notifications");
   });
 
   return NextResponse.json({ success: true, assignment });
