@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import ReportReviewModal from "./ReportReviewModal";
 
 type ReportStatus = "PENDING" | "APPROVED" | "REJECTED";
@@ -34,7 +34,7 @@ export default function ModeratorReportsTab() {
   const [contentTypeFilter, setContentTypeFilter] = useState<ContentType | "ALL">("ALL");
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
 
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -49,11 +49,11 @@ export default function ModeratorReportsTab() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, contentTypeFilter]);
 
   useEffect(() => {
     fetchReports();
-  }, [statusFilter, contentTypeFilter]);
+  }, [fetchReports]);
 
   const getStatusColor = (status: ReportStatus) => {
     switch (status) {

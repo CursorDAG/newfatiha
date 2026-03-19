@@ -11,8 +11,8 @@ export function OnboardingTooltip() {
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setMounted(true);
     // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
   }, []);
 
   useEffect(() => {
@@ -24,8 +24,6 @@ export function OnboardingTooltip() {
     const updatePosition = () => {
       const targetElement = document.querySelector(step.target);
       if (!targetElement) return;
-
-      const rect = targetElement.getBoundingClientRect();
 
       // Calculate tooltip position
       const preferredPosition = step.position || "bottom";
@@ -54,8 +52,6 @@ export function OnboardingTooltip() {
   if (!targetElement) return null;
 
   const rect = targetElement.getBoundingClientRect();
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
 
   const getTooltipStyle = () => {
     const baseStyle = {

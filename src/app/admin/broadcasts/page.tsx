@@ -30,10 +30,6 @@ export default function BroadcastsPage() {
     sendEmail: false,
   });
 
-  useEffect(() => {
-    fetchBroadcasts();
-  }, [fetchBroadcasts]);
-
   const fetchBroadcasts = useCallback(async () => {
     setLoading(true);
     try {
@@ -47,6 +43,10 @@ export default function BroadcastsPage() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchBroadcasts();
+  }, [fetchBroadcasts]);
 
   const sendBroadcast = async () => {
     if (!formData.title || !formData.message) {
@@ -267,7 +267,7 @@ export default function BroadcastsPage() {
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Users className="w-4 h-4" />
-                      {getTargetAudienceLabel(broadcast.metadata?.targetAudience || "ALL")}
+                      {getTargetAudienceLabel((broadcast.metadata?.targetAudience as string) || "ALL")}
                     </div>
                   </div>
                 </div>

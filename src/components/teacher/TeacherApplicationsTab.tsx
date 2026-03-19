@@ -75,7 +75,7 @@ export default function TeacherApplicationsTab() {
         const data = await res.json();
         alert(data.error || "Ошибка при одобрении заявки");
       }
-    } catch (error) {
+    } catch {
       alert("Произошла ошибка");
     } finally {
       setProcessingId(null);
@@ -108,7 +108,7 @@ export default function TeacherApplicationsTab() {
         const data = await res.json();
         alert(data.error || "Ошибка при отклонении заявки");
       }
-    } catch (error) {
+    } catch {
       alert("Произошла ошибка");
     } finally {
       setProcessingId(null);
@@ -131,7 +131,7 @@ export default function TeacherApplicationsTab() {
         const data = await res.json();
         alert(data.error || "Ошибка при подтверждении оплаты");
       }
-    } catch (error) {
+    } catch {
       alert("Произошла ошибка");
     } finally {
       setProcessingId(null);

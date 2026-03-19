@@ -40,9 +40,9 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
     // Check if onboarding was completed
     const completed = localStorage.getItem(STORAGE_KEY);
     if (completed === "true") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsCompleted(true);
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
   }, []);
 
   const startOnboarding = (newSteps: OnboardingStep[]) => {

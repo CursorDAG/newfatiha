@@ -5,12 +5,7 @@ import { Accordion } from "@/components/ui/Accordion";
 import type { AccordionItemProps } from "@/components/ui/Accordion";
 import { Card } from "@/components/ui/Card";
 import {
-  BookOpen,
-  Users,
   GraduationCap,
-  Calendar,
-  CheckSquare,
-  BarChart3,
   Video,
   FileText,
   HelpCircle,
@@ -29,8 +24,8 @@ export default function TeacherInfoTab() {
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <p className="font-semibold text-emerald-800 text-sm mb-2">Как создать курс:</p>
             <ol className="list-decimal list-inside space-y-1 text-sm text-emerald-900">
-              <li>Перейдите на вкладку "📚 Курсы"</li>
-              <li>Нажмите кнопку "Создать курс"</li>
+              <li>Перейдите на вкладку &quot;📚 Курсы&quot;</li>
+              <li>Нажмите кнопку &quot;Создать курс&quot;</li>
               <li>Укажите название, описание и вместимость</li>
               <li>Сохраните курс</li>
             </ol>
@@ -52,8 +47,8 @@ export default function TeacherInfoTab() {
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <p className="font-semibold text-emerald-800 text-sm mb-2">Создание потока:</p>
             <ol className="list-decimal list-inside space-y-1 text-sm text-emerald-900">
-              <li>Откройте вкладку "🧩 Потоки"</li>
-              <li>Выберите курс и нажмите "Создать поток"</li>
+              <li>Откройте вкладку &quot;🧩 Потоки&quot;</li>
+              <li>Выберите курс и нажмите &quot;Создать поток&quot;</li>
               <li>Укажите название, уровень и цвет</li>
               <li>Настройте расписание занятий</li>
             </ol>
@@ -116,7 +111,7 @@ export default function TeacherInfoTab() {
       content: (
         <div className="space-y-3">
           <p className="text-sm">
-            На вкладке "Студенты" вы можете просматривать всех зачисленных студентов, переводить их между потоками и отслеживать их прогресс.
+            На вкладке &quot;Студенты&quot; вы можете просматривать всех зачисленных студентов, переводить их между потоками и отслеживать их прогресс.
           </p>
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <p className="font-semibold text-emerald-800 text-sm mb-2">Доступные действия:</p>
@@ -144,8 +139,8 @@ export default function TeacherInfoTab() {
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <p className="font-semibold text-emerald-800 text-sm mb-2">Создание задания:</p>
             <ol className="list-decimal list-inside space-y-1 text-sm text-emerald-900">
-              <li>Перейдите на вкладку "📝 Д/З"</li>
-              <li>Нажмите "Создать задание"</li>
+              <li>Перейдите на вкладку &quot;📝 Д/З&quot;</li>
+              <li>Нажмите &quot;Создать задание&quot;</li>
               <li>Выберите поток и тип задания</li>
               <li>Укажите описание и срок сдачи (опционально)</li>
               <li>Опубликуйте задание</li>
@@ -196,11 +191,11 @@ export default function TeacherInfoTab() {
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <p className="font-semibold text-emerald-800 text-sm mb-2">Процесс проверки:</p>
             <ol className="list-decimal list-inside space-y-1 text-sm text-emerald-900">
-              <li>Откройте вкладку "📓 Журнал"</li>
+              <li>Откройте вкладку &quot;📓 Журнал&quot;</li>
               <li>Выберите работу для проверки</li>
               <li>Прослушайте/прочитайте ответ студента</li>
               <li>Поставьте оценку и оставьте комментарий</li>
-              <li>Отметьте как "Принято" или "Не принято"</li>
+              <li>Отметьте как &quot;Принято&quot; или &quot;Не принято&quot;</li>
             </ol>
           </div>
         </div>
@@ -225,7 +220,7 @@ export default function TeacherInfoTab() {
             </ul>
           </div>
           <p className="text-sm text-slate-500">
-            💡 Совет: Используйте вкладку "📊 Прогресс" для детального анализа успеваемости каждого студента.
+            💡 Совет: Используйте вкладку &quot;📊 Прогресс&quot; для детального анализа успеваемости каждого студента.
           </p>
         </div>
       ),
@@ -241,7 +236,7 @@ export default function TeacherInfoTab() {
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <p className="font-semibold text-emerald-800 text-sm mb-2">Настройка расписания:</p>
             <ol className="list-decimal list-inside space-y-1 text-sm text-emerald-900">
-              <li>Перейдите на вкладку "🗓 Расписание"</li>
+              <li>Перейдите на вкладку &quot;🗓 Расписание&quot;</li>
               <li>Выберите поток</li>
               <li>Кликните на нужный день и время</li>
               <li>Укажите длительность занятия (30-минутные слоты)</li>
@@ -260,7 +255,7 @@ export default function TeacherInfoTab() {
       content: (
         <div className="space-y-3">
           <p className="text-sm">
-            На вкладке "Live" вы видите все активные уроки в реальном времени.
+            На вкладке &quot;Live&quot; вы видите все активные уроки в реальном времени.
           </p>
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
             <p className="font-semibold text-red-800 text-sm mb-2">Возможности:</p>
@@ -290,7 +285,7 @@ export default function TeacherInfoTab() {
           <div>
             <p className="font-semibold text-slate-800 text-sm">Можно ли изменить порядок уроков?</p>
             <p className="text-sm text-slate-600 mt-1">
-              Да, на вкладке "Уроки" используйте drag-and-drop для изменения порядка уроков в потоке.
+              Да, на вкладке &quot;Уроки&quot; используйте drag-and-drop для изменения порядка уроков в потоке.
             </p>
           </div>
           <div>
@@ -302,7 +297,7 @@ export default function TeacherInfoTab() {
           <div>
             <p className="font-semibold text-slate-800 text-sm">Что делать, если студент не может присоединиться к Live-уроку?</p>
             <p className="text-sm text-slate-600 mt-1">
-              Проверьте, что студент зачислен в поток и урок имеет тип "Live". Также убедитесь, что у студента есть доступ к микрофону и камере в браузере.
+              Проверьте, что студент зачислен в поток и урок имеет тип &quot;Live&quot;. Также убедитесь, что у студента есть доступ к микрофону и камере в браузере.
             </p>
           </div>
         </div>

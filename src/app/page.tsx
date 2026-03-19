@@ -32,6 +32,19 @@ type Teacher = {
   skills: string[];
 };
 
+type HeroContent = {
+  badge: string;
+  title: string;
+  subtitle: string;
+  primaryButton: string;
+  primaryButtonLink: string;
+};
+
+type AboutContent = {
+  title: string;
+  description: string[];
+};
+
 // ── Static data ───────────────────────────────────────────────────────────────
 
 const HOW_IT_WORKS = [
@@ -135,15 +148,15 @@ export default async function HomePage() {
   });
 
   // Use CMS content or fallback to static
-  const heroContent = pageContent?.hero || {
+  const heroContent: HeroContent = ((pageContent?.hero as HeroContent | undefined) || {
     badge: "Исламская онлайн-платформа",
     title: "Знания Ислама — где бы ты ни был",
     subtitle: "Fatiha.ru — сертифицированная платформа для изучения акыды, фикха, арабского языка и тасфира. Live-уроки, домашние задания и личный прогресс в одном месте.",
     primaryButton: "Посмотреть курсы",
     primaryButtonLink: "#courses",
-  };
+  });
 
-  const aboutContent = pageContent?.about || {
+  const aboutContent: AboutContent = (pageContent?.about as AboutContent) || {
     title: "Образование с иснадом — живая цепочка знаний",
     description: [
       "Fatiha.ru объединяет преподавателей с традиционным исламским образованием и современную технологическую платформу. Каждый курс разработан дипломированными учёными с опытом преподавания более 10 лет.",

@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useCallback } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 
 type TabId = "dashboard" | "users" | "courses" | "streams" | "logs" | "applications";
@@ -89,8 +88,7 @@ type Toast = {
 };
 
 export default function AdminClient() {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabId>("dashboard");
+  const [activeTab] = useState<TabId>("dashboard");
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [usersTotal, setUsersTotal] = useState(0);
@@ -102,33 +100,21 @@ export default function AdminClient() {
   const [roleFilter, setRoleFilter] = useState<string>("");
   const [blockedFilter, setBlockedFilter] = useState<string>("");
 
-  useEffect(() => {
-    if (activeTab === "dashboard") {
-      fetchMetrics();
-    } else if (activeTab === "users") {
-      fetchUsers();
-    } else if (activeTab === "courses") {
-      fetchCourses();
-    } else if (activeTab === "streams") {
-      fetchStreams();
-    }
-  }, [activeTab, searchQuery, roleFilter, blockedFilter]);
-
-  const fetchMetrics = async () => {
+  const fetchMetrics = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/dashboard");
       if (!res.ok) throw new Error("Failed to fetch metrics");
       const data = await res.json();
       setMetrics(data);
-    } catch (error) {
+    } catch {
       showToast("Ошибка загрузки метрик", "error");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -142,40 +128,52 @@ export default function AdminClient() {
       const data = await res.json();
       setUsers(data.users);
       setUsersTotal(data.total);
-    } catch (error) {
+    } catch {
       showToast("Ошибка загрузки пользователей", "error");
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, roleFilter, blockedFilter]);
 
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/courses");
       if (!res.ok) throw new Error("Failed to fetch courses");
       const data = await res.json();
       setCourses(data.courses);
-    } catch (error) {
+    } catch {
       showToast("Ошибка загрузки курсов", "error");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchStreams = async () => {
+  const fetchStreams = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/streams");
       if (!res.ok) throw new Error("Failed to fetch streams");
       const data = await res.json();
       setStreams(data.streams);
-    } catch (error) {
+    } catch {
       showToast("Ошибка загрузки потоков", "error");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "dashboard") {
+      fetchMetrics();
+    } else if (activeTab === "users") {
+      fetchUsers();
+    } else if (activeTab === "courses") {
+      fetchCourses();
+    } else if (activeTab === "streams") {
+      fetchStreams();
+    }
+  }, [activeTab, fetchMetrics, fetchUsers, fetchCourses, fetchStreams]);
 
   const blockUser = async (userId: string) => {
     try {
@@ -185,7 +183,7 @@ export default function AdminClient() {
       if (!res.ok) throw new Error("Failed to block user");
       showToast("Пользователь заблокирован", "success");
       fetchUsers();
-    } catch (error) {
+    } catch {
       showToast("Ошибка блокировки", "error");
     }
   };
@@ -198,7 +196,7 @@ export default function AdminClient() {
       if (!res.ok) throw new Error("Failed to unblock user");
       showToast("Пользователь разблокирован", "success");
       fetchUsers();
-    } catch (error) {
+    } catch {
       showToast("Ошибка разблокировки", "error");
     }
   };
@@ -214,7 +212,7 @@ export default function AdminClient() {
       const data = await res.json();
       alert(`Временный пароль: ${data.temporaryPassword}\n\nОтправьте его пользователю.`);
       showToast("Пароль сброшен", "success");
-    } catch (error) {
+    } catch {
       showToast("Ошибка сброса пароля", "error");
     }
   };
@@ -229,7 +227,7 @@ export default function AdminClient() {
       if (!res.ok) throw new Error("Failed to delete user");
       showToast("Пользователь удален", "success");
       fetchUsers();
-    } catch (error) {
+    } catch {
       showToast("Ошибка удаления", "error");
     }
   };

@@ -33,10 +33,6 @@ export default function CMSPage() {
   const [hasChanges, setHasChanges] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  useEffect(() => {
-    fetchContent();
-  }, [fetchContent]);
-
   const fetchContent = useCallback(async () => {
     setLoading(true);
     try {
@@ -51,6 +47,10 @@ export default function CMSPage() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchContent();
+  }, [fetchContent]);
 
   const saveContent = async () => {
     if (!content) return;

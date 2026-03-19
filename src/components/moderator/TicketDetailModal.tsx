@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
 type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
@@ -50,7 +50,7 @@ export default function TicketDetailModal({ ticketId, onClose, onUpdate }: Props
   const [assigning, setAssigning] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const fetchTicket = async () => {
+  const fetchTicket = useCallback(async () => {
     try {
       const response = await fetch(`/api/moderator/tickets/${ticketId}`);
       const data = await response.json();
@@ -60,13 +60,13 @@ export default function TicketDetailModal({ ticketId, onClose, onUpdate }: Props
     } finally {
       setLoading(false);
     }
-  };
+  }, [ticketId]);
 
   useEffect(() => {
     fetchTicket();
     const interval = setInterval(fetchTicket, 10000); // Poll every 10 seconds
     return () => clearInterval(interval);
-  }, [ticketId]);
+  }, [fetchTicket]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

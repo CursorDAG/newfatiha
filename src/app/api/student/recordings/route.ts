@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError } from "@/lib/errors";
 
-export const GET = withErrorHandling(async (req: Request) => {
+export const GET = withErrorHandling(async (_req: Request) => {
   // 1. Check authentication
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {

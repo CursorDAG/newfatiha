@@ -100,7 +100,7 @@ export const POST = withErrorHandling(
           duration: updatedRecording.duration,
         },
       });
-    } catch (error) {
+    } catch {
       // If S3 metadata fetch fails, mark as FAILED
       await prisma.lessonRecording.update({
         where: { id: recordingId },

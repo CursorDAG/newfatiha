@@ -20,22 +20,13 @@ export const GET = withErrorHandling(async (req: Request) => {
   const status = searchParams.get("status");
 
   // Build where clause
-  const where: {
-    role: string;
-    emailVerified: boolean;
-    status?: string;
-  } = {
-    role: "TEACHER",
+  const where = {
+    role: "TEACHER" as const,
     emailVerified: true,
+    ...(status === "pending" && { status: "PENDING_APPROVAL" as const }),
+    ...(status === "approved" && { status: "ACTIVE" as const }),
+    ...(status === "rejected" && { status: "REJECTED" as const }),
   };
-
-  if (status === "pending") {
-    where.status = "PENDING_APPROVAL";
-  } else if (status === "approved") {
-    where.status = "ACTIVE";
-  } else if (status === "rejected") {
-    where.status = "REJECTED";
-  }
 
   const applications = await prisma.user.findMany({
     where,

@@ -21,24 +21,11 @@ import {
   XCircle,
   User,
   Info,
+  type LucideIcon,
 } from "lucide-react";
 import LiveJitsiEmbed from "@/components/student/LiveJitsiEmbed";
 import StudentProgressDashboard from "@/components/student/StudentProgressDashboard";
-import DetailedProgressView from "@/components/student/DetailedProgressView";
 import StudentInfoTab from "@/components/student/StudentInfoTab";
-
-const getSubmissionIcon = (status: string) => {
-  switch (status) {
-    case "ACCEPTED":
-      return CheckCircle2;
-    case "NEEDS_REWORK":
-      return AlertCircle;
-    case "REJECTED":
-      return XCircle;
-    default:
-      return Clock;
-  }
-};
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { studentSteps } from "@/components/onboarding/studentSteps";
 import { OnboardingTooltip } from "@/components/onboarding/OnboardingTooltip";
@@ -151,12 +138,12 @@ const submissionStatusColor: Record<HomeworkSubmission["status"], string> = {
   REJECTED: "bg-red-50 text-red-700 border-red-200",
 };
 
-const getSubmissionIcon = (status: HomeworkSubmission["status"]) => {
-  if (status === "ACCEPTED") return CheckCircle2;
-  if (status === "NEEDS_REWORK") return AlertCircle;
-  if (status === "REJECTED") return XCircle;
-  return Clock;
-};
+function SubmissionStatusIcon({ status, className }: { status: HomeworkSubmission["status"]; className?: string }) {
+  if (status === "ACCEPTED") return <CheckCircle2 className={className} />;
+  if (status === "NEEDS_REWORK") return <AlertCircle className={className} />;
+  if (status === "REJECTED") return <XCircle className={className} />;
+  return <Clock className={className} />;
+}
 
 const quizStatusLabel: Record<QuizResult["status"], string> = {
   SUBMITTED: "На проверке",
@@ -170,11 +157,11 @@ const quizStatusColor: Record<QuizResult["status"], string> = {
   FAILED: "bg-red-50 text-red-700 border-red-200",
 };
 
-const getQuizIcon = (status: QuizResult["status"]) => {
-  if (status === "PASSED") return CheckCircle2;
-  if (status === "FAILED") return XCircle;
-  return Clock;
-};
+function QuizStatusIcon({ status, className }: { status: QuizResult["status"]; className?: string }) {
+  if (status === "PASSED") return <CheckCircle2 className={className} />;
+  if (status === "FAILED") return <XCircle className={className} />;
+  return <Clock className={className} />;
+}
 
 const DAY_NAMES = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
@@ -284,7 +271,6 @@ function HomeworkCard({
     assignment.dueAt && new Date(assignment.dueAt) < new Date() && !assignment.submission;
 
   const submissionStatus = assignment.submission?.status || "SUBMITTED";
-  const StatusIcon = getSubmissionIcon(submissionStatus);
 
   return (
     <div
@@ -333,7 +319,7 @@ function HomeworkCard({
                 submissionStatusColor[assignment.submission.status]
               }`}
             >
-              <StatusIcon className="w-3.5 h-3.5" />
+              <SubmissionStatusIcon status={submissionStatus} className="w-3.5 h-3.5" />
               {submissionStatusLabel[assignment.submission.status]}
             </span>
           ) : (
@@ -534,7 +520,7 @@ export default function StudentDashboard({
     };
   }, []);
 
-  const tabs: Array<{ id: TabId; label: string; icon: any }> = [
+  const tabs: Array<{ id: TabId; label: string; icon: LucideIcon }> = [
     { id: "home", label: "Главная", icon: Home },
     { id: "lessons", label: "Мои уроки", icon: BookOpen },
     { id: "homework", label: "Домашние задания", icon: FileText },
@@ -850,9 +836,7 @@ export default function StudentDashboard({
                     Последние результаты
                   </h3>
                   <div className="space-y-3">
-                    {quizResults.slice(0, 3).map((qr) => {
-                      const StatusIcon = getQuizIcon(qr.status);
-                      return (
+                    {quizResults.slice(0, 3).map((qr) => (
                         <div
                           key={qr.id}
                           className="flex items-center justify-between gap-4 border border-slate-200 rounded-xl p-4 bg-white hover:shadow-sm transition-shadow"
@@ -862,12 +846,11 @@ export default function StudentDashboard({
                             <p className="text-xs text-slate-500 mt-0.5">{qr.quiz.lesson.title}</p>
                           </div>
                           <span className={`shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border ${quizStatusColor[qr.status]}`}>
-                            <StatusIcon className="w-3.5 h-3.5" />
+                            <QuizStatusIcon status={qr.status} className="w-3.5 h-3.5" />
                             {quizStatusLabel[qr.status]}
                           </span>
                         </div>
-                      );
-                    })}
+                      ))}
                     {homeworkAssignments
                       .filter((a) => a.submission?.status === "ACCEPTED")
                       .slice(0, 3)
@@ -1115,9 +1098,7 @@ export default function StudentDashboard({
                         <span className="text-sm text-slate-500">· {group.results.length} тест(а)</span>
                       </div>
                       <div className="space-y-3">
-                        {group.results.map((qr) => {
-                          const StatusIcon = getQuizIcon(qr.status);
-                          return (
+                        {group.results.map((qr) => (
                             <div
                               key={qr.id}
                               className="border border-slate-200 rounded-xl p-5 bg-white flex items-center justify-between gap-4 hover:shadow-md transition-all"
@@ -1167,12 +1148,11 @@ export default function StudentDashboard({
                               <span
                                 className={`shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-full border ${quizStatusColor[qr.status]}`}
                               >
-                                <StatusIcon className="w-4 h-4" />
+                                <QuizStatusIcon status={qr.status} className="w-4 h-4" />
                                 {quizStatusLabel[qr.status]}
                               </span>
                             </div>
-                          );
-                        })}
+                          ))}
                       </div>
                     </div>
                   ))}

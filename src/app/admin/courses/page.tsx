@@ -28,10 +28,6 @@ export default function AdminCoursesPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
 
-  useEffect(() => {
-    fetchCourses();
-  }, [filter, fetchCourses]);
-
   const fetchCourses = useCallback(async () => {
     setLoading(true);
     try {
@@ -49,6 +45,10 @@ export default function AdminCoursesPage() {
       setLoading(false);
     }
   }, [filter]);
+
+  useEffect(() => {
+    fetchCourses();
+  }, [filter, fetchCourses]);
 
   const filteredCourses = courses;
 

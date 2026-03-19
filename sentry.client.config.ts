@@ -21,7 +21,7 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
 
   // Filter out sensitive data
-  beforeSend(event, hint) {
+  beforeSend(event, _hint) {
     // Don't send events in development
     if (process.env.NODE_ENV !== "production") {
       return null;

@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
-import { ValidationError, ConflictError } from "@/lib/errors";
+import { ConflictError } from "@/lib/errors";
 import { validateRequest } from "@/lib/validate-request";
 import { registerTeacherStep1Schema } from "@/lib/validation";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 import { EmailService } from "@/lib/email-service";
 import { logger } from "@/lib/logger";
-import { NotificationService } from "@/lib/notification-service";
 
 /**
  * POST /api/auth/register/teacher

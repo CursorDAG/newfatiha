@@ -5,13 +5,9 @@ import { Accordion } from "@/components/ui/Accordion";
 import type { AccordionItemProps } from "@/components/ui/Accordion";
 import { Card } from "@/components/ui/Card";
 import {
-  BookOpen,
   Video,
   FileText,
   CheckSquare,
-  BarChart3,
-  Calendar,
-  Link as LinkIcon,
   Mic,
   HelpCircle,
   GraduationCap,
@@ -97,10 +93,10 @@ export default function StudentInfoTab() {
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <p className="font-semibold text-emerald-800 text-sm mb-2">Как сдать домашнее задание:</p>
             <ol className="list-decimal list-inside space-y-1 text-sm text-emerald-900">
-              <li>Откройте вкладку "📝 Д/З"</li>
+              <li>Откройте вкладку &quot;📝 Д/З&quot;</li>
               <li>Выберите задание из списка</li>
               <li>Напишите ответ или прикрепите ссылку на файл</li>
-              <li>Нажмите "Отправить"</li>
+              <li>Нажмите &quot;Отправить&quot;</li>
               <li>Дождитесь проверки преподавателем</li>
             </ol>
           </div>
@@ -162,7 +158,7 @@ export default function StudentInfoTab() {
       content: (
         <div className="space-y-3">
           <p className="text-sm">
-            На вкладке "Прогресс" вы можете видеть свою успеваемость и статистику обучения.
+            На вкладке &quot;Прогресс&quot; вы можете видеть свою успеваемость и статистику обучения.
           </p>
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <p className="font-semibold text-emerald-800 text-sm mb-2">Что отслеживается:</p>
@@ -186,7 +182,7 @@ export default function StudentInfoTab() {
       content: (
         <div className="space-y-3">
           <p className="text-sm">
-            На вкладке "Расписание" вы видите график всех занятий ваших потоков.
+            На вкладке &quot;Расписание&quot; вы видите график всех занятий ваших потоков.
           </p>
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <p className="font-semibold text-emerald-800 text-sm mb-2">Как пользоваться расписанием:</p>
@@ -264,7 +260,7 @@ export default function StudentInfoTab() {
           <div>
             <p className="font-semibold text-slate-800 text-sm">Как мне присоединиться к уроку?</p>
             <p className="text-sm text-slate-600 mt-1">
-              Перейдите на вкладку "Уроки" или "Расписание", найдите нужный урок и нажмите на него. Для Live-уроков откроется видеоконференция.
+              Перейдите на вкладку &quot;Уроки&quot; или &quot;Расписание&quot;, найдите нужный урок и нажмите на него. Для Live-уроков откроется видеоконференция.
             </p>
           </div>
           <div>
@@ -282,7 +278,7 @@ export default function StudentInfoTab() {
           <div>
             <p className="font-semibold text-slate-800 text-sm">Как узнать, проверил ли преподаватель мою работу?</p>
             <p className="text-sm text-slate-600 mt-1">
-              Проверьте вкладку "Д/З". Статус работы изменится с "Отправлено" на "Принято", "На доработку" или "Отклонено". Преподаватель может оставить комментарий.
+              Проверьте вкладку &quot;Д/З&quot;. Статус работы изменится с &quot;Отправлено&quot; на &quot;Принято&quot;, &quot;На доработку&quot; или &quot;Отклонено&quot;. Преподаватель может оставить комментарий.
             </p>
           </div>
           <div>

@@ -77,7 +77,6 @@ export const POST = withErrorHandling(async (req: Request) => {
   }
 
   // Determine quiz type based on questions
-  const hasMultipleChoice = questions.some((q) => q.type === "MULTIPLE_CHOICE");
   const hasVoice = questions.some((q) => q.type === "VOICE");
   const quizType: QuizType = hasVoice ? "VOICE" : "MULTIPLE_CHOICE";
 

@@ -14,7 +14,7 @@ import TeacherLiveTab from "@/components/teacher/TeacherLiveTab";
 import TeacherHomeworkTab from "@/components/teacher/TeacherHomeworkTab";
 import TeacherApplicationsTab from "@/components/teacher/TeacherApplicationsTab";
 import TeacherGradebookTab from "@/components/teacher/TeacherGradebookTab";
-import TeacherAnalyticsTab from "@/components/teacher/TeacherAnalyticsTab";
+import TeacherAnalyticsTab, { type AnalyticsPayload } from "@/components/teacher/TeacherAnalyticsTab";
 import TeacherProgressAnalytics from "@/components/teacher/TeacherProgressAnalytics";
 import ToastStack, { type ToastItem } from "@/components/teacher/ui/ToastStack";
 import ConfirmModal from "@/components/teacher/ui/ConfirmModal";
@@ -73,42 +73,6 @@ type Stream = {
     teacherNotes?: string | null;
     published: boolean;
   }>;
-};
-
-type AnalyticsSubmission = {
-  id: string;
-  createdAt: string;
-  status: "SUBMITTED" | "PASSED" | "FAILED";
-  quizTitle: string;
-  quizType?: "MULTIPLE_CHOICE" | "VOICE";
-  lessonTitle: string;
-  hasVoice?: boolean;
-  checkedAt: string | null;
-  checkedByName: string | null;
-};
-
-type AnalyticsStudentRow = {
-  enrollmentId: string;
-  studentId: string;
-  name: string;
-  status: string;
-  lastLoginAt: string | null;
-  timeSpentMinutes: number;
-  liveMinutes: number;
-  lessonMinutes: number;
-  submissions: {
-    submittedCount: number;
-    passedCount: number;
-    failedCount: number;
-    pendingCount: number;
-  };
-  recentSubmissions: AnalyticsSubmission[];
-};
-
-type AnalyticsPayload = {
-  stream: { id: string; name: string; courseTitle: string };
-  retentionDays: number;
-  students: AnalyticsStudentRow[];
 };
 
 declare global {
@@ -523,13 +487,6 @@ export default function TeacherDashboard({
       )
       .join(", ");
   }, []);
-
-  type AnalyticsPayload = {
-    totalStudents: number;
-    activeStudents: number;
-    completedLessons: number;
-    averageProgress: number;
-  };
 
   const { analyticsLoading, analyticsError, analyticsData, fetchAnalytics } = useAnalytics<AnalyticsPayload>(selectedStreamId);
   const { gradebookLoading, gradebookError, gradebookData, fetchGradebook } = useGradebook(selectedStreamId);

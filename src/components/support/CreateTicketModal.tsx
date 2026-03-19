@@ -37,7 +37,7 @@ export default function CreateTicketModal({ onClose, onSuccess }: Props) {
         const data = await response.json();
         setError(data.error || "Не удалось создать обращение");
       }
-    } catch (error) {
+    } catch {
       setError("Произошла ошибка при отправке");
     } finally {
       setSubmitting(false);

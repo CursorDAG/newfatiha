@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { ClipboardCheck, RefreshCw, BookOpen, User, ChevronDown, Volume2, CheckCircle, XCircle, Clock } from "lucide-react";
+import { ClipboardCheck, RefreshCw, BookOpen, User, Volume2, CheckCircle, XCircle } from "lucide-react";
 
 export type GradebookLesson = {
   id: string;

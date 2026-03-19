@@ -239,7 +239,7 @@ export default function TeacherRegisterPage() {
                 type="text"
                 value={subjectInput}
                 onChange={(e) => setSubjectInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addSubject())}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addSubject())}
                 className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 placeholder="Например: Коран, Таджвид, Арабский язык"
               />
@@ -323,7 +323,7 @@ export default function TeacherRegisterPage() {
                 type="url"
                 value={documentInput}
                 onChange={(e) => setDocumentInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addDocument())}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addDocument())}
                 className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 placeholder="https://drive.google.com/..."
               />

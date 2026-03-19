@@ -36,7 +36,7 @@ type AnalyticsStudentRow = {
   recentSubmissions: AnalyticsSubmission[];
 };
 
-type AnalyticsPayload = {
+export type AnalyticsPayload = {
   stream: { id: string; name: string; courseTitle: string };
   retentionDays: number;
   students: AnalyticsStudentRow[];

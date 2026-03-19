@@ -16,7 +16,7 @@ Sentry.init({
   tracesSampleRate: 0.1,
 
   // Filter out sensitive data
-  beforeSend(event, hint) {
+  beforeSend(event, _hint) {
     // Don't send events in development
     if (process.env.NODE_ENV !== "production") {
       return null;

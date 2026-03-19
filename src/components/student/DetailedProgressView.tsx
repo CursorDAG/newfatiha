@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { ArrowLeft, BookOpen, FlaskConical, FileText, TrendingUp, Loader2 } from "lucide-react";
 import ActivityTimeline from "./ActivityTimeline";
 
@@ -36,6 +36,25 @@ interface HomeworkSubmission {
   dueDate?: Date;
 }
 
+interface Overview {
+  streamName: string;
+  courseName: string;
+  lessonsCompleted: number;
+  lessonsTotal: number;
+  quizzesPassed: number;
+  quizzesTotal: number;
+  homeworksAccepted: number;
+  homeworksTotal: number;
+  averageQuizScore: number | null;
+}
+
+interface ProgressData {
+  overview: Overview;
+  lessons: LessonProgress[];
+  quizzes: QuizSubmission[];
+  homeworks: HomeworkSubmission[];
+}
+
 interface DetailedProgressViewProps {
   streamId: string;
   onBack?: () => void;
@@ -45,15 +64,11 @@ export default function DetailedProgressView({
   streamId,
   onBack,
 }: DetailedProgressViewProps) {
-  const [data, setData] = useState<Record<string, unknown> | null>(null);
+  const [data, setData] = useState<ProgressData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchDetailedProgress();
-  }, [streamId]);
-
-  const fetchDetailedProgress = async () => {
+  const fetchDetailedProgress = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/student/progress/${streamId}`);
@@ -65,7 +80,11 @@ export default function DetailedProgressView({
     } finally {
       setLoading(false);
     }
-  };
+  }, [streamId]);
+
+  useEffect(() => {
+    fetchDetailedProgress();
+  }, [fetchDetailedProgress]);
 
   if (loading) {
     return (

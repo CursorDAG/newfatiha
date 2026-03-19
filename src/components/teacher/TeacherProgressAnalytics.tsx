@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
 interface StudentProgress {
   userId: string;
@@ -22,6 +22,13 @@ interface StudentProgress {
   };
 }
 
+interface Aggregates {
+  totalStudents: number;
+  averageLessonsPercent: number;
+  averageQuizScore: number | null;
+  totalWatchTimeHours: number;
+}
+
 interface TeacherProgressAnalyticsProps {
   streamId: string;
 }
@@ -33,18 +40,14 @@ export default function TeacherProgressAnalytics({
   streamId,
 }: TeacherProgressAnalyticsProps) {
   const [students, setStudents] = useState<StudentProgress[]>([]);
-  const [aggregates, setAggregates] = useState<Record<string, unknown> | null>(null);
+  const [aggregates, setAggregates] = useState<Aggregates | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortAsc, setSortAsc] = useState(true);
 
-  useEffect(() => {
-    fetchProgress();
-  }, [streamId]);
-
-  const fetchProgress = async () => {
+  const fetchProgress = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(`/api/teacher/streams/${streamId}/progress`);
@@ -57,7 +60,11 @@ export default function TeacherProgressAnalytics({
     } finally {
       setLoading(false);
     }
-  };
+  }, [streamId]);
+
+  useEffect(() => {
+    fetchProgress();
+  }, [fetchProgress]);
 
   const getFilteredStudents = () => {
     let filtered = students;
@@ -126,13 +133,13 @@ export default function TeacherProgressAnalytics({
           return 0;
       }
 
-      if (typeof aVal === "string") {
+      if (typeof aVal === "string" && typeof bVal === "string") {
         return sortAsc
           ? aVal.localeCompare(bVal)
           : bVal.localeCompare(aVal);
       }
 
-      return sortAsc ? aVal - bVal : bVal - aVal;
+      return sortAsc ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
     });
 
     return sorted;

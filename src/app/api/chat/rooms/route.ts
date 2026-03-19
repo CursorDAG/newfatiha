@@ -17,15 +17,36 @@ export const GET = withErrorHandling(async () => {
   const userId = session.user.id;
   const userRole = session.user.role;
 
+  type MessagePreview = {
+    createdAt: Date;
+    sender: {
+      id: string;
+      name: string;
+      avatar: string | null;
+    };
+  } | null;
+
   type GroupChat = {
     id: string;
     type: "GROUP";
     name: string;
     streamId: string;
-    lastMessage: unknown;
+    lastMessage: MessagePreview;
     unreadCount: number;
     createdAt: Date;
   };
+
+  type DirectChat = {
+    id: string;
+    type: "DIRECT";
+    name: string;
+    otherUser: unknown;
+    lastMessage: MessagePreview;
+    unreadCount: number;
+    createdAt: Date;
+  };
+
+  type ChatRoom = GroupChat | DirectChat;
 
   let groupChats: GroupChat[] = [];
 
@@ -165,7 +186,7 @@ export const GET = withErrorHandling(async () => {
     },
   });
 
-  const directChatsList = directChats.map((room) => {
+  const directChatsList: DirectChat[] = directChats.map((room) => {
     const otherUser =
       room.participant1Id === userId ? room.participant2 : room.participant1;
     return {
@@ -180,7 +201,7 @@ export const GET = withErrorHandling(async () => {
   });
 
   // Combine and sort by last message time
-  const allChats = [...groupChats, ...directChatsList].sort((a, b) => {
+  const allChats: ChatRoom[] = [...groupChats, ...directChatsList].sort((a, b) => {
     const aTime = a.lastMessage?.createdAt || a.createdAt;
     const bTime = b.lastMessage?.createdAt || b.createdAt;
     return new Date(bTime).getTime() - new Date(aTime).getTime();

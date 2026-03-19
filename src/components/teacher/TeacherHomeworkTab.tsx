@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
-import EmptyState from "@/components/teacher/ui/EmptyState";
 import { Plus, RefreshCw, FileText, Calendar, User, CheckCircle, AlertCircle } from "lucide-react";
 
 // ── Exported types (also used in TeacherDashboard) ──────────────────────────

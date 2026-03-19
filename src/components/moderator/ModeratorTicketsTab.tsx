@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import TicketDetailModal from "./TicketDetailModal";
 
 type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
@@ -35,7 +35,7 @@ export default function ModeratorTicketsTab() {
   const [priorityFilter, setPriorityFilter] = useState<TicketPriority | "ALL">("ALL");
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
 
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -50,11 +50,11 @@ export default function ModeratorTicketsTab() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, priorityFilter]);
 
   useEffect(() => {
     fetchTickets();
-  }, [statusFilter, priorityFilter]);
+  }, [fetchTickets]);
 
   const getPriorityColor = (priority: TicketPriority) => {
     switch (priority) {

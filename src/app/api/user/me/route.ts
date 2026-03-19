@@ -9,7 +9,7 @@ import { AuthError } from "@/lib/errors";
  * GET /api/user/me
  * Get current user profile
  */
-export const GET = withErrorHandling(async (req: Request) => {
+export const GET = withErrorHandling(async (_req: Request) => {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {

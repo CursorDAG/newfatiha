@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
-import { ValidationError, NotFoundError } from "@/lib/errors";
+import { NotFoundError } from "@/lib/errors";
 import { z } from "zod";
 import { validateRequest } from "@/lib/validate-request";
 import { randomUUID } from "crypto";
