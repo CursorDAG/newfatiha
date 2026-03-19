@@ -9,7 +9,7 @@ import { AuthError } from "@/lib/errors";
  * POST /api/notifications/read-all
  * Пометить все уведомления пользователя как прочитанные
  */
-export const POST = withErrorHandling(async (req: Request) => {
+export const POST = withErrorHandling(async () => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     throw new AuthError("Unauthorized");
@@ -22,6 +22,7 @@ export const POST = withErrorHandling(async (req: Request) => {
     },
     data: {
       read: true,
+      readAt: new Date(),
     },
   });
 

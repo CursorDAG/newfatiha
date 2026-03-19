@@ -6,13 +6,15 @@
 export interface BaseTemplateParams {
   title: string;
   preheader?: string;
+  previewText?: string; // Alias for preheader
   content: string;
   buttonText?: string;
   buttonUrl?: string;
 }
 
 export function baseTemplate(params: BaseTemplateParams): string {
-  const { title, preheader, content, buttonText, buttonUrl } = params;
+  const { title, preheader, previewText, content, buttonText, buttonUrl } = params;
+  const preheaderText = preheader || previewText;
 
   return `
 <!DOCTYPE html>
@@ -35,7 +37,7 @@ export function baseTemplate(params: BaseTemplateParams): string {
   </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc; color: #1e293b;">
-  ${preheader ? `<div style="display: none; max-height: 0; overflow: hidden;">${preheader}</div>` : ""}
+  ${preheaderText ? `<div style="display: none; max-height: 0; overflow: hidden;">${preheaderText}</div>` : ""}
 
   <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8fafc;">
     <tr>

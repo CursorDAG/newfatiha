@@ -12,6 +12,7 @@ import {
   isStorageConfigured,
 } from "@/lib/storage";
 import { logger } from "@/lib/logger";
+import { NotificationService } from "@/lib/notification-service";
 
 const MAX_VOICE_BYTES = 7 * 1024 * 1024; // ~7MB
 
@@ -86,6 +87,14 @@ export const POST = withErrorHandling(async (
         selectedOptionId,
         status: "SUBMITTED",
       },
+    });
+
+    // Notify teacher about quiz submission
+    await NotificationService.notifyQuizSubmitted(
+      submission.id,
+      quiz.lesson.stream.teacherId
+    ).catch((err) => {
+      console.error("Failed to send notification:", err);
     });
 
     return NextResponse.json({ success: true, submissionId: submission.id });
@@ -164,6 +173,14 @@ export const POST = withErrorHandling(async (
         voiceDurationMs: typeof voiceDurationMs === "number" ? Math.max(0, Math.floor(voiceDurationMs)) : null,
         status: "SUBMITTED",
       },
+    });
+
+    // Notify teacher about quiz submission
+    await NotificationService.notifyQuizSubmitted(
+      submission.id,
+      quiz.lesson.stream.teacherId
+    ).catch((err) => {
+      console.error("Failed to send notification:", err);
     });
 
     return NextResponse.json({ success: true, submissionId: submission.id });

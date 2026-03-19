@@ -35,7 +35,10 @@ export const POST = withErrorHandling(
     // Пометить как прочитанное
     const updated = await prisma.notification.update({
       where: { id },
-      data: { read: true },
+      data: {
+        read: true,
+        readAt: new Date(),
+      },
     });
 
     return NextResponse.json(updated);

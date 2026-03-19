@@ -1,8 +1,7 @@
 /**
- * WebSocket server for real-time chat
+ * WebSocket server for real-time chat and notifications
  */
 import { Server as SocketIOServer, Socket } from "socket.io";
-import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import {
@@ -14,6 +13,7 @@ import {
 interface SocketData {
   userId: string;
   userName: string;
+  lastActivity: number;
 }
 
 interface MessageSendPayload {
@@ -39,36 +39,113 @@ interface RoomPayload {
 }
 
 /**
+ * Get Socket.io server instance for sending notifications
+ */
+let ioInstance: SocketIOServer | null = null;
+
+export function getSocketServer(): SocketIOServer | null {
+  return ioInstance;
+}
+
+/**
+ * Send notification to user via Socket.io
+ */
+export async function sendNotificationToUser(
+  userId: string,
+  notification: {
+    id: string;
+    type: string;
+    title: string;
+    message: string;
+    link?: string;
+    priority: string;
+    createdAt: Date;
+  }
+) {
+  if (!ioInstance) {
+    logger.warn("Socket.io server not initialized, cannot send notification");
+    return;
+  }
+
+  try {
+    // Send to user's personal room
+    ioInstance.to(`user:${userId}`).emit("notification:receive", notification);
+
+    // Update unread count
+    const unreadCount = await prisma.notification.count({
+      where: { userId, read: false },
+    });
+    ioInstance.to(`user:${userId}`).emit("notification:unread_count", { count: unreadCount });
+
+    logger.debug({ userId, notificationId: notification.id }, "Notification sent via Socket.io");
+  } catch (error) {
+    logger.error({ error, userId }, "Failed to send notification via Socket.io");
+  }
+}
+
+/**
+ * Timeout for inactive connections (30 minutes)
+ */
+const INACTIVE_TIMEOUT = 30 * 60 * 1000;
+
+/**
+ * Interval for checking inactive connections (5 minutes)
+ */
+const CLEANUP_INTERVAL = 5 * 60 * 1000;
+
+/**
  * Initialize Socket.io server with authentication and event handlers
  */
 export function initSocketServer(io: SocketIOServer) {
+  // Store instance for notification sending
+  ioInstance = io;
+
+  // Периодическая очистка неактивных соединений
+  const cleanupInterval = setInterval(() => {
+    const now = Date.now();
+    const sockets = io.sockets.sockets;
+    let disconnected = 0;
+
+    sockets.forEach((socket) => {
+      const data = socket.data as SocketData;
+      if (data.lastActivity && now - data.lastActivity > INACTIVE_TIMEOUT) {
+        logger.info({
+          msg: "Disconnecting inactive socket",
+          userId: data.userId,
+          inactiveFor: Math.round((now - data.lastActivity) / 1000 / 60) + " minutes",
+        });
+        socket.disconnect(true);
+        disconnected++;
+      }
+    });
+
+    if (disconnected > 0 || sockets.size > 0) {
+      logger.debug({
+        msg: "Socket cleanup completed",
+        totalSockets: sockets.size,
+        disconnected,
+      });
+    }
+  }, CLEANUP_INTERVAL);
+
+  // Graceful shutdown
+  process.on("SIGTERM", () => {
+    clearInterval(cleanupInterval);
+    io.close();
+  });
   // Authentication middleware
   io.use(async (socket, next) => {
     try {
-      const token = socket.handshake.auth.token;
+      const userId = socket.handshake.auth.token;
 
-      if (!token) {
-        logger.warn("Socket connection rejected: no token");
+      if (!userId) {
+        logger.warn("Socket connection rejected: no user ID");
         return next(new Error("Authentication required"));
       }
 
-      // Verify JWT token
-      const decoded = await getToken({
-        req: {
-          headers: { authorization: `Bearer ${token}` },
-          cookies: { "next-auth.session-token": token },
-        } as never,
-        secret: process.env.NEXTAUTH_SECRET!,
-      });
-
-      if (!decoded || !decoded.id) {
-        logger.warn("Socket connection rejected: invalid token");
-        return next(new Error("Invalid token"));
-      }
-
-      // Get user from database
+      // Get user from database and verify they exist and are not blocked
       const user = await prisma.user.findUnique({
-        where: { id: decoded.id as string },
+        where: { id: userId },
         select: { id: true, name: true, isBlocked: true },
       });
 
@@ -81,6 +158,7 @@ export function initSocketServer(io: SocketIOServer) {
       socket.data = {
         userId: user.id,
         userName: user.name,
+        lastActivity: Date.now(),
       } as SocketData;
 
       logger.info(`Socket authenticated: ${user.id} (${user.name})`);
@@ -92,15 +170,41 @@ export function initSocketServer(io: SocketIOServer) {
   });
 
   // Connection handler
-  io.on("connection", (socket: Socket) => {
+  io.on("connection", async (socket: Socket) => {
     const data = socket.data as SocketData;
-    logger.info(`Socket connected: ${data.userId}`);
+    logger.info({
+      msg: "Socket connected",
+      userId: data.userId,
+      totalConnections: io.sockets.sockets.size,
+    });
+
+    // Join user's personal notification room
+    await socket.join(`user:${data.userId}`);
+
+    // Send unread notification count on connection
+    try {
+      const unreadCount = await prisma.notification.count({
+        where: {
+          userId: data.userId,
+          read: false,
+        },
+      });
+      socket.emit("notification:unread_count", { count: unreadCount });
+    } catch (error) {
+      logger.error({ error, userId: data.userId }, "Failed to fetch unread count");
+    }
 
     // Broadcast user online status
     socket.broadcast.emit("user:online", { userId: data.userId });
 
+    // Обновляем время последней активности при любом событии
+    const updateActivity = () => {
+      data.lastActivity = Date.now();
+    };
+
     // Join room
     socket.on("room:join", async (payload: RoomPayload) => {
+      updateActivity();
       try {
         const { roomId } = payload;
 
@@ -124,6 +228,7 @@ export function initSocketServer(io: SocketIOServer) {
 
     // Leave room
     socket.on("room:leave", async (payload: RoomPayload) => {
+      updateActivity();
       try {
         const { roomId } = payload;
         await socket.leave(roomId);
@@ -135,6 +240,7 @@ export function initSocketServer(io: SocketIOServer) {
 
     // Send message
     socket.on("message:send", async (payload: MessageSendPayload) => {
+      updateActivity();
       try {
         const { roomId, content } = payload;
 
@@ -186,6 +292,7 @@ export function initSocketServer(io: SocketIOServer) {
 
     // Edit message
     socket.on("message:edit", async (payload: MessageEditPayload) => {
+      updateActivity();
       try {
         const { messageId, content } = payload;
 
@@ -235,6 +342,7 @@ export function initSocketServer(io: SocketIOServer) {
 
     // Delete message
     socket.on("message:delete", async (payload: MessageDeletePayload) => {
+      updateActivity();
       try {
         const { messageId } = payload;
 
@@ -272,6 +380,7 @@ export function initSocketServer(io: SocketIOServer) {
 
     // Typing start
     socket.on("typing:start", async (payload: TypingPayload) => {
+      updateActivity();
       try {
         const { roomId } = payload;
 
@@ -291,6 +400,7 @@ export function initSocketServer(io: SocketIOServer) {
 
     // Typing stop
     socket.on("typing:stop", async (payload: TypingPayload) => {
+      updateActivity();
       try {
         const { roomId } = payload;
 
@@ -307,9 +417,48 @@ export function initSocketServer(io: SocketIOServer) {
       }
     });
 
+    // Mark notification as read
+    socket.on("notification:mark_read", async (payload: { notificationId: string }) => {
+      updateActivity();
+      try {
+        const { notificationId } = payload;
+
+        // Verify ownership and mark as read
+        const notification = await prisma.notification.findUnique({
+          where: { id: notificationId },
+        });
+
+        if (notification && notification.userId === data.userId) {
+          await prisma.notification.update({
+            where: { id: notificationId },
+            data: { read: true, readAt: new Date() },
+          });
+
+          // Send updated unread count
+          const unreadCount = await prisma.notification.count({
+            where: { userId: data.userId, read: false },
+          });
+          socket.emit("notification:unread_count", { count: unreadCount });
+        }
+      } catch (error) {
+        logger.error({ error }, "Error marking notification as read");
+      }
+    });
+
     // Disconnect
     socket.on("disconnect", () => {
-      logger.info(`Socket disconnected: ${data.userId}`);
+      logger.info({
+        msg: "Socket disconnected",
+        userId: data.userId,
+        totalConnections: io.sockets.sockets.size,
+      });
+
+      // Очищаем комнаты при отключении
+      socket.rooms.forEach((room) => {
+        if (room !== socket.id) {
+          socket.leave(room);
+        }
+      });
 
       // Broadcast user offline status
       socket.broadcast.emit("user:offline", { userId: data.userId });

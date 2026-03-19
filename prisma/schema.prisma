@@ -8,35 +8,68 @@ datasource db {
 }
 
 model User {
-  id                       String                 @id @default(uuid())
-  email                    String                 @unique
+  id                       String                  @id @default(uuid())
+  email                    String                  @unique
   password                 String?
   name                     String
-  role                     Role                   @default(STUDENT)
-  createdAt                DateTime               @default(now())
-  updatedAt                DateTime               @updatedAt
+  role                     Role                    @default(STUDENT)
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
   avatar                   String?
   bio                      String?
   skills                   String[]
-  isBlocked                Boolean                @default(false)
+  isBlocked                Boolean                 @default(false)
   deletedAt                DateTime?
-  gender                   Gender                 @default(NOT_SPECIFIED)
+  gender                   Gender                  @default(NOT_SPECIFIED)
+  emailVerified            Boolean                 @default(false)
+  emailVerifiedAt          DateTime?
+  verificationToken        String?                 @unique
+  status                   UserStatus              @default(ACTIVE)
   activitySessions         ActivitySession[]
-  courses                  Course[]               @relation("TeacherCourses")
+  courses                  Course[]                @relation("TeacherCourses")
   enrollments              Enrollment[]
-  checkedQuizSubmissions   LessonQuizSubmission[] @relation("QuizCheckedBy")
+  checkedQuizSubmissions   LessonQuizSubmission[]  @relation("QuizCheckedBy")
   quizSubmissions          LessonQuizSubmission[]
   notifications            Notification[]
+  notificationPreference   NotificationPreference?
   supportTickets           SupportTicket[]
-  assignedTickets          SupportTicket[]        @relation("AssignedTickets")
+  assignedTickets          SupportTicket[]         @relation("AssignedTickets")
   supportTicketReplies     SupportTicketReply[]
   contentReports           ContentReport[]
-  reviewedReports          ContentReport[]        @relation("ReviewedReports")
-  chatParticipant1Rooms    ChatRoom[]             @relation("ChatParticipant1")
-  chatParticipant2Rooms    ChatRoom[]             @relation("ChatParticipant2")
+  reviewedReports          ContentReport[]         @relation("ReviewedReports")
+  chatParticipant1Rooms    ChatRoom[]              @relation("ChatParticipant1")
+  chatParticipant2Rooms    ChatRoom[]              @relation("ChatParticipant2")
   chatMessages             ChatMessage[]
   questionSubmissions      QuestionSubmission[]
-  checkedQuestionSubmissions QuestionSubmission[] @relation("QuestionCheckedBy")
+  checkedQuestionSubmissions QuestionSubmission[]  @relation("QuestionCheckedBy")
+  teacherProfile           TeacherProfile?
+  reviewedTeacherProfiles  TeacherProfile[]        @relation("ReviewedTeacherProfiles")
+  enrollmentRequests       EnrollmentRequest[]
+  reviewedEnrollmentRequests EnrollmentRequest[]   @relation("ReviewedEnrollmentRequests")
+  broadcasts               Broadcast[]
+}
+
+model TeacherProfile {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio             String?   @db.Text
+  subjects        String[]
+  experience      String?   @db.Text
+  qualifications  String?   @db.Text
+  whatsappPhone   String?
+  documentsUrls   String[]
+  videoIntroUrl   String?
+  adminNotes      String?   @db.Text
+  reviewedById    String?
+  reviewedBy      User?     @relation("ReviewedTeacherProfiles", fields: [reviewedById], references: [id])
+  reviewedAt      DateTime?
+  rejectionReason String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([reviewedById])
 }
 
 model Course {
@@ -64,6 +97,11 @@ model Stream {
   color               String               @default("#10b981")
   genderType          StreamGenderType     @default(MIXED)
   chatEnabled         Boolean              @default(true)
+  isOpenForEnrollment Boolean              @default(false)
+  price               Decimal?             @db.Decimal(10, 2)
+  currency            String               @default("RUB")
+  enrollmentDeadline  DateTime?
+  paymentInstructions String?              @db.Text
   enrollments         Enrollment[]
   homeworkAssignments HomeworkAssignment[]
   inviteToken         InviteToken?
@@ -71,6 +109,7 @@ model Stream {
   course              Course               @relation(fields: [courseId], references: [id])
   scheduleSlots       StreamScheduleSlot[]
   chatRoom            ChatRoom?
+  enrollmentRequests  EnrollmentRequest[]
 }
 
 model StreamScheduleSlot {
@@ -99,6 +138,29 @@ model Enrollment {
   homeworkSubmissions HomeworkSubmission[]
 
   @@unique([userId, streamId])
+}
+
+model EnrollmentRequest {
+  id                    String                    @id @default(uuid())
+  studentId             String
+  streamId              String
+  status                EnrollmentRequestStatus   @default(PENDING_REVIEW)
+  message               String?                   @db.Text
+  reviewedById          String?
+  reviewedAt            DateTime?
+  rejectionReason       String?                   @db.Text
+  paymentConfirmed      Boolean                   @default(false)
+  paymentConfirmedAt    DateTime?
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  student               User                      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  stream                Stream                    @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  reviewedBy            User?                     @relation("ReviewedEnrollmentRequests", fields: [reviewedById], references: [id])
+
+  @@unique([studentId, streamId])
+  @@index([studentId])
+  @@index([streamId])
+  @@index([status])
 }
 
 model InviteToken {
@@ -342,18 +404,47 @@ model HomeworkSubmission {
 }
 
 model Notification {
-  id        String           @id @default(uuid())
-  userId    String
-  type      NotificationType
-  title     String
-  message   String
-  link      String?
-  read      Boolean          @default(false)
-  createdAt DateTime         @default(now())
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String               @id @default(uuid())
+  userId      String
+  type        NotificationType
+  title       String
+  message     String
+  link        String?
+  read        Boolean              @default(false)
+  priority    NotificationPriority @default(NORMAL)
+  metadata    Json?
+  actionUrl   String?
+  actionText  String?
+  emailSent   Boolean              @default(false)
+  emailSentAt DateTime?
+  readAt      DateTime?
+  createdAt   DateTime             @default(now())
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, read, createdAt])
   @@index([userId, createdAt])
+  @@index([priority, createdAt])
+}
+
+model NotificationPreference {
+  id                      String   @id @default(uuid())
+  userId                  String   @unique
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailNewLesson          Boolean  @default(true)
+  emailHomeworkAssigned   Boolean  @default(true)
+  emailHomeworkChecked    Boolean  @default(true)
+  emailQuizChecked        Boolean  @default(true)
+  emailAnnouncement       Boolean  @default(true)
+  emailHomeworkSubmitted  Boolean  @default(true)
+  emailQuizSubmitted      Boolean  @default(true)
+  emailStudentJoined      Boolean  @default(true)
+  emailDigestEnabled      Boolean  @default(false)
+  emailDigestTime         Int      @default(540)
+  soundEnabled            Boolean  @default(true)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model SupportTicket {
@@ -449,6 +540,14 @@ enum Role {
   MODERATOR
 }
 
+enum UserStatus {
+  PENDING_VERIFICATION
+  PENDING_APPROVAL
+  ACTIVE
+  REJECTED
+  SUSPENDED
+}
+
 enum Gender {
   MALE
   FEMALE
@@ -475,6 +574,22 @@ enum NotificationType {
   QUIZ_SUBMITTED
   STUDENT_JOINED
   SUPPORT_TICKET_REPLY
+  TEACHER_APPLICATION_APPROVED
+  TEACHER_APPLICATION_REJECTED
+  STUDENT_REGISTERED
+  TEACHER_APPLICATION_SUBMITTED
+  ENROLLMENT_REQUEST_SUBMITTED
+  ENROLLMENT_REQUEST_APPROVED
+  ENROLLMENT_REQUEST_REJECTED
+  ENROLLMENT_PAYMENT_REQUIRED
+  ENROLLMENT_CONFIRMED
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
 }
 
 enum SupportTicketStatus {
@@ -568,4 +683,41 @@ enum RecordingStatus {
   PROCESSING
   READY
   FAILED
+}
+
+enum EnrollmentRequestStatus {
+  PENDING_REVIEW
+  APPROVED_PENDING_PAYMENT
+  PAYMENT_CONFIRMED
+  ACTIVE
+  REJECTED
+}
+
+model PageContent {
+  id        String   @id @default(uuid())
+  page      String   @unique
+  sections  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([page])
+}
+
+model Broadcast {
+  id             String               @id @default(uuid())
+  title          String
+  message        String               @db.Text
+  targetAudience Json
+  priority       NotificationPriority @default(NORMAL)
+  sendEmail      Boolean              @default(false)
+  sentById       String
+  sentBy         User                 @relation(fields: [sentById], references: [id])
+  sentAt         DateTime             @default(now())
+  recipientCount Int                  @default(0)
+  readCount      Int                  @default(0)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@index([sentById])
+  @@index([sentAt])
 }

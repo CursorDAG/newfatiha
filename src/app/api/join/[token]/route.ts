@@ -4,6 +4,7 @@ import { withErrorHandling } from '@/lib/api-handler';
 import { NotFoundError, ConflictError, ValidationError, ForbiddenError } from '@/lib/errors';
 import { rateLimit, rateLimitConfigs } from '@/lib/rate-limit';
 import { canStudentJoinStream } from '@/lib/gender-rules';
+import { NotificationService } from '@/lib/notification-service';
 
 // GET /api/join/[token] — validate invite token before student joins
 export const GET = withErrorHandling(async (
@@ -110,6 +111,14 @@ export const POST = withErrorHandling(async (
     where: { userId_streamId: { userId, streamId: stream.id } },
     update: { status: 'ACTIVE' },
     create: { userId, streamId: stream.id, status: 'ACTIVE' }
+  });
+
+  // Notify teacher about new student
+  await NotificationService.notifyStudentJoined(
+    enrollment.id,
+    stream.course.teacherId
+  ).catch((err) => {
+    console.error("Failed to send notification:", err);
   });
 
   return NextResponse.json({ success: true, enrollment });

@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { io, Socket } from "socket.io-client";
 
 interface Notification {
   id: string;
@@ -10,14 +12,52 @@ interface Notification {
   message: string;
   link?: string;
   read: boolean;
+  priority: string;
   createdAt: string;
 }
 
 export default function NotificationBell() {
+  const { data: session } = useSession();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const socketRef = useRef<Socket | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // Create audio element with fallback
+      audioRef.current = new Audio();
+
+      // Try to load notification sound, fallback to system beep if not available
+      audioRef.current.src = "/notification-sound.mp3";
+      audioRef.current.volume = 0.5;
+
+      // Handle load error silently
+      audioRef.current.addEventListener("error", () => {
+        console.warn("Notification sound file not found, sound notifications disabled");
+        audioRef.current = null;
+      });
+    }
+
+    // Load sound preference from localStorage
+    const savedSoundPref = localStorage.getItem("notificationSound");
+    if (savedSoundPref !== null) {
+      setSoundEnabled(savedSoundPref === "true");
+    }
+  }, []);
+
+  // Play notification sound
+  const playSound = useCallback(() => {
+    if (soundEnabled && audioRef.current) {
+      audioRef.current.play().catch((error) => {
+        console.error("Failed to play notification sound:", error);
+      });
+    }
+  }, [soundEnabled]);
 
   // Загрузить уведомления
   const fetchNotifications = async () => {
@@ -40,6 +80,53 @@ export default function NotificationBell() {
     return () => clearInterval(interval);
   }, []);
 
+  // Initialize Socket.io connection for real-time notifications
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const socket = io({
+      auth: {
+        token: session.user.id,
+      },
+    });
+
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      console.log("Socket connected for notifications");
+    });
+
+    // Listen for new notifications
+    socket.on("notification:receive", (notification: Notification) => {
+      console.log("New notification received:", notification);
+
+      // Add to notifications list
+      setNotifications((prev) => [notification, ...prev.slice(0, 9)]);
+
+      // Play sound for high priority notifications
+      if (notification.priority === "HIGH" || notification.priority === "URGENT") {
+        playSound();
+      }
+    });
+
+    // Listen for unread count updates
+    socket.on("notification:unread_count", ({ count }: { count: number }) => {
+      setUnreadCount(count);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    socket.on("error", (error: Error) => {
+      console.error("Socket error:", error);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [session?.user?.id, soundEnabled, playSound]);
+
   // Пометить уведомление как прочитанное
   const markAsRead = async (id: string) => {
     try {
@@ -51,10 +138,22 @@ export default function NotificationBell() {
           prev.map((n) => (n.id === id ? { ...n, read: true } : n))
         );
         setUnreadCount((prev) => Math.max(0, prev - 1));
+
+        // Also notify via Socket.io for instant update
+        if (socketRef.current) {
+          socketRef.current.emit("notification:mark_read", { notificationId: id });
+        }
       }
     } catch (error) {
       console.error("Failed to mark notification as read:", error);
     }
+  };
+
+  // Toggle sound preference
+  const toggleSound = () => {
+    const newValue = !soundEnabled;
+    setSoundEnabled(newValue);
+    localStorage.setItem("notificationSound", String(newValue));
   };
 
   // Пометить все как прочитанные
@@ -96,7 +195,7 @@ export default function NotificationBell() {
       {/* Кнопка колокольчика */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-slate-600 hover:text-slate-900 transition-colors"
+        className="relative p-2 text-white hover:text-emerald-100 transition-colors"
         aria-label="Уведомления"
       >
         <svg
@@ -137,15 +236,34 @@ export default function NotificationBell() {
               <h3 className="text-lg font-semibold text-slate-900">
                 Уведомления
               </h3>
-              {unreadCount > 0 && (
+              <div className="flex items-center gap-2">
+                {/* Sound toggle */}
                 <button
-                  onClick={markAllAsRead}
-                  disabled={loading}
-                  className="text-sm text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
+                  onClick={toggleSound}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                  title={soundEnabled ? "Отключить звук" : "Включить звук"}
                 >
-                  Прочитать все
+                  {soundEnabled ? (
+                    <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                    </svg>
+                  )}
                 </button>
-              )}
+                {unreadCount > 0 && (
+                  <button
+                    onClick={markAllAsRead}
+                    disabled={loading}
+                    className="text-sm text-emerald-600 hover:text-emerald-700 disabled:opacity-50"
+                  >
+                    Прочитать все
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Список уведомлений */}
