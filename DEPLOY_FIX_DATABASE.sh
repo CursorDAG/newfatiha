@@ -18,7 +18,7 @@ echo ""
 echo "📦 Шаг 2: Создание бэкапа базы данных"
 echo "----------------------------------------"
 BACKUP_FILE="backup_before_fix_$(date +%Y%m%d_%H%M%S).sql"
-sudo -u postgres pg_dump -d fatiha > "/tmp/$BACKUP_FILE"
+sudo -u postgres pg_dump -d fatiha > "/tmp/$BACKUP_FILE" || echo "⚠️  Не удалось создать бэкап"
 echo "✅ Бэкап создан: /tmp/$BACKUP_FILE"
 echo ""
 
@@ -34,51 +34,57 @@ echo ""
 
 echo "📊 Шаг 5: Проверка структуры базы данных"
 echo "----------------------------------------"
-sudo -u postgres psql -d fatiha -c "\d \"User\"" | grep -E "emailVerified|status|verificationToken" || echo "⚠️  Поля не найдены!"
+sudo -u postgres psql -d fatiha -c "\d \"User\"" | grep -E "emailVerified|status|verificationToken" && echo "✅ Поля найдены!" || echo "⚠️  Поля не найдены!"
 echo ""
 
 echo "🔍 Шаг 6: Проверка новых таблиц"
 echo "----------------------------------------"
-sudo -u postgres psql -d fatiha -c "SELECT COUNT(*) as teacher_profiles FROM \"TeacherProfile\";" || echo "⚠️  Таблица TeacherProfile не найдена!"
-sudo -u postgres psql -d fatiha -c "SELECT COUNT(*) as enrollment_requests FROM \"EnrollmentRequest\";" || echo "⚠️  Таблица EnrollmentRequest не найдена!"
+sudo -u postgres psql -d fatiha -c "SELECT COUNT(*) as teacher_profiles FROM \"TeacherProfile\";" 2>/dev/null && echo "✅ TeacherProfile существует" || echo "⚠️  Таблица TeacherProfile не найдена!"
+sudo -u postgres psql -d fatiha -c "SELECT COUNT(*) as enrollment_requests FROM \"EnrollmentRequest\";" 2>/dev/null && echo "✅ EnrollmentRequest существует" || echo "⚠️  Таблица EnrollmentRequest не найдена!"
 echo ""
 
 echo "👤 Шаг 7: Создание тестового администратора"
 echo "----------------------------------------"
-# Пароль: admin123 (bcrypt hash)
-ADMIN_HASH='$2a$10$N9qo8uLOickgx2ZMRZoMye.IjzKrMa3s83si9GeCAos99JxHm8jqW'
 
-sudo -u postgres psql -d fatiha <<EOF
--- Удалить старого админа если есть
-DELETE FROM "User" WHERE email = 'admin@fatiha.ru';
+# Используем Node.js скрипт для создания админа (безопаснее чем SQL)
+cat > /tmp/create-admin.js << 'EOFJS'
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 
--- Создать нового админа с правильной структурой
-INSERT INTO "User" (
-  id,
-  email,
-  password,
-  name,
-  role,
-  "emailVerified",
-  status,
-  gender,
-  "createdAt",
-  "updatedAt"
-) VALUES (
-  gen_random_uuid(),
-  'admin@fatiha.ru',
-  '$ADMIN_HASH',
-  'Администратор',
-  'ADMIN',
-  true,
-  'ACTIVE',
-  'NOT_SPECIFIED',
-  NOW(),
-  NOW()
-);
-EOF
+const prisma = new PrismaClient();
 
-echo "✅ Администратор создан: admin@fatiha.ru / admin123"
+(async () => {
+  try {
+    const hash = await bcrypt.hash('admin123', 10);
+
+    // Удалить старого админа если есть
+    await prisma.user.deleteMany({ where: { email: 'admin@fatiha.ru' } });
+
+    // Создать нового админа
+    const user = await prisma.user.create({
+      data: {
+        email: 'admin@fatiha.ru',
+        password: hash,
+        name: 'Администратор',
+        role: 'ADMIN',
+        emailVerified: true,
+        status: 'ACTIVE',
+        gender: 'NOT_SPECIFIED'
+      }
+    });
+
+    console.log('✅ Администратор создан:', user.email);
+  } catch (e) {
+    console.error('❌ Ошибка:', e.message);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
+})();
+EOFJS
+
+node /tmp/create-admin.js
+rm /tmp/create-admin.js
 echo ""
 
 echo "🔄 Шаг 8: Перезапуск приложения"
@@ -104,6 +110,6 @@ echo "🔑 Password: admin123"
 echo ""
 echo "📋 Если возникли проблемы:"
 echo "   1. Проверьте логи: pm2 logs fatiha"
-echo "   2. Восстановите бэкап: psql -U postgres -d fatiha < /tmp/$BACKUP_FILE"
+echo "   2. Восстановите бэкап: sudo -u postgres psql -d fatiha < /tmp/$BACKUP_FILE"
 echo "   3. Свяжитесь с разработчиком"
 echo ""
