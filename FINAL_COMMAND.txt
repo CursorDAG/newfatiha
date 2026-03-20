@@ -1,0 +1,14 @@
+═══════════════════════════════════════════════════════════════
+  ✅ МИГРАЦИЯ УЖЕ ПРИМЕНЕНА! ОСТАЛОСЬ ТОЛЬКО СОЗДАТЬ АДМИНА
+═══════════════════════════════════════════════════════════════
+
+Выполните на сервере:
+
+cd /var/www/newfatiha && npx prisma generate && sudo -u postgres psql -d fatiha -c "DELETE FROM \"User\" WHERE email = 'admin@fatiha.ru'; INSERT INTO \"User\" (id, email, password, name, role, \"emailVerified\", status, gender, \"createdAt\", \"updatedAt\") VALUES (gen_random_uuid(), 'admin@fatiha.ru', '\$2a\$10\$N9qo8uLOickgx2ZMRZoMye.IjzKrMa3s83si9GeCAos99JxHm8jqW', 'Администратор', 'ADMIN', true, 'ACTIVE', 'NOT_SPECIFIED', NOW(), NOW());" && pm2 restart fatiha && echo "" && echo "✅ ГОТОВО! Откройте https://fatiha.ru и войдите: admin@fatiha.ru / admin123"
+
+═══════════════════════════════════════════════════════════════
+
+После выполнения:
+🌐 https://fatiha.ru
+📧 admin@fatiha.ru
+🔑 admin123
