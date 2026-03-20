@@ -1,0 +1,13 @@
+Команда 1 (скопируйте и вставьте):
+sudo -u postgres psql -d fatiha -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO fatiha_user; GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO fatiha_user;"
+
+Команда 2:
+pm2 restart fatiha
+
+Команда 3 (подождите 5 секунд, затем откройте https://fatiha.ru):
+sleep 5 && echo "Откройте https://fatiha.ru и войдите: admin@fatiha.ru / admin123"
+
+Если не работает, выполните:
+pm2 logs fatiha --lines 50 --err
+
+И пришлите результат.
