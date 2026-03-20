@@ -1,6 +1,7 @@
 #!/bin/bash
 # Скрипт для исправления базы данных на продакшн-сервере
 # Дата: 2026-03-20
+# ИСПРАВЛЕНО: Сначала применяются миграции, потом создается пользователь
 
 set -e  # Остановить при ошибке
 
@@ -18,11 +19,11 @@ echo ""
 echo "📦 Шаг 2: Создание бэкапа базы данных"
 echo "----------------------------------------"
 BACKUP_FILE="backup_before_fix_$(date +%Y%m%d_%H%M%S).sql"
-sudo -u postgres pg_dump -d fatiha > "/tmp/$BACKUP_FILE" || echo "⚠️  Не удалось создать бэкап"
-echo "✅ Бэкап создан: /tmp/$BACKUP_FILE"
+sudo -u postgres pg_dump -d fatiha > "/tmp/$BACKUP_FILE" 2>/dev/null || echo "⚠️  Не удалось создать бэкап (возможно БД пустая)"
+echo "✅ Бэкап: /tmp/$BACKUP_FILE"
 echo ""
 
-echo "🔄 Шаг 3: Применение миграций"
+echo "🔄 Шаг 3: Применение миграций (КРИТИЧНО!)"
 echo "----------------------------------------"
 npx prisma migrate deploy
 echo ""
@@ -34,7 +35,12 @@ echo ""
 
 echo "📊 Шаг 5: Проверка структуры базы данных"
 echo "----------------------------------------"
-sudo -u postgres psql -d fatiha -c "\d \"User\"" | grep -E "emailVerified|status|verificationToken" && echo "✅ Поля найдены!" || echo "⚠️  Поля не найдены!"
+if sudo -u postgres psql -d fatiha -c "\d \"User\"" | grep -q "emailVerified"; then
+    echo "✅ Поле emailVerified найдено!"
+else
+    echo "❌ ОШИБКА: Поле emailVerified не найдено! Миграции не применились!"
+    exit 1
+fi
 echo ""
 
 echo "🔍 Шаг 6: Проверка новых таблиц"
@@ -43,7 +49,7 @@ sudo -u postgres psql -d fatiha -c "SELECT COUNT(*) as teacher_profiles FROM \"T
 sudo -u postgres psql -d fatiha -c "SELECT COUNT(*) as enrollment_requests FROM \"EnrollmentRequest\";" 2>/dev/null && echo "✅ EnrollmentRequest существует" || echo "⚠️  Таблица EnrollmentRequest не найдена!"
 echo ""
 
-echo "👤 Шаг 7: Создание тестового администратора"
+echo "👤 Шаг 7: Создание администратора (ПОСЛЕ миграций!)"
 echo "----------------------------------------"
 
 # Используем Node.js скрипт для создания админа (безопаснее чем SQL)
@@ -60,7 +66,7 @@ const prisma = new PrismaClient();
     // Удалить старого админа если есть
     await prisma.user.deleteMany({ where: { email: 'admin@fatiha.ru' } });
 
-    // Создать нового админа
+    // Создать нового админа с правильной структурой
     const user = await prisma.user.create({
       data: {
         email: 'admin@fatiha.ru',
@@ -75,7 +81,7 @@ const prisma = new PrismaClient();
 
     console.log('✅ Администратор создан:', user.email);
   } catch (e) {
-    console.error('❌ Ошибка:', e.message);
+    console.error('❌ Ошибка при создании администратора:', e.message);
     process.exit(1);
   } finally {
     await prisma.$disconnect();
@@ -109,7 +115,7 @@ echo "📧 Email: admin@fatiha.ru"
 echo "🔑 Password: admin123"
 echo ""
 echo "📋 Если возникли проблемы:"
-echo "   1. Проверьте логи: pm2 logs fatiha"
+echo "   1. Проверьте логи: pm2 logs fatiha --err"
 echo "   2. Восстановите бэкап: sudo -u postgres psql -d fatiha < /tmp/$BACKUP_FILE"
-echo "   3. Свяжитесь с разработчиком"
+echo "   3. Проверьте статус миграций: npx prisma migrate status"
 echo ""
