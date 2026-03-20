@@ -1,0 +1,138 @@
+═══════════════════════════════════════════════════════════════
+  ⚠️  ОШИБКА: Колонка emailVerified уже существует!
+═══════════════════════════════════════════════════════════════
+
+ПРОБЛЕМА: База данных уже содержит изменения, но миграция пытается
+          добавить их снова. Это вызывает конфликт.
+
+ПРИЧИНА: Кто-то ранее использовал `prisma db push` или применил
+         изменения вручную, минуя систему миграций.
+
+──────────────────────────────────────────────────────────────
+📋 РЕШЕНИЕ 1: Пометить миграцию как примененную (РЕКОМЕНДУЕТСЯ)
+──────────────────────────────────────────────────────────────
+
+cd /var/www/newfatiha
+
+# Пометить миграцию как примененную (не выполняя её)
+npx prisma migrate resolve --applied 20260320000000_add_teacher_enrollment_system
+
+# Проверить статус
+npx prisma migrate status
+
+# Генерация Prisma Client
+npx prisma generate
+
+# Создать администратора
+cat > /tmp/create-admin.js << 'EOF'
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+const prisma = new PrismaClient();
+(async () => {
+  try {
+    const hash = await bcrypt.hash('admin123', 10);
+    await prisma.user.deleteMany({ where: { email: 'admin@fatiha.ru' } });
+    const user = await prisma.user.create({
+      data: {
+        email: 'admin@fatiha.ru',
+        password: hash,
+        name: 'Администратор',
+        role: 'ADMIN',
+        emailVerified: true,
+        status: 'ACTIVE',
+        gender: 'NOT_SPECIFIED'
+      }
+    });
+    console.log('✅ Администратор создан:', user.email);
+  } catch (e) {
+    console.error('❌ Ошибка:', e.message);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
+})();
+EOF
+
+node /tmp/create-admin.js
+
+# Перезапустить приложение
+pm2 restart fatiha
+
+echo "✅ ГОТОВО! Откройте https://fatiha.ru"
+
+
+──────────────────────────────────────────────────────────────
+📋 РЕШЕНИЕ 2: Проверить что именно существует в БД
+──────────────────────────────────────────────────────────────
+
+# Проверить структуру таблицы User
+sudo -u postgres psql -d fatiha -c "\d \"User\""
+
+# Проверить какие таблицы существуют
+sudo -u postgres psql -d fatiha -c "\dt" | grep -E "Teacher|Enrollment|Notification"
+
+
+──────────────────────────────────────────────────────────────
+📋 РЕШЕНИЕ 3: Если нужно откатить и применить заново
+──────────────────────────────────────────────────────────────
+
+# ВНИМАНИЕ: Это удалит данные! Используйте только если БД пустая!
+
+cd /var/www/newfatiha
+
+# Откатить все миграции
+npx prisma migrate reset --force
+
+# Применить все миграции заново
+npx prisma migrate deploy
+
+# Заполнить тестовыми данными
+npx prisma db seed
+
+
+═══════════════════════════════════════════════════════════════
+  ВСЕ КОМАНДЫ ОДНОЙ СТРОКОЙ (РЕШЕНИЕ 1):
+═══════════════════════════════════════════════════════════════
+
+cd /var/www/newfatiha && npx prisma migrate resolve --applied 20260320000000_add_teacher_enrollment_system && npx prisma generate && cat > /tmp/create-admin.js << 'EOF'
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+const prisma = new PrismaClient();
+(async () => {
+  try {
+    const hash = await bcrypt.hash('admin123', 10);
+    await prisma.user.deleteMany({ where: { email: 'admin@fatiha.ru' } });
+    const user = await prisma.user.create({
+      data: {
+        email: 'admin@fatiha.ru',
+        password: hash,
+        name: 'Администратор',
+        role: 'ADMIN',
+        emailVerified: true,
+        status: 'ACTIVE',
+        gender: 'NOT_SPECIFIED'
+      }
+    });
+    console.log('✅ Администратор создан:', user.email);
+  } catch (e) {
+    console.error('❌ Ошибка:', e.message);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
+})();
+EOF
+node /tmp/create-admin.js && pm2 restart fatiha && echo "" && echo "✅ ГОТОВО! Откройте https://fatiha.ru и войдите: admin@fatiha.ru / admin123"
+
+
+═══════════════════════════════════════════════════════════════
+  ЧТО ДЕЛАЕТ КОМАНДА `migrate resolve --applied`:
+═══════════════════════════════════════════════════════════════
+
+✅ Помечает миграцию как "уже примененную" в таблице _prisma_migrations
+✅ НЕ выполняет SQL из миграции (избегает конфликта)
+✅ Синхронизирует историю миграций с реальным состоянием БД
+✅ Позволяет применять будущие миграции
+
+
+═══════════════════════════════════════════════════════════════
