@@ -102,7 +102,7 @@ export default function StreamProgressCard({
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-3 gap-6 text-center mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center mb-6">
         <div>
           <div className="flex justify-center mb-2">
             <BookOpen className="w-5 h-5 text-emerald-400" />

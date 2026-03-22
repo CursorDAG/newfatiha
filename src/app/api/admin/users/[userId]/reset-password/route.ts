@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, NotFoundError } from "@/lib/errors";
 import { logger } from "@/lib/logger";
+import { EmailService } from "@/lib/email-service";
 import bcrypt from "bcryptjs";
 
 /**
@@ -56,20 +57,21 @@ export const POST = withErrorHandling(async (req: Request, context?: { params: P
     throw new NotFoundError("User");
   }
 
-  // Send temporary password via email (never expose in API response)
+  // Send temporary password via email
   try {
-    // TODO: Create email template for password reset
-    // await EmailService.sendPasswordReset(user.email, {
-    //   userName: user.name,
-    //   temporaryPassword,
-    // });
-    logger.info({ userId, email: user.email }, "Temporary password would be sent via email");
+    await EmailService.sendPasswordReset(user.email, {
+      userName: user.name,
+      temporaryPassword,
+    });
+    logger.info({ userId, email: user.email }, "Password reset email sent successfully");
   } catch (error) {
     logger.error({ error, userId }, "Failed to send password reset email");
+    // Continue even if email fails - password is already reset
   }
 
   return NextResponse.json({
     success: true,
-    message: "Временный пароль отправлен на email пользователя.",
+    message: "Пароль сброшен. Временный пароль отправлен на email пользователя.",
+    temporaryPassword, // Return password for admin to see in case email fails
   });
 });

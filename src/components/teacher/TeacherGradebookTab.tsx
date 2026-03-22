@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { ClipboardCheck, RefreshCw, BookOpen, User, Volume2, CheckCircle, XCircle } from "lucide-react";
+import { ClipboardCheck, RefreshCw, BookOpen, User, Volume2, CheckCircle, XCircle, X } from "lucide-react";
 
 export type GradebookLesson = {
   id: string;
@@ -165,9 +165,7 @@ function QuizDetailsModal({
               onClick={onClose}
               className="text-slate-400 hover:text-slate-600 transition-colors"
             >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="w-6 h-6" />
             </button>
           </div>
         </div>

@@ -25,7 +25,7 @@ export default function StudentHeader({ studentName, studentEmail }: StudentHead
 
   return (
     <header className="bg-emerald-700 text-white shadow-md w-full shrink-0">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+      <div className="w-full px-8 py-4">
         <div className="flex justify-between items-center">
           {/* Logo */}
           <div className="flex-shrink-0">
@@ -98,7 +98,7 @@ export default function StudentHeader({ studentName, studentEmail }: StudentHead
 
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
-          <nav className="md:hidden mt-4 pb-2 space-y-2">
+          <nav className="md:hidden mt-4 pb-2 space-y-2 relative z-30">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = pathname === link.href || (link.href !== "/student" && pathname?.startsWith(link.href));

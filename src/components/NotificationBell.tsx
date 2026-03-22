@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { io, Socket } from "socket.io-client";
+import { Bell, Volume2, VolumeX } from "lucide-react";
 
 interface Notification {
   id: string;
@@ -198,19 +199,7 @@ export default function NotificationBell() {
         className="relative p-2 text-white hover:text-emerald-100 transition-colors"
         aria-label="Уведомления"
       >
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-          />
-        </svg>
+        <Bell className="w-6 h-6" />
 
         {/* Счетчик непрочитанных */}
         {unreadCount > 0 && (
@@ -225,12 +214,12 @@ export default function NotificationBell() {
         <>
           {/* Overlay для закрытия */}
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
           />
 
           {/* Dropdown */}
-          <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-slate-200 z-20 max-h-[600px] flex flex-col">
+          <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl border border-slate-200 z-50 max-h-[600px] flex flex-col">
             {/* Заголовок */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200">
               <h3 className="text-lg font-semibold text-slate-900">
@@ -244,14 +233,9 @@ export default function NotificationBell() {
                   title={soundEnabled ? "Отключить звук" : "Включить звук"}
                 >
                   {soundEnabled ? (
-                    <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                    </svg>
+                    <Volume2 className="w-5 h-5 text-slate-600" />
                   ) : (
-                    <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-                    </svg>
+                    <VolumeX className="w-5 h-5 text-slate-400" />
                   )}
                 </button>
                 {unreadCount > 0 && (
@@ -270,19 +254,7 @@ export default function NotificationBell() {
             <div className="overflow-y-auto flex-1">
               {notifications.length === 0 ? (
                 <div className="p-8 text-center text-slate-500">
-                  <svg
-                    className="w-12 h-12 mx-auto mb-3 text-slate-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                    />
-                  </svg>
+                  <Bell className="w-12 h-12 mx-auto mb-3 text-slate-300" />
                   <p>Нет уведомлений</p>
                 </div>
               ) : (

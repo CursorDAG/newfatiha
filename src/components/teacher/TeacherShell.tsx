@@ -134,7 +134,7 @@ export default function TeacherShell({
         />
       )}
 
-      <main className="max-w-7xl mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <main className="w-full px-8 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
         <nav
           className={`lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-2 h-fit transition-transform lg:translate-x-0 ${
             mobileMenuOpen

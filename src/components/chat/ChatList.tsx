@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import { NewChatModal } from "./NewChatModal";
 
 interface Room {
@@ -80,9 +81,7 @@ export function ChatList({ onSelectRoom, selectedRoomId }: ChatListProps) {
           className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
           title="Новое сообщение"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
+          <Plus className="w-5 h-5" />
         </button>
       </div>
 

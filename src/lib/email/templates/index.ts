@@ -19,6 +19,7 @@ export { enrollmentRequestApprovedTemplate } from "./enrollment-request-approved
 export { enrollmentRequestSubmittedTemplate } from "./enrollment-request-submitted";
 export { enrollmentRequestRejectedTemplate } from "./enrollment-request-rejected";
 export { enrollmentConfirmedTemplate } from "./enrollment-confirmed";
+export { passwordResetTemplate } from "./password-reset";
 
 export type {
   BaseTemplateParams,
@@ -87,3 +88,7 @@ export type {
 export type {
   EnrollmentConfirmedData,
 } from "./enrollment-confirmed";
+
+export type {
+  PasswordResetData,
+} from "./password-reset";

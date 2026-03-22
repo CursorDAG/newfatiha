@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { ArrowLeft, Lightbulb, Edit, X } from "lucide-react";
 import EmptyState from "@/components/teacher/ui/EmptyState";
 
 type LiveLesson = {
@@ -105,9 +106,7 @@ export default function TeacherLiveTab({
           className="flex items-center gap-1.5 text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-full border border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600 transition-colors shrink-0"
           title="Вернуться в кабинет"
         >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
+          <ArrowLeft className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Выйти из Live</span>
           <span className="sm:hidden">Выйти</span>
         </button>
@@ -132,9 +131,7 @@ export default function TeacherLiveTab({
             }`}
             title="Подсказки урока"
           >
-            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>
+            <Lightbulb className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden sm:inline">Подсказки</span>
           </button>
 
@@ -149,9 +146,7 @@ export default function TeacherLiveTab({
             }`}
             title="Личные заметки"
           >
-            <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
+            <Edit className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden sm:inline">Заметки</span>
           </button>
 
@@ -193,9 +188,7 @@ export default function TeacherLiveTab({
                 onClick={() => setHintsOpen(false)}
                 className="text-slate-400 hover:text-white transition-colors"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -271,9 +264,7 @@ export default function TeacherLiveTab({
                   onClick={() => setNotesOpen(false)}
                   className="text-slate-400 hover:text-white transition-colors"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>

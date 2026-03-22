@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 
 interface NotificationPreferences {
   emailNewLesson: boolean;
@@ -108,16 +109,14 @@ export default function NotificationSettingsClient() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
-      <div className="max-w-3xl mx-auto px-4">
+      <div className="w-full px-8">
         {/* Header */}
         <div className="mb-6">
           <button
             onClick={() => router.back()}
             className="text-emerald-600 hover:text-emerald-700 mb-4 flex items-center gap-2"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            <ChevronLeft className="w-5 h-5" />
             Назад
           </button>
           <h1 className="text-3xl font-bold text-slate-900">Настройки уведомлений</h1>

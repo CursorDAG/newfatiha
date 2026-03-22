@@ -248,7 +248,7 @@ export default async function HomePage() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 max-w-2xl mx-auto gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 max-w-2xl mx-auto gap-8">
             {[
               { value: courses.length > 0 ? `${courses.length}+` : "5+", label: "курсов", icon: BookOpen },
               { value: "100%", label: "онлайн", icon: Video },

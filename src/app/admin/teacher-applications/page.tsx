@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { X } from "lucide-react";
 
 interface TeacherApplication {
   id: string;
@@ -132,8 +133,8 @@ export default function TeacherApplicationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-slate-50">
+      <div className="w-full px-8 py-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Заявки учителей</h1>
           <p className="text-slate-600">Рассмотрение заявок на должность учителя</p>
@@ -275,9 +276,7 @@ export default function TeacherApplicationsPage() {
                   onClick={() => setSelectedApp(null)}
                   className="text-slate-400 hover:text-slate-600"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <X className="w-6 h-6" />
                 </button>
               </div>
 

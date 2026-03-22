@@ -1,30 +1,32 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
 
-// Simple PNG generation using Canvas API (if available) or create placeholder
-// For production, use proper image generation tools
+async function generateIcons() {
+  const svgPath = path.join(__dirname, '..', 'public', 'icon.svg');
+  const svgBuffer = fs.readFileSync(svgPath);
 
-const sizes = [192, 512];
+  console.log('Generating PWA icons from SVG...');
 
-// Create a simple colored square as placeholder
-// This is a minimal 1x1 emerald green PNG that can be scaled
-function createPlaceholderPNG(size) {
-  // Minimal PNG with emerald color (#059669)
-  const base64PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-  return Buffer.from(base64PNG, 'base64');
+  // Generate 192x192 icon
+  await sharp(svgBuffer)
+    .resize(192, 192)
+    .png()
+    .toFile(path.join(__dirname, '..', 'public', 'icon-192.png'));
+
+  console.log('✓ Generated icon-192.png (192x192)');
+
+  // Generate 512x512 icon
+  await sharp(svgBuffer)
+    .resize(512, 512)
+    .png()
+    .toFile(path.join(__dirname, '..', 'public', 'icon-512.png'));
+
+  console.log('✓ Generated icon-512.png (512x512)');
+  console.log('✓ PWA icons generated successfully!');
 }
 
-sizes.forEach(size => {
-  const filename = path.join(__dirname, '..', 'public', `icon-${size}.png`);
-  const data = createPlaceholderPNG(size);
-  fs.writeFileSync(filename, data);
-  console.log(`Created ${filename}`);
+generateIcons().catch((err) => {
+  console.error('Error generating icons:', err);
+  process.exit(1);
 });
-
-console.log('\nIcon generation complete. Note: These are placeholders.');
-console.log('For production, convert icon.svg to PNG using:');
-console.log('  npm install sharp');
-console.log('  npx sharp -i public/icon.svg -o public/icon-192.png resize 192 192');
-console.log('  npx sharp -i public/icon.svg -o public/icon-512.png resize 512 512');

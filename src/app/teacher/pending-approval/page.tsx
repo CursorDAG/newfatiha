@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Clock, Info } from "lucide-react";
 import Link from "next/link";
 
 export default function PendingApprovalPage() {
@@ -57,9 +58,7 @@ export default function PendingApprovalPage() {
       <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-2xl">
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-10 h-10 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <Clock className="w-10 h-10 text-yellow-600" />
           </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Заявка на рассмотрении</h1>
           <p className="text-slate-600">
@@ -102,9 +101,7 @@ export default function PendingApprovalPage() {
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <div className="flex gap-3">
-            <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium text-blue-900 mb-1">Среднее время рассмотрения</p>
               <p className="text-sm text-blue-800">Обычно заявки рассматриваются в течение 2-3 рабочих дней</p>

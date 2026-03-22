@@ -18,6 +18,7 @@ import {
   enrollmentRequestSubmittedTemplate,
   enrollmentRequestRejectedTemplate,
   enrollmentConfirmedTemplate,
+  passwordResetTemplate,
   type LessonStartingData,
   type NewLessonData,
   type HomeworkCheckedData,
@@ -34,6 +35,7 @@ import {
   type EnrollmentRequestSubmittedData,
   type EnrollmentRequestRejectedData,
   type EnrollmentConfirmedData,
+  type PasswordResetData,
 } from "@/lib/email/templates";
 
 /**
@@ -221,6 +223,14 @@ export class EmailService {
    */
   static async sendEnrollmentConfirmed(to: string, data: EnrollmentConfirmedData): Promise<void> {
     const { subject, html, text } = enrollmentConfirmedTemplate(data);
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  /**
+   * Send password reset notification with temporary password
+   */
+  static async sendPasswordReset(to: string, data: PasswordResetData): Promise<void> {
+    const { subject, html, text } = passwordResetTemplate(data);
     await this.sendEmail({ to, subject, html, text });
   }
 }

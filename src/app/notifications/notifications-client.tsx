@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { BookOpen, FileText, ClipboardCheck, MessageSquare, Megaphone, Info, AlertCircle, Bell } from "lucide-react";
 import Link from "next/link";
 
 interface Notification {
@@ -102,78 +103,24 @@ export default function NotificationsPageClient() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "NEW_LESSON":
-        return (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-            />
-          </svg>
-        );
+        return <BookOpen className="w-6 h-6" />;
       case "HOMEWORK_ASSIGNED":
       case "HOMEWORK_CHECKED":
-        return (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-        );
+        return <FileText className="w-6 h-6" />;
       case "QUIZ_CHECKED":
-        return (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-            />
-          </svg>
-        );
+        return <ClipboardCheck className="w-6 h-6" />;
       case "MESSAGE":
-        return (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-            />
-          </svg>
-        );
+        return <MessageSquare className="w-6 h-6" />;
       case "ANNOUNCEMENT":
-        return (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"
-            />
-          </svg>
-        );
+        return <Megaphone className="w-6 h-6" />;
       default:
-        return (
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        );
+        return <Info className="w-6 h-6" />;
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="w-full px-8 py-8">
         {/* Заголовок */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Уведомления</h1>
@@ -230,9 +177,7 @@ export default function NotificationsPageClient() {
         ) : error ? (
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-12 text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <AlertCircle className="w-8 h-8 text-red-600" />
             </div>
             <h3 className="text-lg font-semibold text-slate-900 mb-2">Ошибка загрузки</h3>
             <p className="text-slate-600 mb-4">{error}</p>

@@ -629,7 +629,7 @@ export default function StudentDashboard({
         />
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="w-full px-8 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* ── Sidebar ────────────────────────────────────────────────── */}
         <nav className={`lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-2 h-fit transition-transform lg:translate-x-0 ${
           mobileMenuOpen
@@ -727,7 +727,7 @@ export default function StudentDashboard({
               </div>
 
               {/* Stat cards */}
-              <div className="grid grid-cols-3 gap-4" data-onboarding="home-stats">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4" data-onboarding="home-stats">
                 <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center hover:shadow-sm transition-shadow">
                   <div className="flex justify-center mb-2">
                     <BookOpen className="w-8 h-8 text-emerald-600" />

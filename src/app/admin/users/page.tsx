@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, AlertCircle } from "lucide-react";
 
 type User = {
   id: string;
@@ -98,8 +98,13 @@ export default function AdminUsersPage() {
       });
       if (!res.ok) throw new Error("Failed to reset password");
       const data = await res.json();
-      alert(`Временный пароль: ${data.temporaryPassword}\n\nОтправьте его пользователю.`);
-      showToast("Пароль сброшен", "success");
+
+      // Show temporary password to admin
+      if (data.temporaryPassword) {
+        alert(`Пароль успешно сброшен!\n\nВременный пароль: ${data.temporaryPassword}\n\nПароль также отправлен на email пользователя.\n\nСкопируйте пароль и отправьте пользователю, если email не дошел.`);
+      }
+
+      showToast(data.message || "Пароль сброшен и отправлен на email", "success");
     } catch {
       showToast("Ошибка сброса пароля", "error");
     }
@@ -182,9 +187,7 @@ export default function AdminUsersPage() {
           ) : error ? (
             <div className="p-8 text-center">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+                <AlertCircle className="w-6 h-6 text-red-600" />
               </div>
               <p className="text-red-600 font-medium mb-2">Ошибка загрузки</p>
               <p className="text-slate-600 text-sm mb-4">{error}</p>
