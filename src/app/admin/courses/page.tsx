@@ -55,7 +55,7 @@ export default function AdminCoursesPage() {
 
   useEffect(() => {
     fetchCourses();
-  }, [filter, fetchCourses]);
+  }, [fetchCourses]);
 
   const filteredCourses = courses;
 

@@ -93,19 +93,7 @@ export default function SupportClient() {
           </div>
         ) : tickets.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
-            <svg
-              className="mx-auto h-12 w-12 text-slate-400 mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-              />
-            </svg>
+            <LifeBuoy className="mx-auto h-12 w-12 text-slate-400 mb-4" />
             <h3 className="text-lg font-medium text-slate-900 mb-2">
               У вас пока нет обращений
             </h3>

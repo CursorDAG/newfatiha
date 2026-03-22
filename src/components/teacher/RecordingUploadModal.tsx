@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import { X, Upload, Video, XCircle } from "lucide-react";
 
 interface RecordingUploadModalProps {
   lessonId: string;
@@ -184,9 +185,7 @@ export function RecordingUploadModal({
             disabled={uploading}
             className="text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X className="w-6 h-6" />
           </button>
         </div>
 
@@ -205,19 +204,7 @@ export function RecordingUploadModal({
                   : "border-slate-300 bg-slate-50"
               }`}
             >
-              <svg
-                className="w-16 h-16 mx-auto text-slate-400 mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                />
-              </svg>
+              <Upload className="w-16 h-16 mx-auto text-slate-400 mb-4" />
               <p className="text-slate-700 font-medium mb-2">
                 Перетащите видео сюда или
               </p>
@@ -247,14 +234,7 @@ export function RecordingUploadModal({
             <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
-                  <svg
-                    className="w-10 h-10 text-emerald-600 flex-shrink-0"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M4 6h16v12H4z" />
-                    <path d="M10 9l5 3-5 3z" fill="white" />
-                  </svg>
+                  <Video className="w-10 h-10 text-emerald-600 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-slate-900">{selectedFile.name}</p>
                     <p className="text-sm text-slate-600">
@@ -266,9 +246,7 @@ export function RecordingUploadModal({
                   onClick={() => setSelectedFile(null)}
                   className="text-slate-400 hover:text-slate-600"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -297,17 +275,7 @@ export function RecordingUploadModal({
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <div className="flex items-start gap-3">
-                <svg
-                  className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-red-800">{error}</p>
               </div>
             </div>
