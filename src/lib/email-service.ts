@@ -19,6 +19,8 @@ import {
   enrollmentRequestRejectedTemplate,
   enrollmentConfirmedTemplate,
   passwordResetTemplate,
+  userBlockedTemplate,
+  userUnblockedTemplate,
   type LessonStartingData,
   type NewLessonData,
   type HomeworkCheckedData,

@@ -45,7 +45,6 @@ export default function AdminCoursesPage() {
       const data = await res.json();
       setCourses(data.courses || []);
     } catch (error) {
-      console.error("Error fetching courses:", error);
       setError(error instanceof Error ? error.message : "Не удалось загрузить курсы");
       setCourses([]);
     } finally {

@@ -7,6 +7,7 @@ import { validateRequest } from "@/lib/validate-request";
 import { registerUserSchema } from "@/lib/validation";
 import { randomBytes } from "crypto";
 import { NotificationService } from "@/lib/notification-service";
+import { EmailService } from "@/lib/email-service";
 import { logger } from "@/lib/logger";
 
 /**
@@ -45,8 +46,21 @@ export const POST = withErrorHandling(async (req: Request) => {
     },
   });
 
-  // TODO: Send verification email
-  // await EmailService.sendVerificationEmail(user.email, verificationToken);
+  // Send verification email
+  try {
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
+
+    await EmailService.sendEmailVerification(user.email, {
+      userName: user.name,
+      verificationUrl,
+    });
+
+    logger.info({ userId: user.id, email: user.email }, "Student registration email sent");
+  } catch (error) {
+    logger.error({ error, userId: user.id }, "Failed to send verification email");
+    // Don't throw - user is created, they can resend verification later
+  }
 
   // Notify admins about new student registration
   await NotificationService.notifyStudentRegistered(user.id).catch((err) => {
