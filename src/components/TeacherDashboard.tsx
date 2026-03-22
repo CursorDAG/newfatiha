@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import CreateCourseModal from "@/components/CreateCourseModal";
 import ScheduleGrid, { type ScheduleSlot, type SlotInput } from "@/components/ScheduleGrid";
 import TeacherShell, { type TeacherTabId } from "@/components/teacher/TeacherShell";
+import TeacherHeader from "@/components/dashboard/TeacherHeader";
 import { Button } from "@/components/teacher/ui/Button";
 import EmptyState from "@/components/teacher/ui/EmptyState";
 import TeacherStreamsTab from "@/components/teacher/TeacherStreamsTab";
@@ -965,6 +966,7 @@ export default function TeacherDashboard({
 
   return (
     <div className="font-sans">
+      <TeacherHeader teacherName={_teacherName} teacherEmail={_teacherEmail} />
       <ToastStack toasts={toasts} onDismiss={(id) => setToasts((p) => p.filter((t) => t.id !== id))} />
       {confirmState && (
         <ConfirmModal

@@ -17,23 +17,30 @@ export default function NotificationsPageClient() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const url =
         filter === "unread"
           ? "/api/notifications?unreadOnly=true&limit=100"
           : "/api/notifications?limit=100";
       const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data.notifications);
-        setUnreadCount(data.unreadCount);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Failed to fetch notifications" }));
+        throw new Error(errorData.error || "Failed to fetch notifications");
       }
+      const data = await response.json();
+      setNotifications(data.notifications || []);
+      setUnreadCount(data.unreadCount || 0);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
+      setError(error instanceof Error ? error.message : "Не удалось загрузить уведомления");
+      setNotifications([]);
+      setUnreadCount(0);
     } finally {
       setLoading(false);
     }
@@ -219,6 +226,22 @@ export default function NotificationsPageClient() {
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
             <p className="mt-4 text-slate-600">Загрузка...</p>
+          </div>
+        ) : error ? (
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-12 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Ошибка загрузки</h3>
+            <p className="text-slate-600 mb-4">{error}</p>
+            <button
+              onClick={fetchNotifications}
+              className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+            >
+              Попробовать снова
+            </button>
           </div>
         ) : notifications.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-12 text-center">

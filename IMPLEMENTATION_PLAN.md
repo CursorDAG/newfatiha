@@ -1,407 +1,101 @@
-# План реализации: Система регистрации и оптимизация
-
-**Дата:** 19 марта 2026
-**Команда:** fatiha-optimization-team
-**Тимлид:** Claude (Opus 4.6)
-
----
-
-## Обзор проекта
-
-Комплексное обновление платформы Fatiha.ru включает три основных направления:
-1. **Оптимизация производительности** - решение проблемы утечки памяти (4.5GB)
-2. **Система регистрации** - регистрация учителей и студентов с модерацией
-3. **Расширение функционала** - улучшение админ-панели и системы уведомлений
-
----
-
-## Приоритеты выполнения
-
-### Фаза 1: Критические исправления (1-2 дня)
-**Задача #4: Мониторинг памяти и защита от утечек**
-- Агент: memory-optimizer (Sonnet 4.6)
-- Блокирует: нет
-- Критично для стабильности системы
-
-### Фаза 2: Регистрация учителей (3-4 дня)
-**Задача #5: Система регистрации учителей**
-- Агент: teacher-registration-dev (Opus 4.6)
-- Блокирует: Задачу #3 (нужна общая логика email verification)
-- Включает: анкета, проверка админом, WhatsApp интеграция
-
-### Фаза 3: Регистрация студентов (3-4 дня)
-**Задача #3: Система регистрации студентов**
-- Агент: student-registration-dev (Opus 4.6)
-- Зависит от: Задачи #5 (email verification)
-- Включает: каталог курсов, заявки, workflow оплаты
-
-### Фаза 4: Расширение функционала (2-3 дня)
-**Задача #1: Расширение системы уведомлений**
-- Агент: notification-enhancer (Sonnet 4.6)
-- Зависит от: Задач #3 и #5 (новые типы уведомлений)
-
-**Задача #2: Админ-панель: CMS и рассылки**
-- Агент: admin-panel-dev (Opus 4.6)
-- Зависит от: Задачи #1 (система рассылок)
-
-### Фаза 5: Документация (1 день)
-**Задача #6: Документация и миграции**
-- Агент: documentation-writer (Sonnet 4.6)
-- Зависит от: всех предыдущих задач
-
----
-
-## Архитектурные решения
-
-### 1. База данных
-
-#### Новые модели:
-```prisma
-model TeacherProfile {
-  id              String   @id @default(uuid())
-  userId          String   @unique
-  bio             String?  @db.Text
-  subjects        String[]
-  experience      String?  @db.Text
-  qualifications  String?  @db.Text
-  whatsappPhone   String
-  documentsUrls   String[]
-  videoIntroUrl   String?
-  adminNotes      String?  @db.Text
-  reviewedBy      String?
-  reviewedAt      DateTime?
-  rejectionReason String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-model EnrollmentRequest {
-  id                String                   @id @default(uuid())
-  studentId         String
-  streamId          String
-  status            EnrollmentRequestStatus  @default(PENDING_REVIEW)
-  message           String?                  @db.Text
-  reviewedBy        String?
-  reviewedAt        DateTime?
-  rejectionReason   String?
-  paymentConfirmed  Boolean                  @default(false)
-  paymentConfirmedAt DateTime?
-  createdAt         DateTime                 @default(now())
-  updatedAt         DateTime                 @updatedAt
-
-  @@unique([studentId, streamId])
-}
-
-model PageContent {
-  id        String   @id @default(uuid())
-  page      String   @unique
-  sections  Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model NotificationPreference {
-  id              String             @id @default(uuid())
-  userId          String             @unique
-  emailTypes      NotificationType[]
-  emailEnabled    Boolean            @default(true)
-  emailDigest     Boolean            @default(false)
-  emailDigestTime String             @default("18:00")
-  pushEnabled     Boolean            @default(true)
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-}
-```
-
-#### Расширение существующих моделей:
-```prisma
-model User {
-  emailVerified      Boolean           @default(false)
-  emailVerifiedAt    DateTime?
-  verificationToken  String?           @unique
-  status             UserStatus        @default(PENDING_VERIFICATION)
-  teacherProfile     TeacherProfile?
-}
-
-model Stream {
-  isOpenForEnrollment Boolean   @default(false)
-  price               Decimal?  @db.Decimal(10, 2)
-  currency            String    @default("RUB")
-  enrollmentDeadline  DateTime?
-  paymentInstructions String?   @db.Text
-}
-
-model Notification {
-  priority   NotificationPriority @default(NORMAL)
-  metadata   Json?
-  actionUrl  String?
-  actionText String?
-  emailSent  Boolean              @default(false)
-  emailSentAt DateTime?
-  readAt     DateTime?
-}
-```
-
-#### Новые enum'ы:
-```prisma
-enum UserStatus {
-  PENDING_VERIFICATION
-  PENDING_APPROVAL
-  ACTIVE
-  REJECTED
-  SUSPENDED
-}
-
-enum EnrollmentRequestStatus {
-  PENDING_REVIEW
-  APPROVED_PENDING_PAYMENT
-  PAYMENT_CONFIRMED
-  ACTIVE
-  REJECTED
-}
-
-enum NotificationPriority {
-  LOW
-  NORMAL
-  HIGH
-  URGENT
-}
-```
-
-### 2. API Endpoints
-
-#### Регистрация и аутентификация:
-- `POST /api/auth/register/student` - регистрация студента
-- `POST /api/auth/register/teacher` - регистрация учителя
-- `GET /api/auth/verify-email?token=...` - подтверждение email
-- `POST /api/auth/resend-verification` - повторная отправка письма
-
-#### Заявки студентов:
-- `GET /api/courses` - публичный каталог курсов
-- `POST /api/enrollment-requests` - подать заявку на курс
-- `GET /api/enrollment-requests` - мои заявки (студент)
-- `GET /api/teacher/enrollment-requests` - заявки на мои курсы (учитель)
-- `POST /api/teacher/enrollment-requests/[id]/approve` - одобрить заявку
-- `POST /api/teacher/enrollment-requests/[id]/reject` - отклонить заявку
-- `POST /api/teacher/enrollment-requests/[id]/confirm-payment` - подтвердить оплату
-
-#### Заявки учителей:
-- `GET /api/admin/teacher-applications` - список заявок (админ)
-- `POST /api/admin/teacher-applications/[id]/approve` - одобрить учителя
-- `POST /api/admin/teacher-applications/[id]/reject` - отклонить учителя
-
-#### CMS и рассылки:
-- `GET /api/admin/cms/[page]` - получить контент страницы
-- `PUT /api/admin/cms/[page]` - обновить контент страницы
-- `POST /api/admin/broadcasts` - создать массовую рассылку
-- `GET /api/admin/broadcasts` - история рассылок
-
-#### Уведомления:
-- `GET /api/notifications` - список уведомлений (уже есть)
-- `POST /api/notifications/[id]/read` - прочитать (уже есть)
-- `POST /api/notifications/read-all` - прочитать все (уже есть)
-- `GET /api/notifications/preferences` - настройки (новое)
-- `PUT /api/notifications/preferences` - обновить настройки (новое)
-
-### 3. Workflow'ы
-
-#### Регистрация учителя:
-```
-1. Заполнение формы (email, пароль, имя)
-   ↓
-2. Отправка письма с подтверждением
-   ↓
-3. Подтверждение email (клик по ссылке)
-   ↓
-4. Заполнение анкеты (био, предметы, опыт, WhatsApp, документы)
-   ↓
-5. Статус: PENDING_APPROVAL
-   ↓
-6. Админ проверяет заявку
-   ↓
-7a. Одобрено → статус ACTIVE, доступ к кабинету
-7b. Отклонено → email с причиной, возможность подать заново
-```
-
-#### Регистрация студента:
-```
-1. Заполнение формы (email, пароль, имя)
-   ↓
-2. Отправка письма с подтверждением
-   ↓
-3. Подтверждение email
-   ↓
-4. Статус: ACTIVE, доступ к каталогу курсов
-```
-
-#### Заявка на курс:
-```
-1. Студент выбирает курс в каталоге
-   ↓
-2. Подает заявку (опционально: сообщение учителю)
-   ↓
-3. Статус: PENDING_REVIEW
-   ↓
-4. Учитель получает уведомление
-   ↓
-5. Учитель одобряет заявку
-   ↓
-6. Статус: APPROVED_PENDING_PAYMENT
-   ↓
-7. Студент видит инструкции по оплате
-   ↓
-8. Студент оплачивает напрямую учителю
-   ↓
-9. Учитель подтверждает получение оплаты
-   ↓
-10. Статус: ACTIVE, создается Enrollment
-```
-
----
-
-## Технические детали
-
-### Оптимизация памяти
-
-**Проблема:** Node.js процесс занимает 4.5GB в dev режиме
-
-**Причины:**
-1. In-memory rate limiter накапливает записи
-2. Socket.io соединения не очищаются при hot reload
-3. Next.js dev mode не освобождает старые модули
-4. Множественные инстансы PrismaClient
-
-**Решения:**
-1. Добавить лимит на размер Map в rate limiter (max 10000 записей)
-2. Добавить таймаут для неактивных Socket.io соединений (30 мин)
-3. Логировать использование памяти каждые 30 сек
-4. Добавить `connection_limit=10` в DATABASE_URL
-5. Рекомендовать PM2 с `max_memory_restart: "1G"` для production
-
-### Email Verification
-
-**Библиотека:** nodemailer (уже есть)
-
-**Процесс:**
-1. Генерация UUID токена при регистрации
-2. Сохранение в поле `verificationToken`
-3. Отправка письма с ссылкой: `/auth/verify-email?token=...`
-4. При переходе: проверка токена, установка `emailVerified = true`
-5. Токен удаляется после использования
-
-**Срок действия:** 24 часа (проверка по `createdAt`)
-
-### Загрузка документов
-
-**Вариант 1 (рекомендуемый):** S3
-- Использовать существующую интеграцию S3
-- Путь: `teacher-documents/{userId}/{filename}`
-- Presigned URLs для загрузки
-
-**Вариант 2 (fallback):** Base64 в БД
-- Хранить как JSON массив: `[{ name, data, mimeType }]`
-- Лимит: 5MB на документ
-
-### Real-time уведомления
-
-**Расширение Socket.io:**
-```typescript
-// При подключении
-socket.join(`user:${userId}`);
-
-// Отправка уведомления
-io.to(`user:${userId}`).emit('notification:receive', notification);
-
-// В клиенте
-socket.on('notification:receive', (notification) => {
-  // Обновить UI, показать toast
-});
-```
-
----
-
-## Тестирование
-
-### Unit тесты (Vitest):
-- Email verification логика
-- Enrollment request workflow
-- Notification service методы
-- Memory monitor
-
-### Integration тесты:
-- Полный flow регистрации учителя
-- Полный flow заявки студента
-- Массовая рассылка уведомлений
-
-### Manual тесты:
-- UI регистрации (оба типа)
-- Админ-панель (проверка заявок)
-- CMS редактор
-- Real-time уведомления
-
----
-
-## Риски и митигация
-
-### Риск 1: Утечка памяти в production
-**Митигация:**
-- Мониторинг памяти с алертами
-- PM2 с автоматическим рестартом
-- Регулярный cleanup старых данных
-
-### Риск 2: Спам регистраций
-**Митигация:**
-- Rate limiting на регистрацию (5 попыток / 15 мин)
-- Email verification обязателен
-- Для учителей: проверка админом
-
-### Риск 3: Перегрузка админа заявками
-**Митигация:**
-- Фильтры и поиск в админ-панели
-- Email уведомления о новых заявках
-- Возможность делегировать проверку (роль MODERATOR)
-
-### Риск 4: Проблемы с email доставкой
-**Митигация:**
-- Логирование всех отправок
-- Кнопка "Отправить повторно"
-- Fallback на Ethereal в dev режиме
-
----
-
-## Метрики успеха
-
-1. **Производительность:**
-   - Использование памяти < 1GB в production
-   - Нет утечек памяти за 24 часа работы
-
-2. **Регистрация:**
-   - 90%+ успешных регистраций (с подтверждением email)
-   - Среднее время проверки заявки учителя < 24 часа
-
-3. **Заявки на курсы:**
-   - 80%+ заявок обрабатываются учителем за 48 часов
-   - Конверсия заявка → зачисление > 70%
-
-4. **Уведомления:**
-   - 95%+ уведомлений доставляются в течение 1 минуты
-   - Email доставка > 98%
-
----
-
-## Следующие шаги
-
-1. ✅ Создать команду и задачи
-2. ⏳ Запустить агентов для параллельной работы
-3. ⏳ Начать с оптимизации памяти (критично)
-4. ⏳ Параллельно разработать регистрацию учителей
-5. ⏳ После email verification - регистрация студентов
-6. ⏳ Расширить уведомления и админ-панель
-7. ⏳ Написать документацию и миграции
-8. ⏳ Тестирование и деплой
-
----
-
-**Общая оценка времени:** 10-14 дней
-**Команда:** 4-5 агентов параллельно
-**Модели:** Opus 4.6 для сложных задач, Sonnet 4.6 для простых
+# План рефакторинга UI: Единая шапка и исправление маршрутизации
+
+Этот документ описывает шаги по улучшению пользовательского интерфейса платформы Fatiha.ru на основе проведенного UX-аудита. Цель плана — создать чистую, логичную структуру навигации.
+
+## 1. Описание задачи и целей
+
+- **Удаление двойной шапки:** На главной странице необходимо оставить только одну "красивую" нижнюю панель с логотипом и убрать верхнюю нерелевантную полосу.
+- **Динамическая навигация:** Шапка должна меняться в зависимости от статуса пользователя (Гость видит кнопку "Войти", Авторизованный — переход в "Кабинет" или свой профиль).
+- **Разделение дашбордов:** В админке не должна отображаться шапка учителя.
+- **Починка сайдбаров (SPA-роутинг):** Кнопки в боковых меню студентов и админов должны переключать страницы без полной перезагрузки окна.
+
+## 2. Предлагаемые изменения (Структура файлов)
+
+*Предполагается стандартная структура Next.js App Router (`app/`). Если используется Pages Router (`pages/`), логика остается идентичной, но файлы будут лежать в других папках.*
+
+### 2.1. Редизайн Главной Шапки (Root Layout)
+
+**Файлы для редактирования:**
+- `src/app/layout.tsx` (или `src/components/layout/Header.tsx`)
+
+**Действия:**
+1. Найти компонент, который рендерит "двойную" шапку (часто это `TopBar` + `MainNavbar`).
+2. **Удалить** или закомментировать вызов компонента верхней ненужной шапки (например, `<TopBar />`).
+3. В оставшуюся красивую шапку (`MainNavbar`) добавить проверку сессии пользователя:
+   ```tsx
+   import { useSession } from "next-auth/react";
+   // ...
+   const { data: session } = useSession();
+   
+   // Если сессии нет -> Показываем кнопку "Войти/Регистрация"
+   // Если сессия есть -> Показываем аватарку и ссылку на "Личный кабинет" (/student, /teacher или /admin в зависимости от session.user.role)
+   ```
+
+### 2.2. Разделение Layout для Дашбордов
+
+Проблема: Админ видит шапку "Teacher Portal".
+**Файлы для редактирования:**
+- `src/app/(dashboard)/admin/layout.tsx`
+- `src/app/(dashboard)/teacher/layout.tsx`
+- Папка с компонентами: `src/components/dashboard/`
+
+**Действия:**
+1. Создать отдельный компонент `AdminHeader.tsx` (Только панель администратора, выход, профиль).
+2. Создать отдельный компонент `TeacherHeader.tsx` (Расписание, Мои курсы).
+3. В `app/(dashboard)/admin/layout.tsx` убедиться, что импортируется именно `AdminHeader`, а не общий `DashboardHeader`.
+
+### 2.3. Починка неработающих ссылок (SPA-Маршрутизация)
+
+Проблема: Сайдбары студента и админа не реагируют на клики.
+**Файлы для редактирования:**
+- `src/components/dashboard/StudentSidebar.tsx`
+- `src/components/dashboard/AdminSidebar.tsx`
+- `src/components/dashboard/TeacherSidebar.tsx`
+
+**Действия:**
+1. Найти все элементы навигации в боковом меню (часто это `<li>`, `<a>` или кнопки).
+2. Обернуть их в компонент `<Link>` из Next.js (`import Link from "next/link"`).
+3. Убедиться, что ссылки имеют правильный атрибут `href`:
+   ```tsx
+   // Было (не работает SPA):
+   <div className="..." onClick={() => window.location.href = '/student/lessons'}>Мои уроки</div>
+   /* или */ <a href="/student/lessons">Мои уроки</a>
+   
+   // Должно стать (работает мгновенно):
+   <Link href="/student/lessons" className="...">
+     Сюда иконка и текст "Мои уроки"
+   </Link>
+   ```
+
+### 2.4. Исправление редиректа после логина (Auth)
+
+Проблема: Админа перекидывает в кабинет учителя.
+**Файлы для редактирования:**
+- `src/app/api/auth/[...nextauth]/route.ts` (или кастомная страница логина `src/app/auth/signin/page.tsx`)
+
+**Действия:**
+1. В логике успешной авторизации (`callbackUrl` или функция редиректа внутри NextAuth) добавить явную проверку:
+   ```typescript
+   if (user.role === 'ADMIN') return '/admin';
+   if (user.role === 'TEACHER') return '/teacher';
+   if (user.role === 'STUDENT') return '/student';
+   ```
+
+### 2.5. Удаление / Исправление невидимого туториала (Onboarding Overlay)
+
+**Точная причина бага (найдено при сканировании):** Компонент туториала состоит из затемняющего фона (`z-index: 9998`) и информационного окна (`z-index: 10001`). Само окно с текстом ("Шаг 1 из 6. Добро пожаловать...") программно позиционируется по координате `top: 1369px`. Поскольку высота вашего экрана меньше 1200px, окно "улетает" за нижнюю границу браузера. В итоге вы видите только прозрачно-черный фон (`<div class="fixed inset-0 bg-black/50">`), который блокирует все клики.
+
+Проблема: Сразу после авторизации появляется полноэкранный невидимый слой, который перекрывает весь интерфейс и пропадает только по клику в пустоту.
+**Файлы для поиска:**
+- `src/components/Onboarding`, `src/components/Tutorial`, `src/components/WelcomeModal` или глобальный провайдер в `app/layout.tsx` / `app/(dashboard)/layout.tsx`.
+
+**Действия:**
+1. Найти компонент, который отвечает за этот туториал (вероятно, он использует библиотеку вроде `intro.js`, `react-joyride` или самописный полноэкранный `<div className="fixed inset-0 z-50">`).
+2. **Временное решение:** Полностью скрыть (закомментировать) вызов этого компонента, пока он не будет переписан нормально.
+3. **Правильное решение (на будущее):** Переписать туториал с помощью красивых и рабочих библиотек для онбординга (например, [react-joyride](https://docs.react-joyride.com/)), которые поэтапно и аккуратно подсвечивают элементы, а не просто вешают невидимый блок на весь экран.
+
+## 3. План тестирования (После внедрения вами изменений)
+
+1. **Главная страница:** Открыть `fatiha.ru` инкогнито. Убедиться, что шапка одна, красивая, с кнопкой "Войти".
+2. **Вход Админа:** Авторизоваться как админ. Система должна перекинуть на `/admin`, а в верхней части больше не должно быть надписи "Teacher Portal", только интерфейс администратора.
+3. **Меню Студента:** Авторизоваться как студент. Кликнуть на "Мои уроки", "Прогресс" и убедиться, что страница изменятся моментально без белой вспышки перезагрузки полного окна (благодаря `<Link>`).

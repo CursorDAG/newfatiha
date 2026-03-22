@@ -36,14 +36,35 @@ export const GET = withErrorHandling(async (req: Request) => {
           email: true,
         },
       },
-      _count: {
-        select: {
-          streams: true,
+      streams: {
+        include: {
+          _count: {
+            select: {
+              enrollments: true,
+              lessons: true,
+            },
+          },
         },
       },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json({ courses });
+  // Transform to match frontend expectations
+  const coursesWithStats = courses.map((course) => ({
+    id: course.id,
+    title: course.title,
+    description: course.description,
+    capacity: course.capacity,
+    published: course.published,
+    createdAt: course.createdAt,
+    teacher: course.teacher,
+    stats: {
+      streams: course.streams.length,
+      students: course.streams.reduce((sum, stream) => sum + stream._count.enrollments, 0),
+      lessons: course.streams.reduce((sum, stream) => sum + stream._count.lessons, 0),
+    },
+  }));
+
+  return NextResponse.json({ courses: coursesWithStats });
 });

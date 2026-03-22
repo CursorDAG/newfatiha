@@ -26,21 +26,28 @@ type Course = {
 export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
 
   const fetchCourses = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = new URLSearchParams();
       if (filter === "published") params.append("published", "true");
       if (filter === "draft") params.append("published", "false");
 
       const res = await fetch(`/api/admin/courses?${params}`);
-      if (!res.ok) throw new Error("Failed to fetch courses");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: "Failed to fetch courses" }));
+        throw new Error(errorData.error || "Failed to fetch courses");
+      }
       const data = await res.json();
-      setCourses(data.courses);
+      setCourses(data.courses || []);
     } catch (error) {
       console.error("Error fetching courses:", error);
+      setError(error instanceof Error ? error.message : "Не удалось загрузить курсы");
+      setCourses([]);
     } finally {
       setLoading(false);
     }
@@ -139,7 +146,24 @@ export default function AdminCoursesPage() {
 
           {loading ? (
             <div className="p-8 text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mb-3"></div>
               <p className="text-slate-600">Загрузка...</p>
+            </div>
+          ) : error ? (
+            <div className="p-8 text-center">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-red-600 font-medium mb-2">Ошибка загрузки</p>
+              <p className="text-slate-600 text-sm mb-4">{error}</p>
+              <button
+                onClick={fetchCourses}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+              >
+                Попробовать снова
+              </button>
             </div>
           ) : filteredCourses.length === 0 ? (
             <div className="p-8 text-center">

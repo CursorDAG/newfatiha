@@ -1,3 +1,5 @@
+import React from "react";
+
 type TeacherCardProps = {
   name: string;
   avatar: string | null;
@@ -6,6 +8,8 @@ type TeacherCardProps = {
 };
 
 export function TeacherCard({ name, avatar, bio, skills }: TeacherCardProps) {
+  const [imageError, setImageError] = React.useState(false);
+
   const initials = name
     .split(" ")
     .map((n) => n[0])
@@ -19,11 +23,12 @@ export function TeacherCard({ name, avatar, bio, skills }: TeacherCardProps) {
     <div className="group bg-white border border-slate-200 rounded-2xl p-7 hover:border-emerald-300 hover:shadow-xl transition-all duration-300">
       {/* Avatar */}
       <div className="flex justify-center mb-5">
-        {avatar ? (
+        {avatar && !imageError ? (
           <img
             src={avatar}
             alt={name}
             className="w-24 h-24 rounded-full object-cover border-4 border-emerald-100 group-hover:border-emerald-200 transition-colors"
+            onError={() => setImageError(true)}
           />
         ) : (
           <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white text-2xl font-bold border-4 border-emerald-100 group-hover:border-emerald-200 transition-colors">

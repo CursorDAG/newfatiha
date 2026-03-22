@@ -9,7 +9,9 @@ export default async function AuthRedirectPage() {
     redirect("/api/auth/signin");
   }
 
-  if (session.user.role === "STUDENT") {
+  if (session.user.role === "ADMIN") {
+    redirect("/admin");
+  } else if (session.user.role === "STUDENT") {
     redirect("/student");
   } else {
     redirect("/teacher");

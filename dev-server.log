@@ -1,6 +1,0 @@
-
-> temp-newfatiha@0.1.0 dev
-> node server.js
-
-⨯ Unable to acquire lock at D:\www\newfatiha\.next\dev\lock, is another instance of next dev running?
-  Suggestion: If you intended to restart next dev, terminate the other process, and then try again.

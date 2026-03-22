@@ -9,9 +9,20 @@ export default function Navbar({ userName, role }: { userName?: string | null; r
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const isTeacher = role === "TEACHER" || role === "ADMIN";
+  const isAdmin = role === "ADMIN";
+  const isTeacher = role === "TEACHER";
   const isStudent = role === "STUDENT";
   const isAuthenticated = !!role;
+
+  // Determine dashboard link based on role
+  const dashboardLink = isAdmin ? "/admin" : isTeacher ? "/teacher" : isStudent ? "/student" : "/";
+
+  const adminLinks = [
+    { href: "/admin/dashboard", label: "Dashboard" },
+    { href: "/admin/users", label: "Пользователи" },
+    { href: "/admin/courses", label: "Курсы" },
+    { href: "/admin/settings", label: "Настройки" },
+  ];
 
   const teacherLinks = [
     { href: "/teacher", label: "Мои курсы" },
@@ -31,7 +42,7 @@ export default function Navbar({ userName, role }: { userName?: string | null; r
     { href: "#", label: "Расписание" },
   ];
 
-  const links = isTeacher ? teacherLinks : (isStudent ? studentLinks : []);
+  const links = isAdmin ? adminLinks : isTeacher ? teacherLinks : isStudent ? studentLinks : [];
 
   return (
     <header className="bg-emerald-700 text-white shadow-md w-full shrink-0">
@@ -43,7 +54,7 @@ export default function Navbar({ userName, role }: { userName?: string | null; r
               Fatiha.ru
               {isAuthenticated && (
                 <span className="text-emerald-200 text-xs sm:text-sm font-normal ml-2 hidden sm:inline">
-                  {isTeacher ? "Teacher Portal" : "Student Portal"}
+                  {isAdmin ? "Admin Portal" : isTeacher ? "Teacher Portal" : "Student Portal"}
                 </span>
               )}
             </Link>
@@ -92,6 +103,14 @@ export default function Navbar({ userName, role }: { userName?: string | null; r
                     )}
                   </svg>
                 </button>
+
+                {/* Desktop: Link to dashboard */}
+                <Link
+                  href={dashboardLink}
+                  className="hidden md:block bg-white text-emerald-800 font-bold px-3 sm:px-5 py-2 rounded-xl text-xs sm:text-sm hover:bg-emerald-50 transition-all shadow-sm"
+                >
+                  Кабинет
+                </Link>
 
                 {/* Desktop logout */}
                 <Link

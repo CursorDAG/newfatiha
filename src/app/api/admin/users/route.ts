@@ -23,17 +23,19 @@ export const GET = withErrorHandling(async (req: Request) => {
   const offset = query.offset || 0;
 
   // Построение фильтров
-  const where: {
+  type WhereClause = {
     deletedAt: null;
     role?: "STUDENT" | "TEACHER" | "ADMIN" | "MODERATOR";
     isBlocked?: boolean;
     OR?: Array<{ email: { contains: string; mode: "insensitive" } } | { name: { contains: string; mode: "insensitive" } }>;
-  } = {
+  };
+
+  const where: WhereClause = {
     deletedAt: null, // Не показываем удаленных пользователей
   };
 
   if (query.role && ["STUDENT", "TEACHER", "ADMIN", "MODERATOR"].includes(query.role)) {
-    where.role = query.role as "STUDENT" | "TEACHER" | "ADMIN" | "MODERATOR";
+    where.role = query.role;
   }
 
   if (query.isBlocked !== undefined) {
@@ -42,8 +44,8 @@ export const GET = withErrorHandling(async (req: Request) => {
 
   if (query.search) {
     where.OR = [
-      { email: { contains: query.search, mode: "insensitive" } },
-      { name: { contains: query.search, mode: "insensitive" } },
+      { email: { contains: query.search, mode: "insensitive" as const } },
+      { name: { contains: query.search, mode: "insensitive" as const } },
     ];
   }
 

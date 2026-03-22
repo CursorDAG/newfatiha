@@ -15,6 +15,47 @@ interface NewChatModalProps {
   onSelectUser: (userId: string, userName: string) => void;
 }
 
+function UserListItem({
+  user,
+  onSelect,
+  getRoleBadge
+}: {
+  user: User;
+  onSelect: () => void;
+  getRoleBadge: (role: string) => React.ReactNode;
+}) {
+  const [imageError, setImageError] = useState(false);
+
+  return (
+    <button
+      onClick={onSelect}
+      className="w-full px-6 py-3 hover:bg-slate-50 transition-colors text-left border-b border-slate-100"
+    >
+      <div className="flex items-center gap-3">
+        {user.avatar && !imageError ? (
+          <img
+            src={user.avatar}
+            alt={user.name}
+            className="w-10 h-10 rounded-full object-cover"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold">
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className="font-medium text-slate-900 truncate">{user.name}</h3>
+            {getRoleBadge(user.role)}
+          </div>
+          <p className="text-sm text-slate-500 truncate">{user.email}</p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
 export function NewChatModal({ onClose, onSelectUser }: NewChatModalProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
@@ -117,24 +158,12 @@ export function NewChatModal({ onClose, onSelectUser }: NewChatModalProps) {
           ) : (
             <div>
               {users.map((user) => (
-                <button
+                <UserListItem
                   key={user.id}
-                  onClick={() => handleSelectUser(user.id, user.name)}
-                  className="w-full px-6 py-3 hover:bg-slate-50 transition-colors text-left border-b border-slate-100"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-slate-900 truncate">{user.name}</h3>
-                        {getRoleBadge(user.role)}
-                      </div>
-                      <p className="text-sm text-slate-500 truncate">{user.email}</p>
-                    </div>
-                  </div>
-                </button>
+                  user={user}
+                  onSelect={() => handleSelectUser(user.id, user.name)}
+                  getRoleBadge={getRoleBadge}
+                />
               ))}
             </div>
           )}

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { teacherSteps } from "@/components/onboarding/teacherSteps";
-import { OnboardingTooltip } from "@/components/onboarding/OnboardingTooltip";
+// import { OnboardingTooltip } from "@/components/onboarding/OnboardingTooltip"; // Временно отключено - блокирует экран
 import {
   Home,
   BookOpen,
@@ -91,7 +91,7 @@ export default function TeacherShell({
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800" data-onboarding="teacher-dashboard">
-      <OnboardingTooltip />
+      {/* <OnboardingTooltip /> */} {/* Временно отключено - блокирует экран */}
 
       {/* Loading overlay */}
       {loading && (

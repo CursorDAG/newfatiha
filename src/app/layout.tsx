@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import Navbar from "@/components/Navbar";
+import ConditionalNavbar from "@/components/ConditionalNavbar";
 import { SessionProvider } from "@/components/SessionProvider";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
 import "./globals.css";
@@ -57,7 +57,7 @@ export default async function RootLayout({
       >
         <SessionProvider>
           <OnboardingProvider>
-            <Navbar userName={session?.user?.name} role={session?.user?.role} />
+            <ConditionalNavbar userName={session?.user?.name} role={session?.user?.role} />
             <div className="flex-1 flex flex-col items-stretch justify-start">
               {children}
             </div>

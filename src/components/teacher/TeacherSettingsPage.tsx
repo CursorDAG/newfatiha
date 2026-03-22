@@ -86,15 +86,24 @@ const STRENGTH_TEXT_COLORS = ["", "text-red-500", "text-amber-500", "text-emeral
 
 /** Avatar circle — image or initials */
 function AvatarCircle({ src, name, size = 64 }: { src: string | null; name: string; size?: number }) {
+  const [imageError, setImageError] = React.useState(false);
   const initials = name
     .split(" ")
     .map((w) => w[0]?.toUpperCase() ?? "")
     .slice(0, 2)
     .join("");
-  if (src) {
+  if (src && !imageError) {
     return (
       <div className="rounded-full overflow-hidden shrink-0 bg-slate-200 ring-4 ring-white shadow-md" style={{ width: size, height: size }}>
-        <Image src={src} alt={name} width={size} height={size} className="object-cover w-full h-full" unoptimized />
+        <Image
+          src={src}
+          alt={name}
+          width={size}
+          height={size}
+          className="object-cover w-full h-full"
+          unoptimized
+          onError={() => setImageError(true)}
+        />
       </div>
     );
   }

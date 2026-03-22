@@ -35,6 +35,7 @@ export function MessageItem({
   onDelete,
   canDelete = false,
 }: MessageItemProps) {
+  const [imageError, setImageError] = React.useState(false);
   const isOwn = message.senderId === currentUserId;
   const createdAt = new Date(message.createdAt);
   const timeStr = createdAt.toLocaleTimeString("ru-RU", {
@@ -58,11 +59,12 @@ export function MessageItem({
     >
       {/* Avatar */}
       <div className="flex-shrink-0">
-        {message.sender.avatar ? (
+        {message.sender.avatar && !imageError ? (
           <img
             src={message.sender.avatar}
             alt={message.sender.name}
-            className="w-8 h-8 rounded-full"
+            className="w-8 h-8 rounded-full object-cover"
+            onError={() => setImageError(true)}
           />
         ) : (
           <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-sm font-medium">
