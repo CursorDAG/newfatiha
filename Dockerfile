@@ -31,11 +31,11 @@ COPY --from=builder /app/prisma ./prisma
 # Copy Next.js standalone output (compiled pages structure + standalone server.js)
 COPY --from=builder /app/.next/standalone ./
 
-# Install all production runtime dependencies (socket.io, prisma, pino, nodemailer, etc.)
-# Uses --omit=dev to skip devDependencies (vitest, eslint, husky, etc.)
-# This overwrites standalone's pruned node_modules with the full production set
-COPY --from=builder /app/package.json /app/package-lock.json ./
-RUN npm ci --omit=dev
+# Copy full node_modules from deps stage, then prune devDependencies.
+# npm prune just deletes files — no network downloads, minimal RAM usage.
+# This is safe on low-RAM servers unlike npm ci --omit=dev.
+COPY --from=deps /app/node_modules ./node_modules
+RUN npm prune --omit=dev
 
 # Install tsx globally for TypeScript server execution at runtime
 RUN npm install -g tsx
