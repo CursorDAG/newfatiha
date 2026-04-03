@@ -103,20 +103,20 @@ export default function TeacherShell({
         </div>
       )}
 
-      {/* Help button */}
+      {/* Help button - z-20 чтобы не перекрывал меню */}
       <button
         onClick={handleRestartOnboarding}
-        className="fixed top-20 right-4 z-30 bg-emerald-600 text-white rounded-xl shadow-lg p-3 hover:bg-emerald-700 transition-colors"
+        className="fixed top-20 right-4 z-20 bg-emerald-600 text-white rounded-xl shadow-lg p-3 hover:bg-emerald-700 transition-colors"
         aria-label="Помощь"
         title="Показать обучение"
       >
         <Info className="w-5 h-5" />
       </button>
 
-      {/* Mobile menu button */}
+      {/* Mobile menu button - z-40 чтобы был выше help button */}
       <button
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        className="lg:hidden fixed top-20 left-4 z-30 bg-white rounded-xl shadow-lg p-3 border border-slate-200 hover:bg-slate-50 transition-colors"
+        className="lg:hidden fixed top-20 left-4 z-40 bg-white rounded-xl shadow-lg p-3 border border-slate-200 hover:bg-slate-50 transition-colors"
         aria-label="Открыть меню"
       >
         {mobileMenuOpen ? (
@@ -126,22 +126,31 @@ export default function TeacherShell({
         )}
       </button>
 
-      {/* Mobile menu overlay */}
+      {/* Mobile menu overlay - z-30 чтобы был под меню но над help button */}
       {mobileMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-20"
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
 
       <main className="w-full px-8 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Sidebar - на мобильных это модальное меню */}
         <nav
-          className={`lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-2 h-fit transition-transform lg:translate-x-0 ${
+          className={`lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-2 h-fit transition-transform lg:translate-x-0 relative ${
             mobileMenuOpen
-              ? "fixed left-4 right-4 top-32 z-30 max-h-[calc(100vh-9rem)] overflow-y-auto"
+              ? "fixed inset-4 top-32 z-40 max-h-[calc(100vh-9rem)] overflow-y-auto"
               : "hidden lg:block"
           }`}
         >
+          {/* Кнопка закрытия для мобильного меню */}
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="lg:hidden absolute top-3 right-3 p-2 rounded-lg hover:bg-slate-100 transition-colors"
+            aria-label="Закрыть меню"
+          >
+            <X className="w-5 h-5 text-slate-600" />
+          </button>
           {tabs.map((t) => (
             <button
               key={t.id}

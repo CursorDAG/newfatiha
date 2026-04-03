@@ -19,10 +19,10 @@ export default function Navbar({ userName, role }: { userName?: string | null; r
   const dashboardLink = isAdmin ? "/admin" : isTeacher ? "/teacher" : isStudent ? "/student" : "/";
 
   const adminLinks = [
-    { href: "/admin/dashboard", label: "Dashboard" },
+    { href: "/admin/dashboard", label: "Дашборд" },
     { href: "/admin/users", label: "Пользователи" },
     { href: "/admin/courses", label: "Курсы" },
-    { href: "/admin/settings", label: "Настройки" },
+    { href: "/admin/teacher-applications", label: "Заявки учителей" },
   ];
 
   const teacherLinks = [

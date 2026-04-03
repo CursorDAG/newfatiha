@@ -2,17 +2,62 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: fatiha_postgres
     restart: always
     environment:
-      POSTGRES_USER: fatiha_user
-      POSTGRES_PASSWORD: fatiha_pass
-      POSTGRES_DB: fatiha_db
+      POSTGRES_USER: ${POSTGRES_USER:-fatiha_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fatiha_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-fatiha_db}
     ports:
       - "5432:5432"
     volumes:
       - fatiha_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fatiha_user} -d ${POSTGRES_DB:-fatiha_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fatiha_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fatiha_app
+    restart: always
+    env_file:
+      - .env.production
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fatiha_user}:${POSTGRES_PASSWORD:-fatiha_pass}@db:5432/${POSTGRES_DB:-fatiha_db}?connection_limit=20
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - fatiha_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: fatiha_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      - app
+    networks:
+      - fatiha_network
 
 volumes:
   fatiha_pgdata:
+
+networks:
+  fatiha_network:
+    driver: bridge

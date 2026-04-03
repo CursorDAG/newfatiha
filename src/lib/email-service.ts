@@ -38,6 +38,8 @@ import {
   type EnrollmentRequestRejectedData,
   type EnrollmentConfirmedData,
   type PasswordResetData,
+  type UserBlockedData,
+  type UserUnblockedData,
 } from "@/lib/email/templates";
 
 /**
@@ -233,6 +235,22 @@ export class EmailService {
    */
   static async sendPasswordReset(to: string, data: PasswordResetData): Promise<void> {
     const { subject, html, text } = passwordResetTemplate(data);
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  /**
+   * Send user blocked notification
+   */
+  static async sendUserBlocked(to: string, data: UserBlockedData): Promise<void> {
+    const { subject, html, text } = userBlockedTemplate(data);
+    await this.sendEmail({ to, subject, html, text });
+  }
+
+  /**
+   * Send user unblocked notification
+   */
+  static async sendUserUnblocked(to: string, data: UserUnblockedData): Promise<void> {
+    const { subject, html, text } = userUnblockedTemplate(data);
     await this.sendEmail({ to, subject, html, text });
   }
 }

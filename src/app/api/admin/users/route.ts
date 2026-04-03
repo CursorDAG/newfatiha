@@ -19,7 +19,8 @@ export const GET = withErrorHandling(async (req: Request) => {
 
   const query = validateQuery(req, getUsersQuerySchema);
 
-  const limit = query.limit || 50;
+  // Ограничиваем максимальный лимит для защиты от DoS
+  const limit = Math.min(query.limit || 50, 100);
   const offset = query.offset || 0;
 
   // Построение фильтров

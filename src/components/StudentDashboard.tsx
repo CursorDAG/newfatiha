@@ -593,34 +593,44 @@ export default function StudentDashboard({
         </div>
       )}
 
-      {/* Mobile menu button */}
-      <button
-        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        className="lg:hidden fixed top-4 left-4 z-30 bg-white rounded-xl shadow-lg p-3 border border-slate-200 hover:bg-slate-50 transition-colors"
-        aria-label="Открыть меню"
-      >
-        {mobileMenuOpen ? (
-          <X className="w-6 h-6 text-slate-700" />
-        ) : (
-          <Menu className="w-6 h-6 text-slate-700" />
-        )}
-      </button>
+      {/* Mobile menu button - скрыт на страницах где есть StudentHeader с собственным меню */}
+      {/* Кнопка перемещена в sidebar для избежания дублирования со StudentHeader */}
 
-      {/* Mobile menu overlay */}
+      {/* Mobile menu overlay - затемнение фона */}
       {mobileMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-20"
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
 
+      {/* Кнопка открытия мобильного меню - отображается только на мобильных когда меню закрыто */}
+      {/* Эта кнопка нужна для навигации по табам (Главная, Уроки, Д/З, Тесты, Прогресс, Расписание, Информация) */}
+      <button
+        onClick={() => setMobileMenuOpen(true)}
+        className="lg:hidden fixed top-20 left-4 z-20 bg-white rounded-xl shadow-lg p-3 border border-slate-200 hover:bg-slate-50 transition-colors"
+        aria-label="Открыть меню навигации"
+      >
+        <Menu className="w-6 h-6 text-slate-700" />
+      </button>
+
       <div className="w-full px-8 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* ── Sidebar ────────────────────────────────────────────────── */}
-        <nav className={`lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-2 h-fit transition-transform lg:translate-x-0 ${
+        {/* На мобильных: показывается как модальное меню с кнопкой закрытия */}
+        {/* На десктопе: статический sidebar */}
+        <nav className={`lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-2 h-fit transition-transform lg:translate-x-0 relative ${
           mobileMenuOpen
-            ? "fixed left-4 right-4 top-20 z-30 max-h-[calc(100vh-6rem)] overflow-y-auto"
+            ? "fixed inset-4 top-20 z-40 max-h-[calc(100vh-6rem)] overflow-y-auto"
             : "hidden lg:block"
         }`}>
+          {/* Кнопка закрытия для мобильного меню */}
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="lg:hidden absolute top-3 right-3 p-2 rounded-lg hover:bg-slate-100 transition-colors"
+            aria-label="Закрыть меню"
+          >
+            <X className="w-5 h-5 text-slate-600" />
+          </button>
           {/* User block */}
           <div className="pb-6 mb-4 border-b border-slate-200">
             <div className="w-14 h-14 rounded-full bg-emerald-100 border-2 border-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-xl mb-3">

@@ -185,8 +185,9 @@ export class NotificationService {
         metadata: params.metadata,
       });
 
-      // TODO: Send emails if sendEmail is true
-      // This would require extending EmailService with a broadcast method
+      // Note: Email broadcasting not implemented yet
+      // When needed, iterate through userIds and send individual emails
+      // checking preferences with shouldSendEmail() for each user
       if (params.sendEmail) {
         logger.info({ userCount: userIds.length }, "Email broadcast requested but not yet implemented");
       }
@@ -349,7 +350,7 @@ export class NotificationService {
       type: "HOMEWORK_ASSIGNED",
       title: "Новое домашнее задание",
       message: `Задание: ${assignment.title}`,
-      link: `/student`, // TODO: добавить прямую ссылку на ДЗ
+      link: `/student?tab=homework&assignmentId=${assignmentId}`,
     });
 
     // Send email notifications
@@ -420,7 +421,7 @@ export class NotificationService {
       type: "HOMEWORK_CHECKED",
       title: "Домашнее задание проверено",
       message: `Ваша работа "${submission.assignment.title}" ${statusText}`,
-      link: `/student`, // TODO: добавить прямую ссылку на результат
+      link: `/student?tab=homework&assignmentId=${submission.assignmentId}`,
     });
 
     // Send email notification
