@@ -19,4 +19,3 @@ prisma/migrations/
 *.spec.ts
 __tests__
 vitest.config.ts
-sentry.*.config.ts
