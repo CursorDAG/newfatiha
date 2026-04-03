@@ -28,11 +28,16 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Copy Prisma schema and migrations
 COPY --from=builder /app/prisma ./prisma
 
-# Copy Next.js standalone output (compiled pages + pruned production node_modules + server.js)
-# Standalone's node_modules contains only production runtime deps (much smaller than full node_modules)
+# Copy Next.js standalone output (compiled pages structure + standalone server.js)
 COPY --from=builder /app/.next/standalone ./
 
-# Install tsx globally — needed to run server.ts at runtime (~50MB vs 500MB for full node_modules)
+# Install all production runtime dependencies (socket.io, prisma, pino, nodemailer, etc.)
+# Uses --omit=dev to skip devDependencies (vitest, eslint, husky, etc.)
+# This overwrites standalone's pruned node_modules with the full production set
+COPY --from=builder /app/package.json /app/package-lock.json ./
+RUN npm ci --omit=dev
+
+# Install tsx globally for TypeScript server execution at runtime
 RUN npm install -g tsx
 
 # Copy compiled static assets and public files
