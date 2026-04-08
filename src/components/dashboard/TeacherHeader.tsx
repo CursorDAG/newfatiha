@@ -12,7 +12,7 @@ type TeacherHeaderProps = {
   teacherEmail?: string;
 };
 
-export default function TeacherHeader({ teacherName, teacherEmail }: TeacherHeaderProps) {
+export default function TeacherHeader({ teacherName }: TeacherHeaderProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -25,45 +25,48 @@ export default function TeacherHeader({ teacherName, teacherEmail }: TeacherHead
 
   return (
     <header className="bg-emerald-700 text-white shadow-md w-full shrink-0">
-      <div className="w-full px-8 py-4">
-        <div className="flex justify-between items-center">
-          {/* Logo */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex items-center gap-4">
+          {/* Logo — consistent with landing page */}
           <div className="flex-shrink-0">
-            <Link href="/teacher" className="text-lg sm:text-xl font-bold tracking-tight hover:text-emerald-100 transition-colors">
-              Fatiha.ru
-              <span className="text-emerald-200 text-xs sm:text-sm font-normal ml-2 hidden sm:inline">
-                Teacher Portal
+            <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+              <span className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-700 border border-white/20 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md">
+                ف
+              </span>
+              <span className="text-lg sm:text-xl font-extrabold tracking-tight">
+                Fatiha<span className="text-emerald-200">.ru</span>
               </span>
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex gap-1 bg-emerald-800/50 rounded-xl p-1">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname === link.href || (link.href !== "/teacher" && pathname?.startsWith(link.href));
-              return (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
-                    isActive
-                      ? "bg-white text-emerald-800 shadow-sm"
-                      : "text-emerald-100 hover:text-white hover:bg-emerald-600/50"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {link.label}
-                </Link>
-              );
-            })}
+          {/* Desktop Navigation — centred, takes available space */}
+          <nav className="hidden md:flex flex-1 justify-center min-w-0">
+            <div className="flex gap-1 bg-emerald-800/50 rounded-xl p-1">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                const isActive = pathname === link.href || (link.href !== "/teacher" && pathname?.startsWith(link.href));
+                return (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
+                      isActive
+                        ? "bg-white text-emerald-800 shadow-sm"
+                        : "text-emerald-100 hover:text-white hover:bg-emerald-600/50"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
           </nav>
 
-          {/* Right side actions */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          {/* Right side actions — always shrink-0 so they never get squeezed */}
+          <div className="flex-shrink-0 flex items-center gap-2 sm:gap-3 ml-auto">
             <NotificationBell />
 
-            {/* Profile info */}
             <div className="hidden lg:flex items-center gap-2 text-emerald-100">
               <User className="w-4 h-4" />
               <span className="text-xs sm:text-sm font-medium max-w-[120px] truncate">
@@ -77,14 +80,9 @@ export default function TeacherHeader({ teacherName, teacherEmail }: TeacherHead
               className="md:hidden p-2 rounded-lg hover:bg-emerald-600/50 transition-colors"
               aria-label="Открыть меню"
             >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            {/* Desktop logout button */}
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
               className="hidden md:flex items-center gap-2 text-emerald-200 hover:text-white text-sm font-medium transition-colors whitespace-nowrap"
