@@ -48,43 +48,45 @@ export default function Navbar({ userName, role }: { userName?: string | null; r
   return (
     <header className="bg-emerald-700 text-white shadow-md w-full shrink-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex justify-between items-center">
-          {/* Logo */}
+        <div className="flex items-center gap-4">
+          {/* Logo — matches landing page style */}
           <div className="flex-shrink-0">
-            <Link href="/" className="text-lg sm:text-xl font-bold tracking-tight hover:text-emerald-100 transition-colors">
-              Fatiha.ru
-              {isAuthenticated && (
-                <span className="text-emerald-200 text-xs sm:text-sm font-normal ml-2 hidden sm:inline">
-                  {isAdmin ? "Admin Portal" : isTeacher ? "Teacher Portal" : "Student Portal"}
-                </span>
-              )}
+            <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+              <span className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-700 border border-white/20 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md">
+                ف
+              </span>
+              <span className="text-lg sm:text-xl font-extrabold tracking-tight">
+                Fatiha<span className="text-emerald-200">.ru</span>
+              </span>
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation — centred, takes available space */}
           {isAuthenticated && (
-            <nav className="hidden md:flex gap-1 bg-emerald-800/50 rounded-xl p-1">
-              {links.map((link) => {
-                const isActive = pathname === link.href || (link.href !== "#" && pathname.startsWith(link.href) && link.href !== "/teacher" && link.href !== "/student");
-                return (
-                  <Link
-                    key={link.label}
-                    href={link.href}
-                    className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-semibold transition-all whitespace-nowrap ${
-                      isActive
-                        ? "bg-white text-emerald-800 shadow-sm"
-                        : "text-emerald-100 hover:text-white hover:bg-emerald-600/50"
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
+            <nav className="hidden md:flex flex-1 justify-center min-w-0">
+              <div className="flex gap-1 bg-emerald-800/50 rounded-xl p-1">
+                {links.map((link) => {
+                  const isActive = pathname === link.href || (link.href !== "#" && pathname.startsWith(link.href) && link.href !== "/teacher" && link.href !== "/student");
+                  return (
+                    <Link
+                      key={link.label}
+                      href={link.href}
+                      className={`px-3 lg:px-4 py-2 rounded-lg text-xs lg:text-sm font-semibold transition-all whitespace-nowrap ${
+                        isActive
+                          ? "bg-white text-emerald-800 shadow-sm"
+                          : "text-emerald-100 hover:text-white hover:bg-emerald-600/50"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                })}
+              </div>
             </nav>
           )}
 
-          {/* Right side actions */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          {/* Right side actions — always shrink-0 so they never get squeezed */}
+          <div className="flex-shrink-0 flex items-center gap-2 sm:gap-3 ml-auto">
             {isAuthenticated ? (
               <>
                 <NotificationBell />
@@ -121,7 +123,7 @@ export default function Navbar({ userName, role }: { userName?: string | null; r
               </>
             ) : (
               <>
-                {pathname !== '/' && (
+                {pathname !== "/" && (
                   <Link
                     href="/"
                     className="text-emerald-200 hover:text-white text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
