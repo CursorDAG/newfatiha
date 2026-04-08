@@ -28,7 +28,6 @@ import {
 import LiveJitsiEmbed from "@/components/student/LiveJitsiEmbed";
 import StudentProgressDashboard from "@/components/student/StudentProgressDashboard";
 import StudentInfoTab from "@/components/student/StudentInfoTab";
-import StudentHeader from "@/components/dashboard/StudentHeader";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { studentSteps } from "@/components/onboarding/studentSteps";
 // import { OnboardingTooltip } from "@/components/onboarding/OnboardingTooltip"; // Временно отключено - блокирует экран
@@ -561,7 +560,6 @@ export default function StudentDashboard({
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800" data-onboarding="student-dashboard">
-      <StudentHeader studentName={userName} studentEmail={_userEmail} />
       {/* <OnboardingTooltip /> */} {/* Временно отключено - блокирует экран */}
 
       {/* Help button */}

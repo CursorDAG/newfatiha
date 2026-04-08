@@ -4,7 +4,6 @@ import React, { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import { signOut } from "next-auth/react";
 import { User, Lock, Info, Eye, EyeOff, Camera, X, AlertTriangle, Copy, Check } from "lucide-react";
-import TeacherHeader from "@/components/dashboard/TeacherHeader";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -629,7 +628,6 @@ export default function TeacherSettingsPage({
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-slate-50">
-      <TeacherHeader teacherName={userName ?? undefined} />
       <div className="max-w-5xl mx-auto px-4 py-10">
         {/* Page header */}
         <div className="mb-8">

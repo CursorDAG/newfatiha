@@ -50,6 +50,7 @@ export default async function RootLayout({
       </head>
       <body
         className={`${plusJakartaSans.variable} antialiased min-h-screen flex flex-col bg-slate-50`}
+        style={{ scrollbarGutter: "stable" }}
       >
         <SessionProvider>
           <OnboardingProvider>

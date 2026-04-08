@@ -15,31 +15,18 @@ export default function ConditionalNavbar({
 }) {
   const pathname = usePathname();
 
-  // Pages that manage their own header entirely — skip global header
-  if (
-    pathname === "/" ||
-    pathname?.startsWith("/admin") ||
-    pathname?.startsWith("/teacher") ||
-    pathname?.startsWith("/student")
-  ) {
-    return null;
-  }
+  // Landing page has its own custom header
+  if (pathname === "/") return null;
 
-  // Authenticated users get their role-specific header on all other pages
-  // (e.g. /chat, /notifications, /settings/*, /catalog, /courses, /join/*)
-  // This keeps the look identical to the dashboard header.
-  if (role === "TEACHER") {
-    return <TeacherHeader teacherName={userName ?? undefined} />;
-  }
+  // Admin pages manage their own header inside AdminLayout (sidebar layout)
+  if (pathname?.startsWith("/admin")) return null;
 
-  if (role === "STUDENT") {
-    return <StudentHeader studentName={userName ?? undefined} />;
-  }
+  // All other pages — use role-specific header from root layout so it
+  // is a SINGLE persistent instance and never jumps on navigation.
+  if (role === "TEACHER") return <TeacherHeader teacherName={userName ?? undefined} />;
+  if (role === "STUDENT") return <StudentHeader studentName={userName ?? undefined} />;
+  if (role === "ADMIN")   return <AdminHeader   adminName={userName ?? undefined} />;
 
-  if (role === "ADMIN") {
-    return <AdminHeader adminName={userName ?? undefined} />;
-  }
-
-  // Unauthenticated visitors — generic header with login button
+  // Unauthenticated visitors
   return <Navbar userName={userName} role={role} />;
 }
