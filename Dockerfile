@@ -1,58 +1,34 @@
-# Stage 1: Install dependencies
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Stage 2: Build
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npx prisma generate
 ENV NEXT_TELEMETRY_DISABLED=1
-# Increase Node.js heap for Next.js build on low-memory servers (< 2GB RAM)
 ENV NODE_OPTIONS="--max-old-space-size=1536"
 RUN npm run build
 
-# Stage 3: Production
 FROM node:20-alpine AS runner
 WORKDIR /app
-
 RUN apk add --no-cache bash
-
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-
-# Copy Prisma schema and migrations
 COPY --from=builder /app/prisma ./prisma
-
-# Copy Next.js standalone output (compiled pages structure + standalone server.js)
-COPY --from=builder /app/.next/standalone ./
-
-# Copy full node_modules from deps stage, then prune devDependencies.
-# npm prune just deletes files — no network downloads, minimal RAM usage.
-# This is safe on low-RAM servers unlike npm ci --omit=dev.
-COPY --from=deps /app/node_modules ./node_modules
-RUN npm prune --omit=dev
-
-# Install tsx globally for TypeScript server execution at runtime
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+RUN npx prisma generate
 RUN npm install -g tsx
-
-# Copy compiled static assets and public files
-COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-
-# Copy TypeScript source files needed by server.ts at runtime (socket-server, memory-monitor, etc.)
 COPY --from=builder /app/src ./src
-
-# Copy custom server entry point
 COPY --from=builder /app/server.ts ./server.ts
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
-
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-
 CMD ["tsx", "server.ts"]

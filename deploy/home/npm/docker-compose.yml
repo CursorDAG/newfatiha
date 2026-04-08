@@ -1,0 +1,46 @@
+# =============================================================
+# Nginx Proxy Manager — Внутренний диспетчер (LXC 1)
+# =============================================================
+#
+# NPM — это центральный маршрутизатор для всех приложений
+# на домашнем сервере. Он получает HTTP-трафик из WireGuard
+# туннеля и перенаправляет его на нужный LXC по заголовку Host.
+#
+# NPM НЕ занимается SSL — сертификаты терминируются на VPS.
+# NPM работает только с чистым HTTP.
+#
+# Запуск: docker compose up -d
+#
+# Первый вход в Admin UI:
+#   URL:      http://<IP_ЭТОГО_LXC>:81
+#   Email:    admin@example.com
+#   Пароль:   changeme
+#   (Смените при первом входе!)
+
+services:
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: npm
+    restart: always
+    ports:
+      # HTTP — входящий трафик от WireGuard (VPS → Home → NPM)
+      - "80:80"
+      # Admin UI — доступен только из локальной сети
+      - "81:81"
+      # HTTPS — не используется (SSL на VPS), но оставлен на будущее
+      - "443:443"
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    environment:
+      # Отключить IPv6 если не используется
+      DISABLE_IPV6: "true"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:81/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  npm_data:
+  npm_letsencrypt:

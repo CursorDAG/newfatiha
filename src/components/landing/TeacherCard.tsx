@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import { useState } from "react";
 
 type TeacherCardProps = {
   name: string;
@@ -8,7 +9,7 @@ type TeacherCardProps = {
 };
 
 export function TeacherCard({ name, avatar, bio, skills }: TeacherCardProps) {
-  const [imageError, setImageError] = React.useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const initials = name
     .split(" ")

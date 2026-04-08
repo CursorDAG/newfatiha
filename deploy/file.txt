@@ -1,0 +1,4 @@
+root@cv6318779:~# echo "VPS Private Key: $(cat /etc/wireguard/vps_privatekey)"
+VPS Private Key: OOcZbQ8+FnPEv0+EumXJV8E5VVi786iEfRLT714tnkk=
+root@cv6318779:~# echo "VPS Public Key:  $(cat /etc/wireguard/vps_publickey)"
+VPS Public Key:  +CSZD+Rqhowm+yJ0RTuLae0EpU4bNX2hvlqevO1s/G8=

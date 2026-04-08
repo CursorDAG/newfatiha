@@ -257,115 +257,118 @@ export default function TeacherApplicationsTab() {
               key={request.id}
               className="bg-white rounded-xl shadow-md border border-slate-200 p-6"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-bold text-slate-800">
-                      {request.student.name}
-                    </h3>
-                    {getStatusBadge(request.status)}
-                  </div>
-                  <div className="text-sm text-slate-600 space-y-1">
-                    <div>📧 {request.student.email}</div>
-                    <div>
-                      📚 {request.stream.course.title} • {request.stream.name}
+              <div className="space-y-4">
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-bold text-slate-800">
+                        {request.student.name}
+                      </h3>
+                      {getStatusBadge(request.status)}
                     </div>
-                    <div>
-                      {request.student.gender === "MALE" && "♂ Мужской"}
-                      {request.student.gender === "FEMALE" && "♀ Женский"}
+                    <div className="text-sm text-slate-600 space-y-1">
+                      <div>📧 {request.student.email}</div>
+                      <div>
+                        📚 {request.stream.course.title} • {request.stream.name}
+                      </div>
+                      <div>
+                        {request.student.gender === "MALE" && "♂ Мужской"}
+                        {request.student.gender === "FEMALE" && "♀ Женский"}
+                      </div>
+                      <div>📅 Подана: {new Date(request.createdAt).toLocaleDateString("ru-RU")}</div>
                     </div>
-                    <div>📅 Подана: {new Date(request.createdAt).toLocaleDateString("ru-RU")}</div>
                   </div>
                 </div>
-              </div>
 
-              {/* Student message */}
-              {request.message && (
-                <div className="mb-4 p-4 bg-slate-50 rounded-lg">
-                  <div className="text-xs font-semibold text-slate-500 mb-1">
-                    Сообщение от студента:
+                {/* Student message */}
+                {request.message && (
+                  <div className="p-4 bg-slate-50 rounded-lg">
+                    <div className="text-xs font-semibold text-slate-500 mb-1">
+                      Сообщение от студента:
+                    </div>
+                    <div className="text-sm text-slate-700">{request.message}</div>
                   </div>
-                  <div className="text-sm text-slate-700">{request.message}</div>
-                </div>
-              )}
+                )}
 
-              {/* Rejection reason */}
-              {request.status === "REJECTED" && request.rejectionReason && (
-                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="text-xs font-semibold text-red-700 mb-1">
-                    Причина отклонения:
+                {/* Rejection reason */}
+                {request.status === "REJECTED" && request.rejectionReason && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="text-xs font-semibold text-red-700 mb-1">
+                      Причина отклонения:
+                    </div>
+                    <div className="text-sm text-red-800">{request.rejectionReason}</div>
                   </div>
-                  <div className="text-sm text-red-800">{request.rejectionReason}</div>
-                </div>
-              )}
+                )}
 
-              {/* Actions */}
-              {request.status === "PENDING_REVIEW" && (
-                <div className="flex gap-3">
-                  {rejectingId === request.id ? (
-                    <div className="flex-1 space-y-3">
-                      <textarea
-                        value={rejectionReason}
-                        onChange={(e) => setRejectionReason(e.target.value)}
-                        placeholder="Укажите причину отклонения..."
-                        rows={3}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                      />
-                      <div className="flex gap-2">
+                {/* Actions */}
+                {request.status === "PENDING_REVIEW" && (
+                  <div className="flex gap-3">
+                    {rejectingId === request.id ? (
+                      <div className="flex-1 space-y-3">
+                        <textarea
+                          value={rejectionReason}
+                          onChange={(e) => setRejectionReason(e.target.value)}
+                          placeholder="Укажите причину отклонения..."
+                          rows={3}
+                          className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleReject(request.id)}
+                            disabled={processingId === request.id || !rejectionReason.trim()}
+                            variant="danger"
+                          >
+                            Отклонить
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setRejectingId(null);
+                              setRejectionReason("");
+                            }}
+                            variant="secondary"
+                          >
+                            Отмена
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
                         <Button
-                          onClick={() => handleReject(request.id)}
-                          disabled={processingId === request.id || !rejectionReason.trim()}
+                          onClick={() => handleApprove(request.id)}
+                          disabled={processingId === request.id}
+                          variant="primary"
+                        >
+                          ✓ Одобрить
+                        </Button>
+                        <Button
+                          onClick={() => setRejectingId(request.id)}
+                          disabled={processingId === request.id}
                           variant="danger"
                         >
-                          Отклонить
+                          ✗ Отклонить
                         </Button>
-                        <Button
-                          onClick={() => {
-                            setRejectingId(null);
-                            setRejectionReason("");
-                          }}
-                          variant="secondary"
-                        >
-                          Отмена
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <Button
-                        onClick={() => handleApprove(request.id)}
-                        disabled={processingId === request.id}
-                        variant="primary"
-                      >
-                        ✓ Одобрить
-                      </Button>
-                      <Button
-                        onClick={() => setRejectingId(request.id)}
-                        disabled={processingId === request.id}
-                        variant="danger"
-                      >
-                        ✗ Отклонить
-                      </Button>
-                    </>
-                  )}
-                </div>
-              )}
-
-              {request.status === "APPROVED_PENDING_PAYMENT" && (
-                <div className="space-y-3">
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-                    💳 Ожидается оплата{" "}
-                    {request.stream.price && `${request.stream.price} ${request.stream.currency}`}
+                      </>
+                    )}
                   </div>
-                  <Button
-                    onClick={() => handleConfirmPayment(request.id)}
-                    disabled={processingId === request.id}
-                    variant="primary"
-                  >
-                    Подтвердить оплату
-                  </Button>
-                </div>
-              )}
+                )}
+
+                {request.status === "APPROVED_PENDING_PAYMENT" && (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                      💳 Ожидается оплата{" "}
+                      {request.stream.price && `${request.stream.price} ${request.stream.currency}`}
+                    </div>
+                    <Button
+                      onClick={() => handleConfirmPayment(request.id)}
+                      disabled={processingId === request.id}
+                      variant="primary"
+                    >
+                      Подтвердить оплату
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>

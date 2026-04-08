@@ -1,0 +1,30 @@
+---
+description: AI Agent Context - Auto-load relevant docs based on task type
+globs: **/*
+---
+
+# AI Agent Rules
+
+При работе с кодом:
+
+## При изменении API роутов
+Читай: `docs/agent/api-patterns.md`
+
+## При работе с компонентами
+Читай: `docs/agent/conventions.md`
+
+## При изменении схемы БД
+Читай: `docs/agent/architecture.md` + `prisma/schema.prisma`
+
+## При добавлении фич
+Читай: `docs/agent/features.md` для понимания существующих потоков
+
+## При настройке/деплое
+Читай: `docs/agent/common-tasks.md` для troubleshooting
+
+## Общие правила
+- ВСЕГДА используй `withErrorHandling` в API роутах
+- ВСЕГДА импортируй Prisma из `@/lib/prisma`
+- ВСЕГДА русский язык для UI
+- ВСЕГДА `prisma migrate dev`, НЕ `prisma db push`
+- ВСЕГДА `@/*` импорты, НЕ relative paths

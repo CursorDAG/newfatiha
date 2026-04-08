@@ -1,0 +1,58 @@
+# =============================================================
+# Fatiha.ru — Next.js + PostgreSQL (LXC 2)
+# =============================================================
+#
+# Упрощённая версия: без Nginx (маршрутизация через NPM).
+# PostgreSQL НЕ выставлен наружу — доступен только изнутри.
+#
+# Перед запуском:
+#   1. Скопируйте Dockerfile из корня проекта в эту директорию
+#      (или укажите правильный context/path)
+#   2. Создайте .env.production из .env.production.example
+#   3. Запустите: docker compose up -d --build
+#   4. Примените миграции: docker compose exec app npx prisma migrate deploy
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: fatiha_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fatiha_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fatiha_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-fatiha_db}
+    # Порт НЕ выставлен наружу — БД доступна только контейнеру app
+    volumes:
+      - fatiha_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fatiha_user} -d ${POSTGRES_DB:-fatiha_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fatiha_network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fatiha_app
+    restart: always
+    env_file:
+      - .env.production
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-fatiha_user}:${POSTGRES_PASSWORD:-fatiha_pass}@db:5432/${POSTGRES_DB:-fatiha_db}?connection_limit=20
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - fatiha_network
+
+volumes:
+  fatiha_pgdata:
+
+networks:
+  fatiha_network:
+    driver: bridge
