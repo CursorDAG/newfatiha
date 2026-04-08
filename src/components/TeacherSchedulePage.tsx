@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import ScheduleGrid, { type ScheduleSlot } from "@/components/ScheduleGrid";
+import TeacherHeader from "@/components/dashboard/TeacherHeader";
 
 export default function TeacherSchedulePage() {
+  const { data: session } = useSession();
   const [slots, setSlots] = useState<ScheduleSlot[]>([]);
   const [hoveredInfo, setHoveredInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -31,7 +34,8 @@ export default function TeacherSchedulePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
-      <div className="w-full px-8 py-6">
+      <TeacherHeader teacherName={session?.user?.name ?? undefined} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
             <div>
