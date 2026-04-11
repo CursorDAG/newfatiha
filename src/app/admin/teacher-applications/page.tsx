@@ -133,9 +133,8 @@ export default function TeacherApplicationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="w-full px-8 py-6">
-        <div className="mb-6">
+    <>
+      <div className="mb-6">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">Заявки учителей</h1>
           <p className="text-slate-600">Рассмотрение заявок на должность учителя</p>
         </div>
@@ -146,7 +145,7 @@ export default function TeacherApplicationsPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow mb-6">
+        <div className="bg-white rounded-xl shadow-sm mb-6">
           <div className="flex border-b">
             {[
               { key: "pending", label: "На рассмотрении" },
@@ -182,7 +181,7 @@ export default function TeacherApplicationsPage() {
                 {applications.map((app) => (
                   <div
                     key={app.id}
-                    className="border border-slate-200 rounded-lg p-4 hover:border-emerald-300 transition-colors"
+                    className="border border-slate-200 rounded-xl p-4 hover:border-emerald-300 transition-colors"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
@@ -192,7 +191,7 @@ export default function TeacherApplicationsPage() {
                       <span
                         className={`px-3 py-1 rounded-full text-sm font-medium ${
                           app.status === "ACTIVE"
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-emerald-100 text-emerald-800"
                             : app.status === "REJECTED"
                             ? "bg-red-100 text-red-800"
                             : "bg-yellow-100 text-yellow-800"
@@ -258,7 +257,6 @@ export default function TeacherApplicationsPage() {
                 ))}
               </div>
             )}
-          </div>
         </div>
       </div>
 
@@ -470,6 +468,6 @@ export default function TeacherApplicationsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

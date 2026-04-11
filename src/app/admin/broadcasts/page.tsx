@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Send, Clock, Users } from "lucide-react";
 
 type Broadcast = {
@@ -119,7 +118,7 @@ export default function BroadcastsPage() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -129,7 +128,7 @@ export default function BroadcastsPage() {
 
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-500 transition-colors"
+            className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
           >
             <Send className="w-4 h-4" />
             Создать рассылку
@@ -214,7 +213,7 @@ export default function BroadcastsPage() {
                 <button
                   onClick={sendBroadcast}
                   disabled={sending}
-                  className="flex items-center gap-2 px-6 py-2 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center gap-2 px-6 py-2 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <Send className="w-4 h-4" />
                   {sending ? "Отправка..." : "Отправить"}
@@ -289,6 +288,6 @@ export default function BroadcastsPage() {
           </div>
         </div>
       )}
-    </AdminLayout>
+    </>
   );
 }

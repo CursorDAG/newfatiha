@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { AdminLayout } from "@/components/admin/AdminLayout";
-
 type TabId = "dashboard" | "users" | "courses" | "streams" | "logs" | "applications";
 
 type DashboardMetrics = {
@@ -241,17 +239,17 @@ export default function AdminClient() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-8">
         {activeTab === "dashboard" && (
           <div>
-            <h2 className="text-xl font-semibold text-slate-900 mb-6">Метрики системы</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-6">Метрики системы</h2>
             {loading ? (
               <p className="text-slate-600">Загрузка...</p>
             ) : metrics ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h3 className="text-lg font-medium text-slate-900 mb-4">Пользователи</h3>
+                <div className="bg-white p-6 rounded-xl shadow-sm">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4">Пользователи</h3>
                   <div className="space-y-2">
                     <p className="text-3xl font-bold text-emerald-600">{metrics.users.total}</p>
                     <div className="text-sm text-slate-600 space-y-1">
@@ -264,23 +262,23 @@ export default function AdminClient() {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h3 className="text-lg font-medium text-slate-900 mb-4">Курсы</h3>
+                <div className="bg-white p-6 rounded-xl shadow-sm">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4">Курсы</h3>
                   <div className="space-y-2">
                     <p className="text-3xl font-bold text-blue-600">{metrics.courses.total}</p>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h3 className="text-lg font-medium text-slate-900 mb-4">Потоки</h3>
+                <div className="bg-white p-6 rounded-xl shadow-sm">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4">Потоки</h3>
                   <div className="space-y-2">
                     <p className="text-3xl font-bold text-purple-600">{metrics.streams.total}</p>
                     <p className="text-sm text-slate-600">Активных: {metrics.streams.active}</p>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h3 className="text-lg font-medium text-slate-900 mb-4">Уроки</h3>
+                <div className="bg-white p-6 rounded-xl shadow-sm">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4">Уроки</h3>
                   <div className="space-y-2">
                     <p className="text-3xl font-bold text-orange-600">{metrics.lessons.total}</p>
                     <div className="text-sm text-slate-600 space-y-1">
@@ -291,8 +289,8 @@ export default function AdminClient() {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                  <h3 className="text-lg font-medium text-slate-900 mb-4">Jitsi</h3>
+                <div className="bg-white p-6 rounded-xl shadow-sm">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4">Jitsi</h3>
                   <div className="space-y-2">
                     <p className="text-3xl font-bold text-green-600">{metrics.jitsi.activeSessions}</p>
                     <p className="text-sm text-slate-600">Активных сессий</p>
@@ -306,12 +304,12 @@ export default function AdminClient() {
         {activeTab === "users" && (
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-slate-900">
+              <h2 className="text-xl font-bold text-slate-900">
                 Пользователи ({usersTotal})
               </h2>
             </div>
 
-            <div className="bg-white p-4 rounded-lg shadow mb-6 flex gap-4">
+            <div className="bg-white p-4 rounded-xl shadow-sm mb-6 flex gap-4">
               <input
                 type="text"
                 placeholder="Поиск по email или имени..."
@@ -383,7 +381,7 @@ export default function AdminClient() {
                               Заблокирован
                             </span>
                           ) : (
-                            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded">
+                            <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded">
                               Активен
                             </span>
                           )}
@@ -428,11 +426,11 @@ export default function AdminClient() {
 
         {activeTab === "courses" && (
           <div>
-            <h2 className="text-xl font-semibold text-slate-900 mb-6">Курсы ({courses.length})</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-6">Курсы ({courses.length})</h2>
             {loading ? (
               <p className="text-slate-600">Загрузка...</p>
             ) : (
-              <div className="bg-white shadow rounded-lg overflow-hidden">
+              <div className="bg-white shadow-sm rounded-xl overflow-hidden">
                 <table className="min-w-full divide-y divide-slate-200">
                   <thead className="bg-slate-50">
                     <tr>
@@ -470,7 +468,7 @@ export default function AdminClient() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {course.published ? (
-                            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded">
+                            <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded">
                               Опубликован
                             </span>
                           ) : (
@@ -490,7 +488,7 @@ export default function AdminClient() {
 
         {activeTab === "streams" && (
           <div>
-            <h2 className="text-xl font-semibold text-slate-900 mb-6">Потоки ({streams.length})</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-6">Потоки ({streams.length})</h2>
             {loading ? (
               <p className="text-slate-600">Загрузка...</p>
             ) : (
@@ -552,7 +550,7 @@ export default function AdminClient() {
 
         {activeTab === "logs" && (
           <div>
-            <h2 className="text-xl font-semibold text-slate-900 mb-6">Системные логи</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-6">Системные логи</h2>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-sm text-yellow-800">
                 Логи доступны только в production окружении. В development режиме используйте консоль браузера и терминал сервера.
@@ -578,6 +576,6 @@ export default function AdminClient() {
           </div>
         ))}
       </div>
-    </AdminLayout>
+    </>
   );
 }

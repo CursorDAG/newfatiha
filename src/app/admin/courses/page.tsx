@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { AdminLayout } from "@/components/admin/AdminLayout";
 import { BookOpen, Users, TrendingUp, AlertCircle } from "lucide-react";
 
 type Course = {
@@ -59,8 +58,7 @@ export default function AdminCoursesPage() {
   const filteredCourses = courses;
 
   return (
-    <AdminLayout>
-      <div className="p-8">
+    <div className="p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900">Управление курсами</h1>
           <p className="text-slate-600 mt-1">Все курсы всех учителей на платформе</p>
@@ -219,7 +217,7 @@ export default function AdminCoursesPage() {
                       </td>
                       <td className="px-6 py-4">
                         {course.published ? (
-                          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                          <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full">
                             Опубликован
                           </span>
                         ) : (
@@ -236,6 +234,5 @@ export default function AdminCoursesPage() {
           )}
         </div>
       </div>
-    </AdminLayout>
   );
 }

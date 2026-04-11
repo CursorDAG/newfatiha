@@ -233,9 +233,9 @@ function TransferModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
         <h3 className="text-xl font-bold text-slate-800 mb-1">Перевести ученика</h3>
-        <p className="text-slate-500 text-sm mb-5">
+        <p className="text-slate-600 text-sm mb-5">
           Выберите поток для перевода <span className="font-semibold text-slate-700">{student.name}</span>
         </p>
 
@@ -285,12 +285,12 @@ function KickConfirmDialog({
 }) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
         <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
           <span className="text-2xl">⚠️</span>
         </div>
         <h3 className="text-xl font-bold text-slate-800 mb-2">Исключить ученика?</h3>
-        <p className="text-slate-500 text-sm mb-6">
+        <p className="text-slate-600 text-sm mb-6">
           Вы уверены, что хотите исключить{' '}
           <span className="font-semibold text-slate-700">{student.name}</span> из этого потока?
           Доступ будет немедленно отозван.
@@ -1108,7 +1108,7 @@ export default function TeacherDashboard({
       )}
       {lessonModalState && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 p-6 text-white">
               <h2 className="text-2xl font-bold">
                 {lessonModalState.mode === "create" ? "Новый урок" : "Редактировать урок"}
@@ -1123,7 +1123,7 @@ export default function TeacherDashboard({
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">Название урока</label>
                 <input
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
+                  className="w-full border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
                   placeholder="Введите название"
                   value={lessonModalState.title}
                   onChange={(e) =>
@@ -1134,7 +1134,7 @@ export default function TeacherDashboard({
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">Тип урока</label>
                 <select
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
+                  className="w-full border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
                   value={lessonModalState.type}
                   onChange={(e) =>
                     setLessonModalState((prev) =>
@@ -1157,7 +1157,7 @@ export default function TeacherDashboard({
                     <div>
                       <p className="text-xs font-semibold text-slate-500 mb-1.5">Редактор</p>
                       <textarea
-                        className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white resize-none font-mono text-sm"
+                        className="w-full border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white resize-none font-mono text-sm"
                         rows={16}
                         placeholder={"# Заголовок урока\n\nТекст урока с **жирным**, *курсивом*.\n\n- Пункт списка\n- Ещё пункт\n\n> Цитата из источника"}
                         value={lessonModalState.content}
@@ -1196,7 +1196,7 @@ export default function TeacherDashboard({
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">Ссылка на видео</label>
                   <input
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
+                    className="w-full border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
                     placeholder="https://youtube.com/..."
                     value={lessonModalState.content}
                     onChange={(e) =>
@@ -1211,7 +1211,7 @@ export default function TeacherDashboard({
                   <span className="text-slate-400 font-normal ml-1">(не видны студентам)</span>
                 </label>
                 <textarea
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white resize-none"
+                  className="w-full border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white resize-none"
                   rows={3}
                   placeholder="Личные заметки по уроку, план занятия..."
                   value={lessonModalState.teacherNotes}
@@ -1224,13 +1224,13 @@ export default function TeacherDashboard({
                 <button
                   onClick={submitLessonModal}
                   disabled={loading}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white py-3 rounded-xl font-bold transition-all shadow-sm"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white py-3 rounded-lg font-bold transition-all shadow-sm"
                 >
                   {loading ? "Сохранение..." : lessonModalState.mode === "create" ? "Создать урок" : "Сохранить"}
                 </button>
                 <button
                   onClick={() => setLessonModalState(null)}
-                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold transition-all"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-lg font-bold transition-all"
                 >
                   Отмена
                 </button>
@@ -1242,7 +1242,7 @@ export default function TeacherDashboard({
 
       {streamModalState && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
             <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 p-6 text-white">
               <h2 className="text-2xl font-bold">
                 {streamModalState.mode === "create" ? "Новый поток" : "Редактирование потока"}
@@ -1253,7 +1253,7 @@ export default function TeacherDashboard({
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">Курс</label>
                 <select
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
+                  className="w-full border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
                   value={streamModalState.courseId}
                   onChange={(e) =>
                     setStreamModalState((prev) => (prev ? { ...prev, courseId: e.target.value } : prev))
@@ -1269,7 +1269,7 @@ export default function TeacherDashboard({
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">Название потока</label>
                 <input
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
+                  className="w-full border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
                   value={streamModalState.name}
                   onChange={(e) =>
                     setStreamModalState((prev) => (prev ? { ...prev, name: e.target.value } : prev))
@@ -1280,7 +1280,7 @@ export default function TeacherDashboard({
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">Уровень</label>
                   <input
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
+                    className="w-full border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
                     value={streamModalState.level}
                     onChange={(e) =>
                       setStreamModalState((prev) => (prev ? { ...prev, level: e.target.value } : prev))
@@ -1307,7 +1307,7 @@ export default function TeacherDashboard({
                       />
                     </label>
                     <input
-                      className="flex-1 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white font-mono text-sm"
+                      className="flex-1 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white font-mono text-sm"
                       value={streamModalState.color}
                       onChange={(e) =>
                         setStreamModalState((prev) => (prev ? { ...prev, color: e.target.value } : prev))
@@ -1319,7 +1319,7 @@ export default function TeacherDashboard({
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">Тип группы</label>
                   <select
-                    className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
+                    className="w-full border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
                     value={streamModalState.genderType}
                     onChange={(e) =>
                       setStreamModalState((prev) => (prev ? { ...prev, genderType: e.target.value as "MALE_ONLY" | "FEMALE_ONLY" | "MIXED" } : prev))
@@ -1340,7 +1340,7 @@ export default function TeacherDashboard({
                           prev ? { ...prev, showSchedulePicker: !prev.showSchedulePicker } : prev
                         )
                       }
-                      className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-3 rounded-xl text-xs font-bold w-full text-left"
+                      className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-4 py-3 rounded-lg text-xs font-bold w-full text-left"
                     >
                       {slotsToScheduleText(streamModalState.slots)}
                       <span className="block text-[10px] text-slate-500 font-semibold mt-1">
@@ -1367,13 +1367,13 @@ export default function TeacherDashboard({
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={submitStreamModal}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold transition-all shadow-sm"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-bold transition-all shadow-sm"
                 >
                   Сохранить
                 </button>
                 <button
                   onClick={() => setStreamModalState(null)}
-                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold transition-all"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-lg font-bold transition-all"
                 >
                   Отмена
                 </button>
@@ -1459,8 +1459,8 @@ export default function TeacherDashboard({
           <div className="p-8 flex-1">
             <div className="flex items-center justify-between mb-6 border-b pb-4">
               <div>
-                <h2 className="text-2xl font-bold text-emerald-900">Обзор</h2>
-                <p className="text-sm text-slate-500 mt-1">Быстрые действия и состояние выбранного потока</p>
+                <h2 className="text-xl font-bold text-slate-900">Обзор</h2>
+                <p className="text-sm text-slate-600 mt-1">Быстрые действия и состояние выбранного потока</p>
               </div>
               <div className="flex gap-2">
                 <Button variant="secondary" onClick={() => setActiveTab("streams")}>
@@ -1473,15 +1473,15 @@ export default function TeacherDashboard({
               <EmptyState icon="📚" title="Нет потоков" description="Создайте поток, чтобы начать обучение." />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ученики</p>
                   <p className="text-3xl font-extrabold text-slate-800 mt-2">{selectedStream.enrollments.length}</p>
                 </div>
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Уроки</p>
                   <p className="text-3xl font-extrabold text-slate-800 mt-2">{selectedStream.lessons.length}</p>
                 </div>
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Расписание</p>
                   <p className="text-sm font-bold text-slate-700 mt-3">{selectedStream.schedule || "Не настроено"}</p>
                 </div>
@@ -1495,7 +1495,7 @@ export default function TeacherDashboard({
           {activeTab === 'courses' && (
             <div className="p-8 flex-1">
               <div className="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 className="text-2xl font-bold text-emerald-900">Мои курсы</h2>
+                <h2 className="text-xl font-bold text-slate-900">Мои курсы</h2>
                 <button
                   onClick={() => setShowCourseModal(true)}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl font-bold text-sm transition-all shadow-sm"
@@ -1512,7 +1512,7 @@ export default function TeacherDashboard({
                   </div>
                 ) : (
                   initialCourses.map((course) => (
-                    <div key={course.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                    <div key={course.id} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col">
                       <div className="flex justify-between items-start mb-3">
                         <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${course.published ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
                           {course.published ? 'Опубликован' : 'Черновик'}
@@ -1584,8 +1584,8 @@ export default function TeacherDashboard({
             <div className="p-8 flex-1">
               <div className="flex items-center justify-between mb-6 border-b pb-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-emerald-900">Органайзер</h2>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <h2 className="text-xl font-bold text-slate-900">Органайзер</h2>
+                  <p className="text-sm text-slate-600 mt-1">
                     Недельное расписание по всем потокам. Занятые слоты подсвечены.
                   </p>
                   <p className="text-sm font-semibold text-slate-700 mt-2 min-h-[20px]">
@@ -1605,7 +1605,7 @@ export default function TeacherDashboard({
               </div>
 
               {teacherScheduleSlots.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-52 text-slate-400 border border-dashed border-slate-300 rounded-2xl bg-slate-50">
+                <div className="flex flex-col items-center justify-center h-52 text-slate-400 border border-dashed border-slate-300 rounded-xl bg-slate-50">
                   <span className="text-5xl mb-4">🗓</span>
                   <p className="text-lg font-medium">Пока нет занятий в расписании</p>
                   <p className="text-sm mt-1">Откройте «Потоки» → создайте/отредактируйте поток и добавьте слоты</p>
@@ -1786,7 +1786,7 @@ export default function TeacherDashboard({
 
           {showCreateQuizForLessonId && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl my-8">
+              <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl my-8">
                 <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 p-6 text-white">
                   <h2 className="text-2xl font-bold">Новый тест</h2>
                   <p className="text-emerald-200 text-sm mt-1">Тест будет виден ученику на странице урока</p>
@@ -1795,14 +1795,14 @@ export default function TeacherDashboard({
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1.5">Название</label>
                     <input
-                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
+                      className="w-full border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
                       value={quizForm.title}
                       onChange={(e) => setQuizForm((f) => ({ ...f, title: e.target.value }))}
                     />
                   </div>
 
                   {quizForm.questions.map((question, qIdx) => (
-                    <div key={qIdx} className="border border-slate-200 rounded-2xl p-5 bg-slate-50">
+                    <div key={qIdx} className="border border-slate-200 rounded-xl p-5 bg-slate-50">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-bold text-slate-800">Вопрос {qIdx + 1}</h3>
                         {quizForm.questions.length > 1 && (
@@ -1825,7 +1825,7 @@ export default function TeacherDashboard({
                         <div>
                           <label className="block text-sm font-bold text-slate-700 mb-1.5">Тип вопроса</label>
                           <select
-                            className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-white"
+                            className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-white"
                             value={question.type}
                             onChange={(e) => {
                               const newType = e.target.value as "MULTIPLE_CHOICE" | "TEXT" | "VOICE";
@@ -1846,7 +1846,7 @@ export default function TeacherDashboard({
                         <div>
                           <label className="block text-sm font-bold text-slate-700 mb-1.5">Вопрос/задание</label>
                           <textarea
-                            className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-white resize-none h-24"
+                            className="w-full border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-white resize-none h-24"
                             value={question.prompt}
                             onChange={(e) =>
                               setQuizForm((f) => ({
@@ -1866,7 +1866,7 @@ export default function TeacherDashboard({
                             {question.options.map((opt, optIdx) => (
                               <div key={optIdx} className="flex gap-2 items-center">
                                 <input
-                                  className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-white"
+                                  className="flex-1 border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-white"
                                   placeholder={`Вариант ${optIdx + 1}`}
                                   value={opt}
                                   onChange={(e) =>
@@ -1950,7 +1950,7 @@ export default function TeacherDashboard({
                   <button
                     onClick={createQuizForLesson}
                     disabled={loading}
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white py-3 rounded-xl font-bold transition-all shadow-sm"
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white py-3 rounded-lg font-bold transition-all shadow-sm"
                   >
                     {loading ? "Создание..." : "Создать"}
                   </button>
@@ -1970,7 +1970,7 @@ export default function TeacherDashboard({
                       });
                     }}
                     disabled={loading}
-                    className="flex-1 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 py-3 rounded-xl font-bold transition-all"
+                    className="flex-1 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 py-3 rounded-lg font-bold transition-all"
                   >
                     Отмена
                   </button>
@@ -1981,7 +1981,7 @@ export default function TeacherDashboard({
 
           {questionLibraryOpen && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+              <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
                 <div className="bg-gradient-to-r from-emerald-700 to-emerald-600 p-6 text-white flex items-center justify-between gap-3">
                   <div>
                     <h2 className="text-2xl font-bold">Банк вопросов</h2>
@@ -2000,7 +2000,7 @@ export default function TeacherDashboard({
                 <div className="p-6 space-y-4">
                   <div className="flex gap-2 items-center">
                     <input
-                      className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
+                      className="flex-1 border border-slate-200 rounded-lg px-4 py-2.5 text-slate-800 focus:ring-2 focus:ring-emerald-400 outline-none bg-slate-50 focus:bg-white"
                       placeholder="Поиск по тексту вопроса"
                       value={questionSearch}
                       onChange={(e) => setQuestionSearch(e.target.value)}
@@ -2008,14 +2008,14 @@ export default function TeacherDashboard({
                     <button
                       type="button"
                       onClick={() => fetchQuestionLibrary(questionSearch.trim() || undefined)}
-                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold"
+                      className="px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold"
                     >
                       Найти
                     </button>
                   </div>
 
                   {questionLibraryLoading ? (
-                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center text-slate-500">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 text-center text-slate-500">
                       Загрузка...
                     </div>
                   ) : questionLibrary.length === 0 ? (
@@ -2050,7 +2050,7 @@ export default function TeacherDashboard({
                             }));
                             setQuestionLibraryOpen(false);
                           }}
-                          className="w-full text-left border border-slate-200 rounded-2xl p-4 hover:bg-slate-50 transition-colors"
+                          className="w-full text-left border border-slate-200 rounded-xl p-4 hover:bg-slate-50 transition-colors"
                         >
                           <p className="text-xs font-bold text-slate-500 mb-1">
                             {q.quiz.title} • {q.quiz.type === "VOICE" ? "Голосом" : "Тест"}

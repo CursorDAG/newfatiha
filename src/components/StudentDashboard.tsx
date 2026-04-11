@@ -213,7 +213,7 @@ function HomeworkSubmitForm({
   };
 
   return (
-    <div className="mt-6 bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
+    <div className="mt-6 bg-slate-50 border border-slate-200 rounded-xl p-6 space-y-4">
       <div className="flex items-center gap-3">
         <FileText className="w-5 h-5 text-emerald-600" />
         <p className="text-base font-bold text-slate-800">
@@ -276,7 +276,7 @@ function HomeworkCard({
 
   return (
     <div
-      className={`border rounded-2xl p-6 bg-white space-y-4 transition-all hover:shadow-md ${
+      className={`border rounded-xl p-6 bg-white space-y-4 transition-all hover:shadow-md ${
         isOverdue ? "border-red-300 bg-red-50/30" : "border-slate-200"
       }`}
     >
@@ -616,7 +616,7 @@ export default function StudentDashboard({
         {/* ── Sidebar ────────────────────────────────────────────────── */}
         {/* На мобильных: показывается как модальное меню с кнопкой закрытия */}
         {/* На десктопе: статический sidebar */}
-        <nav className={`lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-2 h-fit transition-transform lg:translate-x-0 relative ${
+        <nav className={`lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-2 h-fit transition-transform lg:translate-x-0 relative ${
           mobileMenuOpen
             ? "fixed inset-4 top-20 z-40 max-h-[calc(100vh-6rem)] overflow-y-auto"
             : "hidden lg:block"
@@ -700,16 +700,16 @@ export default function StudentDashboard({
         </nav>
 
         {/* ── Main content ───────────────────────────────────────────── */}
-        <section className="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-200 min-h-[650px] overflow-hidden flex flex-col">
+        <section className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-slate-200 min-h-[650px] overflow-hidden flex flex-col">
           {/* ── Home Tab ─────────────────────────────────────────────── */}
           {activeTab === "home" && (
-            <div className="p-6 flex-1 space-y-6">
+            <div className="p-8 flex-1 space-y-6">
               {/* Welcome */}
               <div>
-                <h2 className="text-2xl font-bold text-slate-800">
+                <h2 className="text-3xl font-bold text-slate-900">
                   Добро пожаловать, {userName}!
                 </h2>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-slate-600 mt-1">
                   {new Date().toLocaleDateString("ru-RU", {
                     weekday: "long",
                     day: "numeric",
@@ -721,7 +721,7 @@ export default function StudentDashboard({
 
               {/* Stat cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4" data-onboarding="home-stats">
-                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center hover:shadow-sm transition-shadow">
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 text-center hover:shadow-sm transition-shadow">
                   <div className="flex justify-center mb-2">
                     <BookOpen className="w-8 h-8 text-emerald-600" />
                   </div>
@@ -730,7 +730,7 @@ export default function StudentDashboard({
                   </p>
                   <p className="text-xs font-semibold text-emerald-600 mt-1">Активных потоков</p>
                 </div>
-                <div className={`rounded-2xl p-5 text-center border hover:shadow-sm transition-shadow ${pendingHomeworkCount > 0 ? "bg-amber-50 border-amber-200" : "bg-slate-50 border-slate-200"}`}>
+                <div className={`rounded-xl p-5 text-center border hover:shadow-sm transition-shadow ${pendingHomeworkCount > 0 ? "bg-amber-50 border-amber-200" : "bg-slate-50 border-slate-200"}`}>
                   <div className="flex justify-center mb-2">
                     <FileText className={`w-8 h-8 ${pendingHomeworkCount > 0 ? "text-amber-600" : "text-slate-400"}`} />
                   </div>
@@ -741,7 +741,7 @@ export default function StudentDashboard({
                     Заданий к сдаче
                   </p>
                 </div>
-                <div className={`rounded-2xl p-5 text-center border hover:shadow-sm transition-shadow ${pendingQuizCount > 0 ? "bg-blue-50 border-blue-200" : "bg-slate-50 border-slate-200"}`}>
+                <div className={`rounded-xl p-5 text-center border hover:shadow-sm transition-shadow ${pendingQuizCount > 0 ? "bg-blue-50 border-blue-200" : "bg-slate-50 border-slate-200"}`}>
                   <div className="flex justify-center mb-2">
                     <FlaskConical className={`w-8 h-8 ${pendingQuizCount > 0 ? "text-blue-600" : "text-slate-400"}`} />
                   </div>
@@ -1008,12 +1008,12 @@ export default function StudentDashboard({
 
           {/* ── Homework Tab ─────────────────────────────────────────── */}
           {activeTab === "homework" && (
-            <div className="p-6 flex-1">
-              <div className="mb-6 border-b pb-4">
-                <h2 className="text-2xl font-bold text-emerald-900">
+            <div className="p-8 flex-1">
+              <div className="mb-8 border-b pb-4">
+                <h2 className="text-3xl font-bold text-slate-900">
                   Домашние задания
                 </h2>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-slate-600 mt-1">
                   Задания по всем вашим потокам
                 </p>
               </div>
@@ -1301,7 +1301,7 @@ export default function StudentDashboard({
 
           {/* ── Info Tab ─────────────────────────────────────────────── */}
           {activeTab === "info" && (
-            <div className="p-6 flex-1">
+            <div className="p-8 flex-1">
               <StudentInfoTab />
             </div>
           )}

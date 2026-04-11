@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Search, Filter, AlertCircle } from "lucide-react";
 
 type User = {
@@ -134,7 +133,7 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900">Управление пользователями</h1>
@@ -243,7 +242,7 @@ export default function AdminUsersPage() {
                             Заблокирован
                           </span>
                         ) : (
-                          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                          <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full">
                             Активен
                           </span>
                         )}
@@ -303,6 +302,6 @@ export default function AdminUsersPage() {
           </div>
         ))}
       </div>
-    </AdminLayout>
+    </>
   );
 }

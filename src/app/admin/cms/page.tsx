@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Save, RotateCcw, Eye, EyeOff, GripVertical } from "lucide-react";
 
 type HeroSection = {
@@ -93,26 +92,22 @@ export default function CMSPage() {
 
   if (loading) {
     return (
-      <AdminLayout>
-        <div className="p-8">
-          <p className="text-slate-600">Загрузка...</p>
-        </div>
-      </AdminLayout>
+      <div className="p-8">
+        <p className="text-slate-600">Загрузка...</p>
+      </div>
     );
   }
 
   if (!content) {
     return (
-      <AdminLayout>
-        <div className="p-8">
-          <p className="text-red-600">Ошибка загрузки контента</p>
-        </div>
-      </AdminLayout>
+      <div className="p-8">
+        <p className="text-red-600">Ошибка загрузки контента</p>
+      </div>
     );
   }
 
   return (
-    <AdminLayout>
+    <>
       <div className="p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -142,7 +137,7 @@ export default function CMSPage() {
             <button
               onClick={saveContent}
               disabled={!hasChanges || saving}
-              className="flex items-center gap-2 px-6 py-2 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 px-6 py-2 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Save className="w-4 h-4" />
               {saving ? "Сохранение..." : "Сохранить"}
@@ -269,6 +264,6 @@ export default function CMSPage() {
           </div>
         </div>
       )}
-    </AdminLayout>
+    </>
   );
 }

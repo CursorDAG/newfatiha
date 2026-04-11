@@ -24,12 +24,12 @@ export default async function VerifyEmailPage({
             <p className="text-slate-600 mb-6">
               Ваш email успешно подтвержден. Теперь вы можете войти в систему.
             </p>
-            <a
+            <Link
               href="/auth/signin"
               className="inline-block px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all"
             >
               Войти в систему
-            </a>
+            </Link>
           </div>
         </div>
       </main>

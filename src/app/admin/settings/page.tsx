@@ -1,9 +1,6 @@
-import { AdminLayout } from "@/components/admin/AdminLayout";
-
 export default function AdminSettingsPage() {
   return (
-    <AdminLayout>
-      <div className="p-8">
+    <div className="p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900">Настройки</h1>
           <p className="text-slate-600 mt-1">Конфигурация системы</p>
@@ -16,6 +13,5 @@ export default function AdminSettingsPage() {
           </p>
         </div>
       </div>
-    </AdminLayout>
   );
 }

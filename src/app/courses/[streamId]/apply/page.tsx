@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getStreamGenderTypeLabel, getStreamGenderTypeIcon, canStudentJoinStream } from "@/lib/gender-rules";
 import ApplyForm from "./apply-form";
 
@@ -127,9 +128,9 @@ export default async function ApplyPage({ params }: { params: Promise<{ streamId
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <a href="/courses" className="text-emerald-600 hover:text-emerald-500 font-semibold text-sm flex items-center gap-2">
+          <Link href="/courses" className="text-emerald-600 hover:text-emerald-500 font-semibold text-sm flex items-center gap-2">
             ← Назад к каталогу
-          </a>
+          </Link>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
