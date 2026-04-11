@@ -308,7 +308,7 @@ export default function TeacherInfoTab() {
   return (
     <div className="p-6 space-y-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">
+        <h1 className="text-2xl font-bold text-slate-900 mb-2">
           ℹ️ Информация для преподавателей
         </h1>
         <p className="text-slate-600">
@@ -322,7 +322,7 @@ export default function TeacherInfoTab() {
             <GraduationCap className="w-6 h-6 text-emerald-700" />
           </div>
           <div>
-            <h3 className="font-semibold text-emerald-900 mb-1">Добро пожаловать!</h3>
+            <h3 className="text-base font-bold text-emerald-900 mb-1">Добро пожаловать!</h3>
             <p className="text-sm text-emerald-800">
               Fatiha.ru — это современная платформа для исламского образования с поддержкой live-трансляций,
               домашних заданий, тестов и детальной аналитики прогресса студентов.
@@ -337,7 +337,7 @@ export default function TeacherInfoTab() {
         <div className="flex items-start gap-4">
           <HelpCircle className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" />
           <div>
-            <h3 className="font-semibold text-slate-800 mb-1">Нужна помощь?</h3>
+            <h3 className="text-base font-bold text-slate-800 mb-1">Нужна помощь?</h3>
             <p className="text-sm text-slate-600">
               Если у вас возникли вопросы или проблемы, обратитесь к администратору платформы.
             </p>

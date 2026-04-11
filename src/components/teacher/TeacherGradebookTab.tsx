@@ -139,7 +139,7 @@ function QuizDetailsModal({
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="text-2xl font-bold text-slate-900">{details.quizTitle}</h3>
+              <h3 className="text-xl font-bold text-slate-900">{details.quizTitle}</h3>
               <p className="text-sm text-slate-600 mt-1">
                 {details.studentName} • {details.lessonTitle}
               </p>
@@ -319,7 +319,7 @@ export default function TeacherGradebookTab({
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <ClipboardCheck className="w-8 h-8 text-slate-400" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Выберите поток</h3>
+            <h3 className="text-base font-bold text-slate-900 mb-2">Выберите поток</h3>
             <p className="text-slate-600">Выберите поток слева вверху, чтобы увидеть журнал</p>
           </div>
         </Card>
@@ -364,7 +364,7 @@ export default function TeacherGradebookTab({
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <BookOpen className="w-8 h-8 text-slate-400" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Журнал пока пуст</h3>
+            <h3 className="text-base font-bold text-slate-900 mb-2">Журнал пока пуст</h3>
             <p className="text-slate-600">Нужны хотя бы один урок и один ученик в потоке, чтобы построить журнал</p>
           </div>
         </Card>
@@ -376,7 +376,7 @@ export default function TeacherGradebookTab({
     <div className="p-8 flex-1 flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900">Журнал</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Журнал</h2>
           <p className="text-sm text-slate-600 mt-2">
             Поток {data.stream.name} • курс {data.stream.courseTitle}
           </p>

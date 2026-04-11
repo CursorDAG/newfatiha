@@ -471,7 +471,7 @@ export default function TeacherSettingsPage({
   const SecuritySection = (
     <form onSubmit={handleChangePassword} className="space-y-6">
       <div>
-        <h3 className="font-semibold text-slate-800 mb-1">Изменение пароля</h3>
+        <h3 className="text-base font-bold text-slate-900 mb-1">Изменение пароля</h3>
         <p className="text-sm text-slate-500">Используйте надёжный пароль, который вы не используете в других местах</p>
       </div>
 
@@ -631,7 +631,7 @@ export default function TeacherSettingsPage({
       <div className="max-w-5xl mx-auto px-4 py-10">
         {/* Page header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-800">Настройки</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Настройки</h1>
           <p className="text-sm text-slate-500 mt-1">Управляйте профилем и безопасностью аккаунта</p>
         </div>
 
@@ -693,7 +693,7 @@ export default function TeacherSettingsPage({
           <main className="flex-1 min-w-0">
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8">
               <div className="mb-6 pb-5 border-b border-slate-100">
-                <h2 className="font-bold text-lg text-slate-800">
+                <h2 className="text-lg font-bold text-slate-900">
                   {SECTIONS.find((s) => s.id === activeSection)?.label}
                 </h2>
               </div>

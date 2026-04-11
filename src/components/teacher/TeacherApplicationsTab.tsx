@@ -181,7 +181,7 @@ export default function TeacherApplicationsTab() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Заявки на курсы</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Заявки на курсы</h2>
           <p className="text-slate-600 mt-1">Управление заявками студентов</p>
         </div>
       </div>
@@ -257,7 +257,7 @@ export default function TeacherApplicationsTab() {
             <Card key={request.id} hoverable>
               {/* ── Основная информация ────────────────────────────── */}
               <div className="flex items-center gap-3 mb-2 flex-wrap">
-                <h3 className="text-lg font-bold text-slate-900">
+                <h3 className="text-base font-bold text-slate-900">
                   {request.student.name}
                 </h3>
                 {getStatusBadge(request.status)}

@@ -377,7 +377,7 @@ export default function TeacherHomeworkTab({
         {/* ── Assignment list ── */}
         <div className="lg:w-1/2">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold text-slate-900">Домашние задания</h2>
+            <h2 className="text-2xl font-bold text-slate-900">Домашние задания</h2>
             <div className="flex gap-2">
               <Button size="sm" variant="secondary" onClick={onRefresh} icon={<RefreshCw className="w-4 h-4" />}>
                 Обновить
@@ -396,7 +396,7 @@ export default function TeacherHomeworkTab({
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FileText className="w-8 h-8 text-slate-400" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">Выберите поток</h3>
+                <h3 className="text-base font-bold text-slate-900 mb-2">Выберите поток</h3>
                 <p className="text-slate-600">Выберите поток, чтобы увидеть задания</p>
               </div>
             </Card>
@@ -413,7 +413,7 @@ export default function TeacherHomeworkTab({
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FileText className="w-8 h-8 text-slate-400" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">В этом потоке пока нет домашних заданий</h3>
+                <h3 className="text-base font-bold text-slate-900 mb-2">В этом потоке пока нет домашних заданий</h3>
                 <p className="text-slate-600 mb-6">Нажмите «Задание», чтобы создать первое</p>
                 <Button size="sm" variant="primary" onClick={() => setCreateOpen(true)} icon={<Plus className="w-4 h-4" />}>
                   Создать задание
@@ -436,7 +436,7 @@ export default function TeacherHomeworkTab({
                 >
                   <div className="flex justify-between items-start gap-4">
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-bold text-lg text-slate-900 mb-2">{a.title}</h4>
+                      <h4 className="font-bold text-base text-slate-900 mb-2">{a.title}</h4>
                       {a.lesson && (
                         <p className="text-sm text-slate-600 mb-2 flex items-center gap-1">
                           <FileText className="w-4 h-4" />
@@ -472,7 +472,7 @@ export default function TeacherHomeworkTab({
 
         {/* ── Submission list ── */}
         <div className="lg:w-1/2">
-          <h3 className="text-2xl font-bold text-slate-900 mb-6">
+          <h3 className="text-lg font-bold text-slate-900 mb-6">
             Работы
             {currentAssignment && (
               <span className="text-base font-semibold text-slate-600 ml-2">
@@ -487,7 +487,7 @@ export default function TeacherHomeworkTab({
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <User className="w-8 h-8 text-slate-400" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">Выберите задание</h3>
+                <h3 className="text-base font-bold text-slate-900 mb-2">Выберите задание</h3>
                 <p className="text-slate-600">Выберите задание слева, чтобы увидеть работы учеников</p>
               </div>
             </Card>
@@ -508,7 +508,7 @@ export default function TeacherHomeworkTab({
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FileText className="w-8 h-8 text-slate-400" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">Пока нет сдач по этому заданию</h3>
+                    <h3 className="text-base font-bold text-slate-900 mb-2">Пока нет сдач по этому заданию</h3>
                 <p className="text-slate-600">Когда ученики начнут сдавать, их работы появятся здесь</p>
               </div>
             </Card>

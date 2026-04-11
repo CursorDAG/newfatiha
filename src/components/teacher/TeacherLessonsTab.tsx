@@ -110,7 +110,7 @@ function SortableLessonCard({
                 </Badge>
               )}
             </div>
-            <h4 className="font-bold text-lg text-slate-900 mb-1">{lesson.title}</h4>
+            <h4 className="font-bold text-base text-slate-900 mb-1">{lesson.title}</h4>
             <p className="text-sm text-slate-600 mb-2">
               Создан: {new Date(lesson.createdAt).toLocaleDateString("ru-RU")}
             </p>
@@ -251,7 +251,7 @@ export default function TeacherLessonsTab({
     <div className="p-8 flex-1">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900">Уроки и тесты</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Уроки и тесты</h2>
           <p className="text-sm text-slate-600 mt-2">
             План уроков выбранного потока · перетащите карточку для изменения порядка
           </p>
@@ -277,7 +277,7 @@ export default function TeacherLessonsTab({
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <BookOpen className="w-8 h-8 text-slate-400" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">У вас нет потоков</h3>
+            <h3 className="text-base font-bold text-slate-900 mb-2">У вас нет потоков</h3>
             <p className="text-slate-600">Создайте поток, чтобы планировать уроки</p>
           </div>
         </Card>
@@ -287,7 +287,7 @@ export default function TeacherLessonsTab({
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <FileText className="w-8 h-8 text-slate-400" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">В этом потоке ещё нет уроков</h3>
+            <h3 className="text-base font-bold text-slate-900 mb-2">В этом потоке ещё нет уроков</h3>
             <p className="text-slate-600 mb-6">Создайте урок или импортируйте уроки из другого потока</p>
             <div className="flex gap-3 justify-center">
               <Button onClick={onCreateLesson} variant="primary" icon={<Plus className="w-5 h-5" />}>

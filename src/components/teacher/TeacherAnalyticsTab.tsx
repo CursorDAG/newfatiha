@@ -69,7 +69,7 @@ export default function TeacherAnalyticsTab({
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <BarChart3 className="w-8 h-8 text-slate-400" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Выберите поток</h3>
+            <h3 className="text-base font-bold text-slate-900 mb-2">Выберите поток</h3>
             <p className="text-slate-600">Статистика строится по выбранному потоку</p>
           </div>
         </Card>
@@ -81,7 +81,7 @@ export default function TeacherAnalyticsTab({
     <div className="p-8 flex-1">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900">Успеваемость и активность</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Успеваемость и активность</h2>
           <p className="text-sm text-slate-600 mt-2">Статистика за последние 30 дней</p>
         </div>
         <div className="flex gap-2">
@@ -235,7 +235,7 @@ export default function TeacherAnalyticsTab({
           </Card>
 
           <div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-6">Последние сдачи</h3>
+            <h3 className="text-lg font-bold text-slate-900 mb-6">Последние сдачи</h3>
             <div className="grid gap-4">
               {data.students
                 .flatMap((s) =>
@@ -318,7 +318,7 @@ export default function TeacherAnalyticsTab({
                     <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <AlertCircle className="w-8 h-8 text-slate-400" />
                     </div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-2">Пока нет сдач тестов</h3>
+                    <h3 className="text-base font-bold text-slate-900 mb-2">Пока нет сдач тестов</h3>
                     <p className="text-slate-600">Создайте тест по уроку и попросите учеников пройти его</p>
                   </div>
                 </Card>

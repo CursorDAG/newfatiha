@@ -41,7 +41,7 @@ export default function TeacherStreamsTab({
     <div className="p-8 flex-1">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900">Потоки</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Потоки</h2>
           <p className="text-sm text-slate-600 mt-2">Группы учеников внутри курсов</p>
         </div>
         <Button
@@ -61,7 +61,7 @@ export default function TeacherStreamsTab({
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <UsersIcon className="w-8 h-8 text-slate-400" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Сначала создайте курс</h3>
+            <h3 className="text-base font-bold text-slate-900 mb-2">Сначала создайте курс</h3>
             <p className="text-slate-600">Потоки создаются внутри курсов</p>
           </div>
         </Card>
@@ -74,7 +74,7 @@ export default function TeacherStreamsTab({
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <Badge variant="neutral" size="sm">КУРС</Badge>
-                    <h3 className="text-xl font-bold text-slate-900">{course.title}</h3>
+                    <h3 className="text-lg font-bold text-slate-900">{course.title}</h3>
                   </div>
                   <Button
                     onClick={() => onCreateForCourse(course.id)}
@@ -102,7 +102,7 @@ export default function TeacherStreamsTab({
                                 style={{ backgroundColor: s.color ?? "#10b981" }}
                               />
                               <div className="min-w-0 flex-1">
-                                <h4 className="font-bold text-lg text-slate-900 mb-1">{s.name}</h4>
+                                <h4 className="font-bold text-base text-slate-900 mb-1">{s.name}</h4>
                                 <p className="text-sm text-slate-600 mb-2">
                                   <span className="font-semibold">{s.level}</span>
                                   {s.schedule && <span className="text-slate-500"> · {s.schedule}</span>}

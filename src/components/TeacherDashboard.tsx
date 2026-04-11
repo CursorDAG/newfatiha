@@ -234,7 +234,7 @@ function TransferModal({
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 animate-in fade-in zoom-in duration-200">
-        <h3 className="text-xl font-bold text-slate-800 mb-1">Перевести ученика</h3>
+        <h3 className="text-lg font-bold text-slate-800 mb-1">Перевести ученика</h3>
         <p className="text-slate-600 text-sm mb-5">
           Выберите поток для перевода <span className="font-semibold text-slate-700">{student.name}</span>
         </p>
@@ -289,7 +289,7 @@ function KickConfirmDialog({
         <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
           <span className="text-2xl">⚠️</span>
         </div>
-        <h3 className="text-xl font-bold text-slate-800 mb-2">Исключить ученика?</h3>
+        <h3 className="text-lg font-bold text-slate-800 mb-2">Исключить ученика?</h3>
         <p className="text-slate-600 text-sm mb-6">
           Вы уверены, что хотите исключить{' '}
           <span className="font-semibold text-slate-700">{student.name}</span> из этого потока?
@@ -1459,7 +1459,7 @@ export default function TeacherDashboard({
           <div className="p-8 flex-1">
             <div className="flex items-center justify-between mb-6 border-b pb-4">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Обзор</h2>
+                <h2 className="text-2xl font-bold text-slate-900">Обзор</h2>
                 <p className="text-sm text-slate-600 mt-1">Быстрые действия и состояние выбранного потока</p>
               </div>
               <div className="flex gap-2">
@@ -1495,7 +1495,7 @@ export default function TeacherDashboard({
           {activeTab === 'courses' && (
             <div className="p-8 flex-1">
               <div className="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 className="text-xl font-bold text-slate-900">Мои курсы</h2>
+                <h2 className="text-2xl font-bold text-slate-900">Мои курсы</h2>
                 <button
                   onClick={() => setShowCourseModal(true)}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl font-bold text-sm transition-all shadow-sm"
@@ -1522,7 +1522,7 @@ export default function TeacherDashboard({
                         </span>
                       </div>
                       
-                      <h3 className="font-bold text-slate-800 text-xl leading-tight mb-2">{course.title}</h3>
+                      <h3 className="font-bold text-slate-800 text-lg leading-tight mb-2">{course.title}</h3>
                       
                       {course.description && (
                         <p className="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">
@@ -1584,7 +1584,7 @@ export default function TeacherDashboard({
             <div className="p-8 flex-1">
               <div className="flex items-center justify-between mb-6 border-b pb-4">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">Органайзер</h2>
+                  <h2 className="text-2xl font-bold text-slate-900">Органайзер</h2>
                   <p className="text-sm text-slate-600 mt-1">
                     Недельное расписание по всем потокам. Занятые слоты подсвечены.
                   </p>

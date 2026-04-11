@@ -37,7 +37,7 @@ export default function TeacherStudentsTab({
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8 text-slate-400" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">У вас нет потоков</h3>
+            <h3 className="text-base font-bold text-slate-900 mb-2">У вас нет потоков</h3>
             <p className="text-slate-600">Создайте поток, чтобы добавить студентов</p>
           </div>
         </Card>
@@ -49,7 +49,7 @@ export default function TeacherStudentsTab({
     <div className="p-8 flex-1">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900">Студенты потока</h2>
+          <h2 className="text-2xl font-bold text-slate-900">Студенты потока</h2>
           <div className="flex items-center gap-2 mt-2">
             <Badge variant="info" size="lg">{stream.name}</Badge>
             <span className="text-sm text-slate-600">
@@ -70,7 +70,7 @@ export default function TeacherStudentsTab({
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8 text-slate-400" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">В этом потоке пока нет студентов</h3>
+            <h3 className="text-base font-bold text-slate-900 mb-2">В этом потоке пока нет студентов</h3>
             <p className="text-slate-600 mb-6">Используйте кнопку «Пригласить», чтобы добавить первого</p>
             {onInvite && (
               <Button onClick={onInvite} variant="primary" icon={<UserPlus className="w-5 h-5" />}>
