@@ -629,12 +629,6 @@ export default function TeacherSettingsPage({
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-5xl mx-auto px-4 py-10">
-        {/* Page header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">Настройки</h1>
-          <p className="text-sm text-slate-500 mt-1">Управляйте профилем и безопасностью аккаунта</p>
-        </div>
-
         {/* Mobile tab bar */}
         <div className="flex lg:hidden gap-1 bg-white rounded-xl border border-slate-200 p-1 mb-6 overflow-x-auto">
           {SECTIONS.map((s) => (

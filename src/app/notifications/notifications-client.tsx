@@ -121,16 +121,6 @@ export default function NotificationsPageClient() {
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="w-full px-8 py-8">
-        {/* Заголовок */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Уведомления</h1>
-          <p className="text-slate-600">
-            {unreadCount > 0
-              ? `У вас ${unreadCount} непрочитанных уведомлений`
-              : "Все уведомления прочитаны"}
-          </p>
-        </div>
-
         {/* Фильтры и действия */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4 mb-6">
           <div className="flex items-center justify-between flex-wrap gap-4">

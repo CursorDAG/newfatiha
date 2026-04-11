@@ -18,9 +18,6 @@ export default async function ChatPage() {
     <ChatProvider>
       <div className="min-h-screen bg-slate-50 py-8">
         <div className="w-full px-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-6">
-            Сообщения
-          </h1>
           <ChatInterface />
         </div>
       </div>

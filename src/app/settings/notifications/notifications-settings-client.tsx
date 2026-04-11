@@ -114,13 +114,11 @@ export default function NotificationSettingsClient() {
         <div className="mb-6">
           <button
             onClick={() => router.back()}
-            className="text-emerald-600 hover:text-emerald-700 mb-4 flex items-center gap-2"
+            className="text-emerald-600 hover:text-emerald-700 flex items-center gap-2"
           >
             <ChevronLeft className="w-5 h-5" />
             Назад
           </button>
-          <h1 className="text-3xl font-bold text-slate-900">Настройки уведомлений</h1>
-          <p className="text-slate-600 mt-2">Управляйте способами получения уведомлений</p>
         </div>
 
         {/* Message */}

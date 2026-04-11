@@ -307,15 +307,6 @@ export default function TeacherInfoTab() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">
-          ℹ️ Информация для преподавателей
-        </h1>
-        <p className="text-slate-600">
-          Полное руководство по использованию платформы Fatiha.ru для преподавателей
-        </p>
-      </div>
-
       <Card className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200">
         <div className="flex items-start gap-4">
           <div className="bg-emerald-100 rounded-full p-3">
