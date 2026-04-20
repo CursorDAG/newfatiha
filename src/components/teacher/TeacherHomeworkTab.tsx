@@ -364,7 +364,7 @@ export default function TeacherHomeworkTab({
   const currentAssignment = assignments.find((a) => a.id === selectedAssignmentId) ?? null;
 
   return (
-    <div className="p-8 flex-1">
+    <div className="p-4 sm:p-6 lg:p-8 flex-1">
       {createOpen && (
         <CreateAssignmentModal
           lessons={lessons}
@@ -377,7 +377,7 @@ export default function TeacherHomeworkTab({
         {/* ── Assignment list ── */}
         <div className="lg:w-1/2">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-slate-900">Домашние задания</h2>
+            <h2 className="text-lg sm:text-2xl font-bold text-slate-900">Домашние задания</h2>
             <div className="flex gap-2">
               <Button size="sm" variant="secondary" onClick={onRefresh} icon={<RefreshCw className="w-4 h-4" />}>
                 Обновить

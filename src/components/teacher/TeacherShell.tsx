@@ -134,12 +134,12 @@ export default function TeacherShell({
         />
       )}
 
-      <main className="w-full px-8 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <main className="w-full px-2 py-2 sm:px-4 sm:py-4 lg:px-8 lg:py-6 grid grid-cols-1 lg:grid-cols-4 gap-3 lg:gap-6">
         {/* Sidebar - на мобильных это модальное меню */}
         <nav
-          className={`lg:col-span-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-2 h-fit transition-transform lg:translate-x-0 relative ${
+          className={`lg:col-span-1 bg-white lg:rounded-2xl lg:shadow-sm lg:border lg:border-slate-200 p-4 lg:p-6 space-y-2 h-fit transition-transform lg:translate-x-0 relative ${
             mobileMenuOpen
-              ? "fixed inset-4 top-32 z-40 max-h-[calc(100vh-9rem)] overflow-y-auto"
+              ? "fixed inset-4 top-32 z-40 max-h-[calc(100vh-9rem)] overflow-y-auto rounded-2xl shadow-xl border border-slate-200"
               : "hidden lg:block"
           }`}
         >
@@ -178,8 +178,8 @@ export default function TeacherShell({
           </div>
         </nav>
 
-        <section className="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-200 min-h-[650px] overflow-hidden flex flex-col">
-          <div className="p-6 border-b border-slate-200">{header}</div>
+        <section className="lg:col-span-3 bg-white lg:rounded-2xl lg:shadow-sm lg:border lg:border-slate-200 min-h-[650px] overflow-hidden flex flex-col -mx-2 sm:-mx-4 lg:mx-0">
+          <div className="p-4 lg:p-6 border-b border-slate-200">{header}</div>
           <div className="flex-1">{children}</div>
         </section>
       </main>

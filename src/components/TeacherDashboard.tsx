@@ -1456,10 +1456,10 @@ export default function TeacherDashboard({
 
         {/* ── Overview Tab ─────────────────────────────────────────────── */}
         {activeTab === "overview" && (
-          <div className="p-8 flex-1">
+          <div className="p-4 sm:p-6 lg:p-8 flex-1">
             <div className="flex items-center justify-between mb-6 border-b pb-4">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Обзор</h2>
+                <h2 className="text-lg sm:text-2xl font-bold text-slate-900">Обзор</h2>
                 <p className="text-sm text-slate-600 mt-1">Быстрые действия и состояние выбранного потока</p>
               </div>
               <div className="flex gap-2">
@@ -1493,9 +1493,9 @@ export default function TeacherDashboard({
 
           {/* ── Courses Tab ──────────────────────────────────────────────── */}
           {activeTab === 'courses' && (
-            <div className="p-8 flex-1">
+            <div className="p-4 sm:p-6 lg:p-8 flex-1">
               <div className="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 className="text-2xl font-bold text-slate-900">Мои курсы</h2>
+                <h2 className="text-lg sm:text-2xl font-bold text-slate-900">Мои курсы</h2>
                 <button
                   onClick={() => setShowCourseModal(true)}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl font-bold text-sm transition-all shadow-sm"
@@ -1581,10 +1581,10 @@ export default function TeacherDashboard({
 
           {/* ── Schedule Tab ─────────────────────────────────────────────── */}
           {activeTab === "schedule" && (
-            <div className="p-8 flex-1">
+            <div className="p-4 sm:p-6 lg:p-8 flex-1">
               <div className="flex items-center justify-between mb-6 border-b pb-4">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Органайзер</h2>
+                  <h2 className="text-lg sm:text-2xl font-bold text-slate-900">Органайзер</h2>
                   <p className="text-sm text-slate-600 mt-1">
                     Недельное расписание по всем потокам. Занятые слоты подсвечены.
                   </p>
@@ -1752,7 +1752,7 @@ export default function TeacherDashboard({
 
         {/* ── Progress Tab ──────────────────────────────────────────────── */}
         {activeTab === "progress" && selectedStreamId && (
-          <div className="p-8 flex-1">
+          <div className="p-4 sm:p-6 lg:p-8 flex-1">
             <TeacherProgressAnalytics streamId={selectedStreamId} />
           </div>
         )}

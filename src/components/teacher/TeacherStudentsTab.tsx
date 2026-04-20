@@ -31,7 +31,7 @@ export default function TeacherStudentsTab({
 }) {
   if (!stream) {
     return (
-      <div className="p-8 flex-1">
+      <div className="p-4 sm:p-6 lg:p-8 flex-1">
         <Card padding="p-12">
           <div className="text-center">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -46,10 +46,10 @@ export default function TeacherStudentsTab({
   }
 
   return (
-    <div className="p-8 flex-1">
+    <div className="p-4 sm:p-6 lg:p-8 flex-1">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Студенты потока</h2>
+          <h2 className="text-lg sm:text-2xl font-bold text-slate-900">Студенты потока</h2>
           <div className="flex items-center gap-2 mt-2">
             <Badge variant="info" size="lg">{stream.name}</Badge>
             <span className="text-sm text-slate-600">

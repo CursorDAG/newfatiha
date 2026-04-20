@@ -248,10 +248,10 @@ export default function TeacherLessonsTab({
   }
 
   return (
-    <div className="p-8 flex-1">
+    <div className="p-4 sm:p-6 lg:p-8 flex-1">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Уроки и тесты</h2>
+          <h2 className="text-lg sm:text-2xl font-bold text-slate-900">Уроки и тесты</h2>
           <p className="text-sm text-slate-600 mt-2">
             План уроков выбранного потока · перетащите карточку для изменения порядка
           </p>

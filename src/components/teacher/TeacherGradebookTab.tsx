@@ -313,7 +313,7 @@ export default function TeacherGradebookTab({
   };
   if (!hasStream) {
     return (
-      <div className="p-8 flex-1">
+      <div className="p-4 sm:p-6 lg:p-8 flex-1">
         <Card padding="p-12">
           <div className="text-center">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -329,7 +329,7 @@ export default function TeacherGradebookTab({
 
   if (loading && !data) {
     return (
-      <div className="p-8 flex-1">
+      <div className="p-4 sm:p-6 lg:p-8 flex-1">
         <Card padding="p-12">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
@@ -342,7 +342,7 @@ export default function TeacherGradebookTab({
 
   if (error && !data) {
     return (
-      <div className="p-8 flex-1">
+      <div className="p-4 sm:p-6 lg:p-8 flex-1">
         <Card padding="p-8" className="bg-red-50 border-red-200">
           <div className="text-center space-y-4">
             <p className="text-red-700 font-semibold">Не удалось загрузить журнал</p>
@@ -358,7 +358,7 @@ export default function TeacherGradebookTab({
 
   if (!data || data.students.length === 0 || data.lessons.length === 0) {
     return (
-      <div className="p-8 flex-1">
+      <div className="p-4 sm:p-6 lg:p-8 flex-1">
         <Card padding="p-12">
           <div className="text-center">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -376,7 +376,7 @@ export default function TeacherGradebookTab({
     <div className="p-8 flex-1 flex flex-col gap-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Журнал</h2>
+          <h2 className="text-lg sm:text-2xl font-bold text-slate-900">Журнал</h2>
           <p className="text-sm text-slate-600 mt-2">
             Поток {data.stream.name} • курс {data.stream.courseTitle}
           </p>

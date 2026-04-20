@@ -63,7 +63,7 @@ export default function TeacherAnalyticsTab({
 }) {
   if (!hasStream) {
     return (
-      <div className="p-8 flex-1">
+      <div className="p-4 sm:p-6 lg:p-8 flex-1">
         <Card padding="p-12">
           <div className="text-center">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -78,10 +78,10 @@ export default function TeacherAnalyticsTab({
   }
 
   return (
-    <div className="p-8 flex-1">
+    <div className="p-4 sm:p-6 lg:p-8 flex-1">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Успеваемость и активность</h2>
+          <h2 className="text-lg sm:text-2xl font-bold text-slate-900">Успеваемость и активность</h2>
           <p className="text-sm text-slate-600 mt-2">Статистика за последние 30 дней</p>
         </div>
         <div className="flex gap-2">
