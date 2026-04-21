@@ -60,6 +60,16 @@ export default function TeacherShell({
   }, []);
 
   useEffect(() => {
+    if (mobileMenuOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
     if (!isCompleted) {
       const timer = setTimeout(() => {
         startOnboarding(teacherSteps);
