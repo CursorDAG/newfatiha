@@ -129,9 +129,9 @@ export default function TeacherShell({
       <main className="w-full px-2 py-2 sm:px-4 sm:py-4 lg:px-8 lg:py-6 grid grid-cols-1 lg:grid-cols-4 gap-3 lg:gap-6">
         {/* Sidebar - на мобильных это модальное меню */}
         <nav
-          className={`lg:col-span-1 bg-white lg:rounded-2xl lg:shadow-sm lg:border lg:border-slate-200 p-4 lg:p-6 space-y-2 h-fit transition-transform lg:translate-x-0 relative ${
+          className={`lg:col-span-1 bg-white lg:rounded-2xl lg:shadow-sm lg:border lg:border-slate-200 p-4 lg:p-6 space-y-2 h-fit lg:relative ${
             mobileMenuOpen
-              ? "fixed inset-x-2 top-14 bottom-2 z-40 overflow-y-auto rounded-2xl shadow-xl border border-slate-200"
+              ? "fixed left-0 right-0 top-14 bottom-0 z-40 overflow-y-auto shadow-xl border-t border-slate-200"
               : "hidden lg:block"
           }`}
         >
