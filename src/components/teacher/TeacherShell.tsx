@@ -17,7 +17,6 @@ import {
   FileText,
   Calendar,
   LogOut,
-  Menu,
   X,
   Info,
   UserPlus,
@@ -53,6 +52,12 @@ export default function TeacherShell({
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { startOnboarding, isCompleted, resetOnboarding } = useOnboarding();
+
+  useEffect(() => {
+    const handler = () => setMobileMenuOpen((v) => !v);
+    window.addEventListener("teacher-shell-toggle-sidebar", handler);
+    return () => window.removeEventListener("teacher-shell-toggle-sidebar", handler);
+  }, []);
 
   useEffect(() => {
     if (!isCompleted) {
@@ -113,19 +118,6 @@ export default function TeacherShell({
         <Info className="w-5 h-5" />
       </button>
 
-      {/* Mobile menu button - z-40 чтобы был выше help button */}
-      <button
-        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        className="lg:hidden fixed top-20 left-4 z-40 bg-white rounded-xl shadow-lg p-3 border border-slate-200 hover:bg-slate-50 transition-colors"
-        aria-label="Открыть меню"
-      >
-        {mobileMenuOpen ? (
-          <X className="w-6 h-6 text-slate-700" />
-        ) : (
-          <Menu className="w-6 h-6 text-slate-700" />
-        )}
-      </button>
-
       {/* Mobile menu overlay - z-30 чтобы был под меню но над help button */}
       {mobileMenuOpen && (
         <div
@@ -139,7 +131,7 @@ export default function TeacherShell({
         <nav
           className={`lg:col-span-1 bg-white lg:rounded-2xl lg:shadow-sm lg:border lg:border-slate-200 p-4 lg:p-6 space-y-2 h-fit transition-transform lg:translate-x-0 relative ${
             mobileMenuOpen
-              ? "fixed inset-4 top-32 z-40 max-h-[calc(100vh-9rem)] overflow-y-auto rounded-2xl shadow-xl border border-slate-200"
+              ? "fixed inset-4 top-20 z-40 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-2xl shadow-xl border border-slate-200"
               : "hidden lg:block"
           }`}
         >

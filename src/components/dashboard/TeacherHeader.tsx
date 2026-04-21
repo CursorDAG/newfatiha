@@ -32,6 +32,15 @@ export default function TeacherHeader({ teacherName }: TeacherHeaderProps) {
     <header className="bg-emerald-700 text-white shadow-md w-full shrink-0">
       <div className="w-full px-4 sm:px-8 py-3">
         <div className="flex items-center gap-3">
+          {/* Mobile sidebar toggle (teacher tabs) */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("teacher-shell-toggle-sidebar"))}
+            className="md:hidden p-1.5 rounded-lg hover:bg-emerald-600/50 transition-colors -ml-1"
+            aria-label="Открыть вкладки"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
