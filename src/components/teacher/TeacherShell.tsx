@@ -131,7 +131,7 @@ export default function TeacherShell({
         <nav
           className={`lg:col-span-1 bg-white lg:rounded-2xl lg:shadow-sm lg:border lg:border-slate-200 p-4 lg:p-6 space-y-2 h-fit transition-transform lg:translate-x-0 relative ${
             mobileMenuOpen
-              ? "fixed inset-4 top-20 z-40 max-h-[calc(100vh-6rem)] overflow-y-auto rounded-2xl shadow-xl border border-slate-200"
+              ? "fixed inset-x-2 top-14 bottom-2 z-40 overflow-y-auto rounded-2xl shadow-xl border border-slate-200"
               : "hidden lg:block"
           }`}
         >
