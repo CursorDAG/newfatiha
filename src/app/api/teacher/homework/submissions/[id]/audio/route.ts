@@ -9,7 +9,7 @@ export const GET = withErrorHandling(async (
   context?: { params: Promise<Record<string, string>> },
 ) => {
   const params = await context!.params;
-  const submissionId = params.submissionId;
+  const submissionId = params.id;
   const session = await getServerSession(authOptions);
   if (!session) throw new AuthError("Unauthorized");
 
