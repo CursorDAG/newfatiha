@@ -31,8 +31,8 @@ export default function StudentHeader({ studentName }: StudentHeaderProps) {
         <div className="flex items-center gap-3">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-              <span className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-700 border border-white/20 rounded-xl flex items-center justify-center text-white text-base font-bold shadow-md">
+            <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity min-h-11">
+              <span className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-700 border border-white/20 rounded-xl flex items-center justify-center text-white text-base font-bold shadow-md">
                 ف
               </span>
               <span className="text-base font-extrabold tracking-tight hidden sm:block">
@@ -78,10 +78,10 @@ export default function StudentHeader({ studentName }: StudentHeaderProps) {
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-1.5 rounded-lg hover:bg-emerald-600/50 transition-colors"
+              className="md:hidden min-h-11 min-w-11 rounded-lg hover:bg-emerald-600/50 transition-colors flex items-center justify-center"
               aria-label="Открыть меню"
             >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
             <button
@@ -108,22 +108,22 @@ export default function StudentHeader({ studentName }: StudentHeaderProps) {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                  className={`flex items-center gap-3 px-4 min-h-11 py-2.5 rounded-lg text-sm font-semibold transition-all whitespace-normal leading-snug ${
                     isActive
                       ? "bg-white text-emerald-800 shadow-sm"
                       : "text-emerald-100 hover:text-white hover:bg-emerald-600/50"
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-5 h-5 shrink-0" />
                   {link.label}
                 </Link>
               );
             })}
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-semibold text-red-300 hover:text-white hover:bg-red-600/50 transition-all"
+              className="w-full flex items-center gap-3 px-4 min-h-11 py-2.5 rounded-lg text-sm font-semibold text-red-300 hover:text-white hover:bg-red-600/50 transition-all"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-5 h-5" />
               Выйти
             </button>
           </nav>

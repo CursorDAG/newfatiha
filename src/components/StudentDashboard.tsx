@@ -739,11 +739,11 @@ export default function StudentDashboard({
         <Menu className="w-6 h-6 text-slate-700" />
       </button>
 
-      <div className="w-full px-8 py-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="w-full px-3 py-3 sm:px-4 sm:py-4 lg:px-8 lg:py-6 grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
         {/* ── Sidebar ────────────────────────────────────────────────── */}
         {/* На мобильных: показывается как модальное меню с кнопкой закрытия */}
         {/* На десктопе: статический sidebar */}
-        <nav className={`lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-2 h-fit transition-transform lg:translate-x-0 relative ${
+        <nav className={`lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-2 h-fit transition-transform lg:translate-x-0 relative ${
           mobileMenuOpen
             ? "fixed inset-4 top-20 z-40 max-h-[calc(100vh-6rem)] overflow-y-auto"
             : "hidden lg:block"
@@ -830,10 +830,10 @@ export default function StudentDashboard({
         <section className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-slate-200 min-h-[650px] overflow-hidden flex flex-col">
           {/* ── Home Tab ─────────────────────────────────────────────── */}
           {activeTab === "home" && (
-            <div className="p-8 flex-1 space-y-6">
+            <div className="p-4 sm:p-6 lg:p-8 flex-1 space-y-6">
               {/* Welcome */}
               <div>
-                <h2 className="text-3xl font-bold text-slate-900">
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
                   Добро пожаловать, {userName}!
                 </h2>
                 <p className="text-sm text-slate-600 mt-1">
@@ -999,11 +999,11 @@ export default function StudentDashboard({
 
           {/* ── Lessons Tab ──────────────────────────────────────────── */}
           {activeTab === "lessons" && (
-            <div className="p-8 flex-1">
+            <div className="p-4 sm:p-6 lg:p-8 flex-1">
               <div className="mb-8 pb-6 border-b border-slate-200">
                 <div className="flex items-center gap-3 mb-2">
                   <BookOpen className="w-7 h-7 text-emerald-600" />
-                  <h2 className="text-3xl font-bold text-slate-900">Мои уроки</h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Мои уроки</h2>
                 </div>
                 <p className="text-sm text-slate-500 mt-2">
                   Все уроки ваших потоков
@@ -1135,9 +1135,9 @@ export default function StudentDashboard({
 
           {/* ── Homework Tab ─────────────────────────────────────────── */}
           {activeTab === "homework" && (
-            <div className="p-8 flex-1">
+            <div className="p-4 sm:p-6 lg:p-8 flex-1">
               <div className="mb-8 border-b pb-4">
-                <h2 className="text-3xl font-bold text-slate-900">
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
                   Домашние задания
                 </h2>
                 <p className="text-sm text-slate-600 mt-1">
@@ -1191,11 +1191,11 @@ export default function StudentDashboard({
 
           {/* ── Quiz Results Tab ─────────────────────────────────────── */}
           {activeTab === "results" && (
-            <div className="p-8 flex-1">
+            <div className="p-4 sm:p-6 lg:p-8 flex-1">
               <div className="mb-8 pb-6 border-b border-slate-200">
                 <div className="flex items-center gap-3 mb-2">
                   <FlaskConical className="w-7 h-7 text-emerald-600" />
-                  <h2 className="text-3xl font-bold text-slate-900">Мои тесты</h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Мои тесты</h2>
                 </div>
                 <p className="text-sm text-slate-500 mt-2">
                   История результатов по квизам и тестам
@@ -1285,11 +1285,11 @@ export default function StudentDashboard({
 
           {/* ── Progress Tab ─────────────────────────────────────────── */}
           {activeTab === "progress" && (
-            <div className="p-8 flex-1">
+            <div className="p-4 sm:p-6 lg:p-8 flex-1">
               <div className="mb-8 pb-6 border-b border-slate-200">
                 <div className="flex items-center gap-3 mb-2">
                   <BarChart3 className="w-7 h-7 text-emerald-600" />
-                  <h2 className="text-3xl font-bold text-slate-900">Мой прогресс</h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Мой прогресс</h2>
                 </div>
                 <p className="text-sm text-slate-500 mt-2">
                   Отслеживайте свою успеваемость и достижения
@@ -1303,11 +1303,11 @@ export default function StudentDashboard({
 
           {/* ── Schedule Tab ─────────────────────────────────────────── */}
           {activeTab === "schedule" && (
-            <div className="p-8 flex-1">
+            <div className="p-4 sm:p-6 lg:p-8 flex-1">
               <div className="mb-8 pb-6 border-b border-slate-200">
                 <div className="flex items-center gap-3 mb-2">
                   <Calendar className="w-7 h-7 text-emerald-600" />
-                  <h2 className="text-3xl font-bold text-slate-900">Расписание</h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Расписание</h2>
                 </div>
                 <p className="text-sm text-slate-500 mt-2">
                   Расписание занятий по вашим потокам
@@ -1428,7 +1428,7 @@ export default function StudentDashboard({
 
           {/* ── Info Tab ─────────────────────────────────────────────── */}
           {activeTab === "info" && (
-            <div className="p-8 flex-1">
+            <div className="p-4 sm:p-6 lg:p-8 flex-1">
               <StudentInfoTab />
             </div>
           )}
