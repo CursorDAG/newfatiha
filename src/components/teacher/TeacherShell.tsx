@@ -128,31 +128,34 @@ export default function TeacherShell({
         <Info className="w-5 h-5" />
       </button>
 
-      {/* Mobile menu overlay - z-30 чтобы был под меню но над help button */}
+      {/* Mobile tabs-drawer overlay - z-[60] выше header (header ~z-40) */}
       {mobileMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          className="lg:hidden fixed inset-0 bg-black/50 z-[59]"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
 
       <main className="w-full px-2 py-2 sm:px-4 sm:py-4 lg:px-8 lg:py-6 grid grid-cols-1 lg:grid-cols-4 gap-3 lg:gap-6">
-        {/* Sidebar - на мобильных это модальное меню */}
+        {/* Sidebar - на мобильных слайд-сайдбар слева (tabs потока), на десктопе статичный */}
         <nav
           className={`lg:col-span-1 bg-white lg:rounded-2xl lg:shadow-sm lg:border lg:border-slate-200 p-4 lg:p-6 space-y-2 h-fit lg:relative ${
             mobileMenuOpen
-              ? "fixed left-0 right-0 top-14 bottom-0 z-40 overflow-y-auto shadow-xl border-t border-slate-200"
+              ? "fixed left-0 top-0 bottom-0 w-[82vw] max-w-sm z-[60] overflow-y-auto shadow-2xl pt-16 pb-6"
               : "hidden lg:block"
           }`}
         >
-          {/* Кнопка закрытия для мобильного меню */}
-          <button
-            onClick={() => setMobileMenuOpen(false)}
-            className="lg:hidden absolute top-3 right-3 p-2 rounded-lg hover:bg-slate-100 transition-colors"
-            aria-label="Закрыть меню"
-          >
-            <X className="w-5 h-5 text-slate-600" />
-          </button>
+          {/* Шапка мобильного drawer: заголовок + крестик */}
+          <div className="lg:hidden absolute top-0 left-0 right-0 px-4 h-14 flex items-center justify-between border-b border-slate-200 bg-white">
+            <span className="text-sm font-bold text-slate-700">Вкладки потока</span>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="min-h-11 min-w-11 -mr-2 p-2 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-center"
+              aria-label="Закрыть меню"
+            >
+              <X className="w-5 h-5 text-slate-600" />
+            </button>
+          </div>
           {tabs.map((t) => (
             <button
               key={t.id}
