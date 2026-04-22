@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { X } from "lucide-react";
+import { X, ArrowLeft } from "lucide-react";
 import { useChatSocket } from "./ChatProvider";
 import { MessageItem } from "./MessageItem";
 import { MessageInput } from "./MessageInput";
@@ -222,9 +222,18 @@ export function ChatWindow({
   return (
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
+      <div className="flex items-center gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-white">
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="md:hidden min-h-11 min-w-11 -ml-2 flex items-center justify-center text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors flex-shrink-0"
+            aria-label="Назад к списку"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+        )}
         <div className="min-w-0 flex-1">
-          <h3 className="font-bold text-lg text-slate-900 truncate">{roomName}</h3>
+          <h3 className="font-bold text-base sm:text-lg text-slate-900 truncate">{roomName}</h3>
           <p className="text-xs text-slate-500 mt-0.5">
             {isConnected ? "Подключено" : "Отключено"}
           </p>
@@ -232,7 +241,8 @@ export function ChatWindow({
         {onClose && (
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors ml-4 flex-shrink-0"
+            className="hidden md:block text-slate-400 hover:text-slate-600 transition-colors ml-4 flex-shrink-0"
+            aria-label="Закрыть"
           >
             <X className="w-6 h-6" />
           </button>
