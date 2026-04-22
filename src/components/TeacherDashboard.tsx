@@ -1457,33 +1457,80 @@ export default function TeacherDashboard({
         {/* ── Overview Tab ─────────────────────────────────────────────── */}
         {activeTab === "overview" && (
           <div className="p-4 sm:p-6 lg:p-8 flex-1">
-            <div className="flex items-center justify-between mb-6 border-b pb-4">
-              <div>
-                <h2 className="text-lg sm:text-2xl font-bold text-slate-900">Обзор</h2>
-                <p className="text-sm text-slate-600 mt-1">Быстрые действия и состояние выбранного потока</p>
+            <div className="flex items-center justify-between mb-4 sm:mb-6 pb-3 sm:pb-4 border-b">
+              <div className="min-w-0">
+                <h2 className="text-base sm:text-2xl font-bold text-slate-900">Обзор</h2>
+                <p className="hidden sm:block text-sm text-slate-600 mt-1">Быстрые действия и состояние выбранного потока</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 shrink-0">
                 <Button variant="secondary" onClick={() => setActiveTab("streams")}>
-                  Управлять потоками
+                  Потоки
                 </Button>
               </div>
             </div>
 
             {!selectedStream ? (
-              <EmptyState icon="📚" title="Нет потоков" description="Создайте поток, чтобы начать обучение." />
+              <div className="space-y-4">
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 sm:p-5">
+                  <p className="text-sm sm:text-base font-semibold text-emerald-900">
+                    Выберите поток сверху, чтобы открыть его вкладки
+                  </p>
+                  <p className="text-xs sm:text-sm text-emerald-800/80 mt-1">
+                    На мобильном нажмите <span className="font-bold">☰</span> слева в шапке — список вкладок потока (Уроки, Студенты, Заявки и др.).
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("courses")}
+                    className="text-left border border-slate-200 rounded-xl p-4 bg-white hover:border-emerald-300 hover:bg-emerald-50/40 transition-all"
+                  >
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Мои курсы</p>
+                    <p className="text-2xl font-extrabold text-slate-800 mt-1">{initialCourses.length}</p>
+                    <p className="text-xs text-slate-500 mt-1">Открыть список курсов</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("applications")}
+                    className="text-left border border-slate-200 rounded-xl p-4 bg-white hover:border-emerald-300 hover:bg-emerald-50/40 transition-all"
+                  >
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Заявки</p>
+                    <p className="text-2xl font-extrabold text-slate-800 mt-1">→</p>
+                    <p className="text-xs text-slate-500 mt-1">Рассмотреть заявки студентов</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("homework")}
+                    className="text-left border border-slate-200 rounded-xl p-4 bg-white hover:border-emerald-300 hover:bg-emerald-50/40 transition-all"
+                  >
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Домашка</p>
+                    <p className="text-2xl font-extrabold text-slate-800 mt-1">→</p>
+                    <p className="text-xs text-slate-500 mt-1">Проверить сданные работы</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("schedule")}
+                    className="text-left border border-slate-200 rounded-xl p-4 bg-white hover:border-emerald-300 hover:bg-emerald-50/40 transition-all"
+                  >
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Расписание</p>
+                    <p className="text-2xl font-extrabold text-slate-800 mt-1">→</p>
+                    <p className="text-xs text-slate-500 mt-1">Недельная сетка</p>
+                  </button>
+                </div>
+              </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ученики</p>
-                  <p className="text-3xl font-extrabold text-slate-800 mt-2">{selectedStream.enrollments.length}</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-slate-800 mt-2">{selectedStream.enrollments.length}</p>
                 </div>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Уроки</p>
-                  <p className="text-3xl font-extrabold text-slate-800 mt-2">{selectedStream.lessons.length}</p>
+                  <p className="text-2xl sm:text-3xl font-extrabold text-slate-800 mt-2">{selectedStream.lessons.length}</p>
                 </div>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
+                <div className="col-span-2 md:col-span-1 bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Расписание</p>
-                  <p className="text-sm font-bold text-slate-700 mt-3">{selectedStream.schedule || "Не настроено"}</p>
+                  <p className="text-sm font-bold text-slate-700 mt-2">{selectedStream.schedule || "Не настроено"}</p>
                 </div>
               </div>
             )}

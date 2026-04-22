@@ -830,19 +830,18 @@ export default function StudentDashboard({
         <section className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-slate-200 min-h-[650px] overflow-hidden flex flex-col">
           {/* ── Home Tab ─────────────────────────────────────────────── */}
           {activeTab === "home" && (
-            <div className="p-4 sm:p-6 lg:p-8 flex-1 space-y-6">
-              {/* Welcome */}
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
-                  Добро пожаловать, {userName}!
+            <div className="p-4 sm:p-6 lg:p-8 flex-1 space-y-5">
+              {/* Welcome - компактный на мобиле */}
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <h2 className="text-base sm:text-2xl font-bold text-slate-900">
+                  Привет, {userName}!
                 </h2>
-                <p className="text-sm text-slate-600 mt-1">
-                  {new Date().toLocaleDateString("ru-RU", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
+                <p className="text-xs sm:text-sm text-slate-500">
+                  {pendingHomeworkCount > 0
+                    ? `${pendingHomeworkCount} ${pendingHomeworkCount === 1 ? "задание ждёт" : "заданий ждут"}`
+                    : enrollments.filter((e) => e.status === "ACTIVE").length > 0
+                    ? "Все задания выполнены"
+                    : new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long" })}
                 </p>
               </div>
 
