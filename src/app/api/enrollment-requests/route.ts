@@ -80,7 +80,7 @@ export const POST = withErrorHandling(async (req: Request) => {
     throw new ForbiddenError(genderCheck.reason || "Вы не можете записаться на этот курс");
   }
 
-  // Check if already enrolled or has pending request
+  // Block if student already has ACTIVE enrollment in this exact stream
   const existingEnrollment = await prisma.enrollment.findUnique({
     where: {
       userId_streamId: {
@@ -90,10 +90,40 @@ export const POST = withErrorHandling(async (req: Request) => {
     },
   });
 
-  if (existingEnrollment) {
+  if (existingEnrollment && existingEnrollment.status === "ACTIVE") {
     throw new ConflictError("Вы уже записаны на этот курс");
   }
 
+  // Block if student is already enrolled / has pending request in ANOTHER stream of the SAME course
+  const otherStreamIds = await prisma.stream.findMany({
+    where: { courseId: stream.courseId, NOT: { id: streamId } },
+    select: { id: true },
+  });
+  const otherStreamIdList = otherStreamIds.map((s) => s.id);
+  if (otherStreamIdList.length) {
+    const otherActiveEnrollment = await prisma.enrollment.findFirst({
+      where: {
+        userId: session.user.id,
+        streamId: { in: otherStreamIdList },
+        status: "ACTIVE",
+      },
+    });
+    if (otherActiveEnrollment) {
+      throw new ConflictError("Вы уже записаны на другой поток этого курса");
+    }
+    const otherPendingRequest = await prisma.enrollmentRequest.findFirst({
+      where: {
+        studentId: session.user.id,
+        streamId: { in: otherStreamIdList },
+        status: { in: ["PENDING_REVIEW", "APPROVED_PENDING_PAYMENT", "PAYMENT_CONFIRMED"] },
+      },
+    });
+    if (otherPendingRequest) {
+      throw new ConflictError("У вас уже есть активная заявка на другой поток этого курса");
+    }
+  }
+
+  // Reuse prior request on this stream: reopen if REJECTED, block if still active
   const existingRequest = await prisma.enrollmentRequest.findUnique({
     where: {
       studentId_streamId: {
@@ -103,19 +133,34 @@ export const POST = withErrorHandling(async (req: Request) => {
     },
   });
 
+  let enrollmentRequest;
   if (existingRequest) {
-    throw new ConflictError("Вы уже подали заявку на этот курс");
+    if (existingRequest.status === "REJECTED") {
+      enrollmentRequest = await prisma.enrollmentRequest.update({
+        where: { id: existingRequest.id },
+        data: {
+          status: "PENDING_REVIEW",
+          message,
+          rejectionReason: null,
+          reviewedById: null,
+          reviewedAt: null,
+          paymentConfirmed: false,
+          paymentConfirmedAt: null,
+        },
+      });
+    } else {
+      throw new ConflictError("Вы уже подали заявку на этот курс");
+    }
+  } else {
+    enrollmentRequest = await prisma.enrollmentRequest.create({
+      data: {
+        studentId: session.user.id,
+        streamId,
+        message,
+        status: "PENDING_REVIEW",
+      },
+    });
   }
-
-  // Create enrollment request
-  const enrollmentRequest = await prisma.enrollmentRequest.create({
-    data: {
-      studentId: session.user.id,
-      streamId,
-      message,
-      status: "PENDING_REVIEW",
-    },
-  });
 
   // Notify teacher
   await NotificationService.create({

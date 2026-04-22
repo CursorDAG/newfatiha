@@ -41,6 +41,9 @@ export const GET = withErrorHandling(async (
   }
 
   if (!submission.voiceData || !submission.voiceMimeType) {
+    if (submission.voiceUrl) {
+      return Response.redirect(submission.voiceUrl, 302);
+    }
     throw new NotFoundError("No audio");
   }
 
