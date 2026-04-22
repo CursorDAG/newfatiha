@@ -35,7 +35,7 @@ export default function TeacherHeader({ teacherName }: TeacherHeaderProps) {
           {/* Mobile sidebar toggle (teacher tabs) */}
           <button
             onClick={() => window.dispatchEvent(new CustomEvent("teacher-shell-toggle-sidebar"))}
-            className="md:hidden p-1.5 rounded-lg hover:bg-emerald-600/50 transition-colors -ml-1"
+            className="lg:hidden p-1.5 rounded-lg hover:bg-emerald-600/50 transition-colors -ml-1"
             aria-label="Открыть вкладки"
           >
             <Menu className="w-5 h-5" />
