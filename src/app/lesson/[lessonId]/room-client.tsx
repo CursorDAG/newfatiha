@@ -376,30 +376,36 @@ export default function LessonRoomClient({
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
       {/* Header */}
-      <div className="bg-slate-900/50 backdrop-blur-sm border-b border-white/5 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-emerald-400 text-xs font-bold uppercase tracking-wider">
-                  {lesson.courseName}
-                </span>
-                <span className="text-white/30">•</span>
-                <span className="text-white/60 text-xs font-medium">
-                  {lesson.streamName}
-                </span>
-              </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white truncate">{lesson.title}</h1>
-            </div>
+      <div className="bg-slate-900/80 backdrop-blur-sm border-b border-white/5 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button
               onClick={() => router.push(viewerRole === "TEACHER" ? "/teacher" : "/student")}
-              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+              className="flex-shrink-0 flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 min-h-11 min-w-11 px-2 sm:px-4 py-2 rounded-xl font-semibold text-sm transition-all active:scale-95"
+              aria-label="Назад"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Назад
+              <span className="hidden sm:inline">Назад</span>
             </button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5 text-xs">
+                <span className="text-emerald-400 font-bold uppercase tracking-wider truncate">
+                  {lesson.courseName}
+                </span>
+                <span className="text-white/30 hidden sm:inline">•</span>
+                <span className="text-white/60 font-medium hidden sm:inline truncate">
+                  {lesson.streamName}
+                </span>
+              </div>
+              <h1
+                className="text-base sm:text-xl lg:text-2xl font-bold text-white leading-tight line-clamp-2"
+                title={lesson.title}
+              >
+                {lesson.title}
+              </h1>
+            </div>
           </div>
         </div>
       </div>
@@ -611,29 +617,28 @@ export default function LessonRoomClient({
                       return (
                         <label
                           key={o.id}
-                          className={`group flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all ${
+                          className={`group flex items-center gap-3 w-full min-h-12 rounded-xl border-2 px-4 py-3 text-left cursor-pointer transition-all ${
                             isSelected
-                              ? "border-emerald-400 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 shadow-lg scale-[1.02]"
-                              : "border-white/10 bg-black/20 hover:bg-black/30 hover:border-white/20"
+                              ? "border-emerald-500 bg-emerald-500/15 text-white shadow-lg"
+                              : "border-white/15 bg-black/20 text-white/80 hover:border-white/30 hover:bg-black/30"
                           }`}
                         >
-                          <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                            isSelected
-                              ? "border-emerald-400 bg-emerald-500"
-                              : "border-white/30 group-hover:border-white/50"
-                          }`}>
-                            {isSelected && (
+                          <div
+                            className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                              isSelected
+                                ? "border-emerald-400 bg-emerald-500"
+                                : "border-white/30 group-hover:border-white/50"
+                            }`}
+                          >
+                            {isSelected ? (
                               <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                               </svg>
+                            ) : (
+                              <span className="text-xs font-bold text-white/60">{String.fromCharCode(65 + idx)}</span>
                             )}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-bold text-white/50">Вариант {String.fromCharCode(65 + idx)}</span>
-                            </div>
-                            <span className="text-sm sm:text-base text-white/90 leading-relaxed">{o.text}</span>
-                          </div>
+                          <span className="flex-1 text-base leading-snug">{o.text}</span>
                           <input
                             type="radio"
                             name={`question-${currentQuestion.id}`}
