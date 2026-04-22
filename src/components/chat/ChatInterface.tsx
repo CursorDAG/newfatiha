@@ -25,9 +25,13 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-200px)] min-h-[600px] bg-white rounded-2xl shadow-lg overflow-hidden border border-slate-200">
+    <div className="flex h-[calc(100vh-160px)] sm:h-[calc(100vh-200px)] min-h-[500px] sm:min-h-[600px] bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden border border-slate-200">
       {/* Chat list sidebar */}
-      <div className="w-80 border-r border-slate-200 flex-shrink-0">
+      <div
+        className={`w-full md:w-80 border-r border-slate-200 flex-shrink-0 ${
+          selectedRoom ? "hidden md:block" : "block"
+        }`}
+      >
         <ChatList
           onSelectRoom={handleSelectRoom}
           selectedRoomId={selectedRoom?.id}
@@ -35,7 +39,11 @@ export function ChatInterface() {
       </div>
 
       {/* Chat window */}
-      <div className="flex-1 flex flex-col">
+      <div
+        className={`flex-1 flex-col ${
+          selectedRoom ? "flex" : "hidden md:flex"
+        }`}
+      >
         {selectedRoom ? (
           <ChatWindow
             roomId={selectedRoom.id}
