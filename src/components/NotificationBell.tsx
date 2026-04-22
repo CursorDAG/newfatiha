@@ -25,38 +25,42 @@ export default function NotificationBell() {
   const [loading, setLoading] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const socketRef = useRef<Socket | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
-  // Initialize audio
+  // Load sound preference from localStorage
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      // Create audio element with fallback
-      audioRef.current = new Audio();
-
-      // Try to load notification sound, fallback to system beep if not available
-      audioRef.current.src = "/notification-sound.mp3";
-      audioRef.current.volume = 0.5;
-
-      // Handle load error silently
-      audioRef.current.addEventListener("error", () => {
-        console.warn("Notification sound file not found, sound notifications disabled");
-        audioRef.current = null;
-      });
-    }
-
-    // Load sound preference from localStorage
     const savedSoundPref = localStorage.getItem("notificationSound");
     if (savedSoundPref !== null) {
       setSoundEnabled(savedSoundPref === "true");
     }
   }, []);
 
-  // Play notification sound
+  // Play short beep via WebAudio — no asset file needed
   const playSound = useCallback(() => {
-    if (soundEnabled && audioRef.current) {
-      audioRef.current.play().catch((error) => {
-        console.error("Failed to play notification sound:", error);
-      });
+    if (!soundEnabled || typeof window === "undefined") return;
+    try {
+      const Ctx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
+      if (!Ctx) return;
+      if (!audioCtxRef.current) audioCtxRef.current = new Ctx();
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") void ctx.resume();
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.26);
+    } catch {
+      // Autoplay policy or unsupported — silently ignore
     }
   }, [soundEnabled]);
 
