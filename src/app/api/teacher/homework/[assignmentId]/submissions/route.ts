@@ -30,15 +30,34 @@ export const GET = withErrorHandling(async (
 
   const submissions = await prisma.homeworkSubmission.findMany({
     where: { assignmentId: assignment.id },
-    include: {
+    select: {
+      id: true,
+      status: true,
+      grade: true,
+      teacherComment: true,
+      contentText: true,
+      contentUrl: true,
+      voiceMimeType: true,
+      voiceDurationMs: true,
+      voiceUrl: true,
+      submittedAt: true,
+      checkedAt: true,
+      enrollmentId: true,
       enrollment: {
-        include: {
-          user: { select: { id: true, name: true } },
+        select: {
+          user: { select: { id: true, name: true, email: true } },
         },
       },
     },
     orderBy: { submittedAt: "desc" },
   });
+
+  // hasAudio: check presence of voiceData without loading bytes
+  const audioIds = await prisma.homeworkSubmission.findMany({
+    where: { assignmentId: assignment.id, voiceData: { not: null } },
+    select: { id: true },
+  });
+  const hasAudioSet = new Set(audioIds.map((x) => x.id));
 
   const serialized = submissions.map((s) => ({
     id: s.id,
@@ -47,12 +66,16 @@ export const GET = withErrorHandling(async (
     teacherComment: s.teacherComment,
     contentText: s.contentText,
     contentUrl: s.contentUrl,
+    hasAudio: hasAudioSet.has(s.id) || Boolean(s.voiceUrl),
+    voiceMimeType: s.voiceMimeType,
+    voiceDurationMs: s.voiceDurationMs,
     submittedAt: s.submittedAt,
     checkedAt: s.checkedAt,
     student: {
       enrollmentId: s.enrollmentId,
       userId: s.enrollment.user.id,
       name: s.enrollment.user.name,
+      email: s.enrollment.user.email,
     },
   }));
 

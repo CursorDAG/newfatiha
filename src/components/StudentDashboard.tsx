@@ -181,16 +181,101 @@ function HomeworkSubmitForm({
   onClose: () => void;
   onSubmitted: () => void;
 }) {
+  const isAudio = assignment.type === "AUDIO";
   const [text, setText] = useState(assignment.submission?.contentText ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [recording, setRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [duration, setDuration] = useState(0);
+  const mediaRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const startRef = useRef<number>(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  async function startRecording() {
+    setError("");
+    if (!navigator.mediaDevices) {
+      setError("Микрофон недоступен в этом браузере");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm")
+          ? "audio/webm"
+          : "audio/mp4";
+      const rec = new MediaRecorder(stream, { mimeType });
+      mediaRef.current = rec;
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => { if (e.data.size) chunksRef.current.push(e.data); };
+      rec.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        setAudioBlob(blob);
+        if (audioUrl) URL.revokeObjectURL(audioUrl);
+        setAudioUrl(URL.createObjectURL(blob));
+        stream.getTracks().forEach((t) => t.stop());
+      };
+      rec.start();
+      startRef.current = Date.now();
+      setDuration(0);
+      timerRef.current = setInterval(() => {
+        setDuration(Math.floor((Date.now() - startRef.current) / 1000));
+      }, 500);
+      setRecording(true);
+    } catch {
+      setError("Не удалось получить доступ к микрофону");
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRef.current && mediaRef.current.state !== "inactive") {
+      mediaRef.current.stop();
+    }
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    setRecording(false);
+  }
+
+  function resetAudio() {
+    if (audioUrl) URL.revokeObjectURL(audioUrl);
+    setAudioBlob(null);
+    setAudioUrl(null);
+    setDuration(0);
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim()) {
-      setError("Напишите ответ перед отправкой");
+    if (isAudio) {
+      if (!audioBlob) { setError("Запишите голосовой ответ перед отправкой"); return; }
+      setLoading(true);
+      setError("");
+      try {
+        const arr = new Uint8Array(await audioBlob.arrayBuffer());
+        let binary = "";
+        for (let i = 0; i < arr.length; i++) binary += String.fromCharCode(arr[i]);
+        const b64 = btoa(binary);
+        const res = await fetch(`/api/teacher/homework/${assignment.id}/submit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            voiceBase64: b64,
+            voiceMimeType: audioBlob.type,
+            voiceDurationMs: duration * 1000,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error ?? "Ошибка отправки");
+        onSubmitted();
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Ошибка отправки");
+      } finally {
+        setLoading(false);
+      }
       return;
     }
+    if (!text.trim()) { setError("Напишите ответ перед отправкой"); return; }
     setLoading(true);
     setError("");
     try {
@@ -232,12 +317,54 @@ function HomeworkSubmitForm({
         </div>
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
-        <textarea
-          className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none h-32 bg-white"
-          placeholder="Напишите ваш ответ..."
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
+        {isAudio ? (
+          <div className="bg-white border border-slate-300 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              {!recording && !audioBlob && (
+                <button
+                  type="button"
+                  onClick={startRecording}
+                  className="bg-red-600 hover:bg-red-700 text-white text-sm font-bold py-2 px-4 rounded-xl transition-all"
+                >
+                  🎤 Начать запись
+                </button>
+              )}
+              {recording && (
+                <button
+                  type="button"
+                  onClick={stopRecording}
+                  className="bg-slate-700 hover:bg-slate-800 text-white text-sm font-bold py-2 px-4 rounded-xl transition-all"
+                >
+                  ⏹ Остановить ({duration}s)
+                </button>
+              )}
+              {audioBlob && !recording && (
+                <button
+                  type="button"
+                  onClick={resetAudio}
+                  className="bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-bold py-2 px-4 rounded-xl"
+                >
+                  ↻ Перезаписать
+                </button>
+              )}
+              <span className="text-sm text-slate-600">
+                {recording && `идёт запись: ${duration}s`}
+                {!recording && audioBlob && `записано: ${duration}s (${Math.round(audioBlob.size / 1024)} KB)`}
+                {!recording && !audioBlob && "Нажмите «Начать запись»"}
+              </span>
+            </div>
+            {audioUrl && (
+              <audio controls src={audioUrl} className="w-full" />
+            )}
+          </div>
+        ) : (
+          <textarea
+            className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none resize-none h-32 bg-white"
+            placeholder="Напишите ваш ответ..."
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+        )}
         <div className="flex gap-3">
           <button
             type="submit"

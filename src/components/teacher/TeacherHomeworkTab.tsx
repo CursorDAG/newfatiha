@@ -31,12 +31,16 @@ export type HomeworkSubmissionSummary = {
   teacherComment: string | null;
   contentText: string | null;
   contentUrl: string | null;
+  hasAudio?: boolean;
+  voiceMimeType?: string | null;
+  voiceDurationMs?: number | null;
   submittedAt: string;
   checkedAt: string | null;
   student: {
     enrollmentId: string;
     userId: string;
     name: string;
+    email?: string;
   };
 };
 
@@ -242,6 +246,21 @@ function SubmissionCard({
             <audio controls className="w-full">
               <source src={submission.contentUrl} />
             </audio>
+          </div>
+        )}
+        {submission.hasAudio && !submission.contentUrl && (
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+            <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+              Голосовой ответ
+              {submission.voiceDurationMs
+                ? ` (${Math.round(submission.voiceDurationMs / 1000)}s)`
+                : ""}
+            </p>
+            <audio
+              controls
+              className="w-full"
+              src={`/api/teacher/homework/submissions/${submission.id}/audio`}
+            />
           </div>
         )}
 

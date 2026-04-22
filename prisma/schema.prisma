@@ -392,6 +392,10 @@ model HomeworkSubmission {
   teacherComment String?
   contentText    String?
   contentUrl     String?
+  voiceData      Bytes?
+  voiceMimeType  String?
+  voiceDurationMs Int?
+  voiceUrl       String?
   submittedAt    DateTime                 @default(now())
   checkedAt      DateTime?
   createdAt      DateTime                 @default(now())

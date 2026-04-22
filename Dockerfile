@@ -31,4 +31,4 @@ COPY --from=builder /app/tsconfig.json ./tsconfig.json
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-CMD ["tsx", "server.ts"]
+CMD ["sh", "-c", "npx prisma migrate deploy && tsx server.ts"]
