@@ -16,7 +16,6 @@ import {
   FileVideo,
   LogOut,
   Radio,
-  ExternalLink,
   Clock,
   CheckCircle2,
   AlertCircle,
@@ -880,71 +879,201 @@ export default function StudentDashboard({
                 </div>
               </div>
 
-              {/* Upcoming lessons */}
+              {/* Priority-sorted "what's important now" */}
               <div data-onboarding="upcoming-lessons">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">
-                  Ближайшие уроки
+                  Что делать сейчас
                 </h3>
                 {(() => {
-                  const upcoming = enrollments
-                    .filter((e) => e.status === "ACTIVE")
-                    .flatMap((e) =>
-                      e.stream.lessons.slice(0, 2).map((l) => ({
-                        ...l,
-                        streamName: e.stream.name,
+                  const now = new Date();
+                  const todayStart = new Date(now);
+                  todayStart.setHours(0, 0, 0, 0);
+                  const tomorrowStart = new Date(todayStart);
+                  tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+                  const weekEnd = new Date(todayStart);
+                  weekEnd.setDate(weekEnd.getDate() + 7);
+                  const todayDow = (now.getDay() + 6) % 7;
+                  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+                  const activeEnr = enrollments.filter((e) => e.status === "ACTIVE");
+
+                  const pendingHw = homeworkAssignments.filter(
+                    (a) => a.enrollmentId && !a.submission && a.dueAt,
+                  );
+                  const overdue = pendingHw.filter((a) => new Date(a.dueAt!) < todayStart);
+                  const todayHw = pendingHw.filter((a) => {
+                    const d = new Date(a.dueAt!);
+                    return d >= todayStart && d < tomorrowStart;
+                  });
+                  const weekHw = pendingHw.filter((a) => {
+                    const d = new Date(a.dueAt!);
+                    return d >= tomorrowStart && d < weekEnd;
+                  });
+
+                  const todayLive = activeEnr.flatMap((e) =>
+                    e.stream.scheduleSlots
+                      .filter(
+                        (s) =>
+                          s.dayOfWeek === todayDow &&
+                          s.startMinutes + s.durationMinutes > nowMinutes,
+                      )
+                      .map((s) => ({
+                        key: `${e.stream.id}-${s.dayOfWeek}-${s.startMinutes}`,
                         streamId: e.stream.id,
-                      }))
-                    )
-                    .slice(0, 5);
-                  return upcoming.length === 0 ? (
-                    <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-200">
-                      <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                      <p className="text-sm text-slate-400">Уроков пока нет</p>
+                        streamName: e.stream.name,
+                        startMinutes: s.startMinutes,
+                        durationMinutes: s.durationMinutes,
+                      })),
+                  ).sort((a, b) => a.startMinutes - b.startMinutes);
+
+                  const weekLive = activeEnr.flatMap((e) =>
+                    e.stream.scheduleSlots
+                      .filter((s) => s.dayOfWeek !== todayDow)
+                      .map((s) => {
+                        const daysAhead = (s.dayOfWeek - todayDow + 7) % 7 || 7;
+                        return {
+                          key: `${e.stream.id}-${s.dayOfWeek}-${s.startMinutes}`,
+                          streamName: e.stream.name,
+                          startMinutes: s.startMinutes,
+                          durationMinutes: s.durationMinutes,
+                          dayOfWeek: s.dayOfWeek,
+                          daysAhead,
+                        };
+                      })
+                      .filter((s) => s.daysAhead <= 7),
+                  ).sort((a, b) => a.daysAhead - b.daysAhead || a.startMinutes - b.startMinutes);
+
+                  const hasAnything =
+                    overdue.length ||
+                    todayLive.length ||
+                    todayHw.length ||
+                    weekLive.length ||
+                    weekHw.length;
+
+                  if (!hasAnything) {
+                    return (
+                      <div className="text-center py-8 bg-emerald-50 rounded-xl border border-emerald-200">
+                        <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-2" />
+                        <p className="text-sm font-semibold text-emerald-700">Всё под контролем</p>
+                        <p className="text-xs text-emerald-600 mt-1">
+                          На ближайшие 7 дней задач нет
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  const HwRow = ({ a, tone }: { a: HomeworkAssignment; tone: "red" | "amber" | "emerald" }) => {
+                    const toneClass = {
+                      red: "border-red-200 bg-red-50/40",
+                      amber: "border-amber-200 bg-amber-50/40",
+                      emerald: "border-slate-200 bg-white",
+                    }[tone];
+                    const due = a.dueAt ? new Date(a.dueAt) : null;
+                    const dueLabel = due
+                      ? due.toLocaleDateString("ru-RU", { day: "numeric", month: "short" }) +
+                        " " +
+                        due.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })
+                      : "";
+                    return (
+                      <button
+                        onClick={() => setActiveTab("homework")}
+                        className={`w-full flex items-center gap-3 border rounded-xl p-3 text-left hover:shadow-sm transition-all ${toneClass}`}
+                      >
+                        <div className="w-9 h-9 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0">
+                          <FileText className="w-4 h-4 text-slate-600" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-slate-800 text-sm truncate">{a.title}</p>
+                          <p className="text-xs text-slate-500 truncate mt-0.5">
+                            {a.streamName}
+                            {dueLabel && <> · до {dueLabel}</>}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  };
+
+                  const LiveRow = ({
+                    slot,
+                    subtitle,
+                  }: {
+                    slot: { streamId?: string; streamName: string; startMinutes: number; durationMinutes: number };
+                    subtitle: string;
+                  }) => (
+                    <div className="flex items-center gap-3 border border-slate-200 rounded-xl p-3 bg-white">
+                      <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
+                        <Radio className="w-4 h-4 text-emerald-600" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-slate-800 text-sm truncate">
+                          {slot.streamName}
+                        </p>
+                        <p className="text-xs text-slate-500 truncate mt-0.5">
+                          {subtitle} · {formatTime(slot.startMinutes)} ({slot.durationMinutes} мин)
+                        </p>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {upcoming.map((l) => {
-                        const LessonIcon = getLessonIcon(l.type);
-                        return (
-                          <div
-                            key={l.id}
-                            className="flex items-center gap-4 border border-slate-200 rounded-xl p-4 bg-white hover:shadow-md transition-all"
-                          >
-                            <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
-                              <LessonIcon className="w-5 h-5 text-emerald-600" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-semibold text-slate-800 truncate">{l.title}</p>
-                              <p className="text-xs text-slate-500 truncate mt-0.5">{l.streamName}</p>
-                            </div>
-                            {l.type === "LIVE" && (
-                              <button
-                                onClick={() =>
-                                  joinLiveLesson({
-                                    lessonId: l.id,
-                                    lessonTitle: l.title,
-                                    jitsiRoomName: l.streamId,
-                                    streamName: l.streamName,
-                                  })
-                                }
-                                className="shrink-0 flex items-center gap-2 text-sm font-bold bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors shadow-sm"
-                              >
-                                <Radio className="w-4 h-4" />
-                                Войти
-                              </button>
-                            )}
-                            {l.type !== "LIVE" && (
-                              <button
-                                onClick={() => router.push(`/lesson/${l.id}`)}
-                                className="shrink-0 flex items-center gap-2 text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg transition-colors"
-                              >
-                                <ExternalLink className="w-4 h-4" />
-                                Открыть
-                              </button>
-                            )}
+                  );
+
+                  return (
+                    <div className="space-y-5">
+                      {overdue.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <AlertCircle className="w-4 h-4 text-red-500" />
+                            <span className="text-xs font-bold uppercase tracking-wider text-red-600">
+                              Просрочено · {overdue.length}
+                            </span>
                           </div>
-                        );
-                      })}
+                          <div className="space-y-2">
+                            {overdue.map((a) => (
+                              <HwRow key={a.id} a={a} tone="red" />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {(todayLive.length > 0 || todayHw.length > 0) && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Clock className="w-4 h-4 text-amber-500" />
+                            <span className="text-xs font-bold uppercase tracking-wider text-amber-600">
+                              Сегодня · {todayLive.length + todayHw.length}
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            {todayLive.map((s) => (
+                              <LiveRow key={s.key} slot={s} subtitle="Прямой эфир" />
+                            ))}
+                            {todayHw.map((a) => (
+                              <HwRow key={a.id} a={a} tone="amber" />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {(weekLive.length > 0 || weekHw.length > 0) && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Calendar className="w-4 h-4 text-emerald-500" />
+                            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
+                              На этой неделе · {weekLive.length + weekHw.length}
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            {weekLive.slice(0, 5).map((s) => (
+                              <LiveRow
+                                key={s.key}
+                                slot={s}
+                                subtitle={DAY_NAMES[s.dayOfWeek]}
+                              />
+                            ))}
+                            {weekHw.map((a) => (
+                              <HwRow key={a.id} a={a} tone="emerald" />
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
