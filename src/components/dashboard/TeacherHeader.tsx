@@ -5,8 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
-  BookOpen, Calendar, MessageSquare, Bell, Settings, BellRing,
-  LogOut, User, Menu, X,
+  BookOpen, Calendar, MessageSquare, Bell, Settings,
+  LogOut, Menu, X,
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
@@ -24,7 +24,6 @@ export default function TeacherHeader({ teacherName }: TeacherHeaderProps) {
     { href: "/teacher/schedule",           label: "Расписание",          icon: Calendar },
     { href: "/chat",                       label: "Чат",                 icon: MessageSquare },
     { href: "/notifications",              label: "Уведомления",         icon: Bell },
-    { href: "/settings/notifications",     label: "Настройки уведомлений",  icon: BellRing },
     { href: "/teacher/settings",           label: "Настройки",           icon: Settings },
   ];
 

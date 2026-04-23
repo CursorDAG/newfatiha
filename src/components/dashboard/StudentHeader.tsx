@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Home, BookOpen, FileText, Calendar, MessageSquare, Bell, LogOut, User, Menu, X } from "lucide-react";
+import { Home, MessageSquare, Bell, LogOut, Menu, X } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
 type StudentHeaderProps = {
@@ -18,9 +18,6 @@ export default function StudentHeader({ studentName }: StudentHeaderProps) {
 
   const navLinks = [
     { href: "/student",           label: "Главная",     icon: Home },
-    { href: "/student/lessons",   label: "Уроки",       icon: BookOpen },
-    { href: "/student/homework",  label: "Д/З",         icon: FileText },
-    { href: "/student/schedule",  label: "Расписание",  icon: Calendar },
     { href: "/chat",              label: "Чат",         icon: MessageSquare },
     { href: "/notifications",     label: "Уведомления", icon: Bell },
   ];

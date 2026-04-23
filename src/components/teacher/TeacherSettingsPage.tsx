@@ -597,6 +597,18 @@ export default function TeacherSettingsPage({
         </div>
       </div>
 
+      {/* Link to notification preferences */}
+      <a
+        href="/settings/notifications"
+        className="flex items-center justify-between gap-4 border border-slate-200 rounded-2xl px-5 py-4 hover:border-emerald-300 hover:bg-emerald-50/30 transition-colors"
+      >
+        <div>
+          <p className="text-sm font-medium text-slate-700">Настройки уведомлений</p>
+          <p className="text-xs text-slate-400 mt-0.5">Email, push и звуковые оповещения</p>
+        </div>
+        <span className="text-emerald-600 text-sm font-semibold">Открыть →</span>
+      </a>
+
       {/* Danger zone */}
       <div className="border border-red-100 rounded-2xl overflow-hidden">
         <div className="px-5 py-4 bg-red-50 border-b border-red-100">
