@@ -28,6 +28,7 @@ import { useGradebook } from "@/components/teacher/hooks/useGradebook";
 import { useHomework } from "@/components/teacher/hooks/useHomework";
 import ReactMarkdown from "react-markdown";
 import TeacherInfoTab from "@/components/teacher/TeacherInfoTab";
+import TeacherInboxCard from "@/components/teacher/TeacherInboxCard";
 
 type Course = {
   id: string;
@@ -1470,7 +1471,12 @@ export default function TeacherDashboard({
             </div>
 
             {!selectedStream ? (
-              <div className="space-y-4">
+              <div className="space-y-6">
+                <TeacherInboxCard
+                  onOpenApplications={() => setActiveTab("applications")}
+                  onOpenHomework={() => setActiveTab("homework")}
+                  onSelectStream={(streamId) => setSelectedStreamId(streamId)}
+                />
                 <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 sm:p-5">
                   <p className="text-sm sm:text-base font-semibold text-emerald-900">
                     Выберите поток сверху, чтобы открыть его вкладки
@@ -1519,18 +1525,25 @@ export default function TeacherDashboard({
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ученики</p>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-slate-800 mt-2">{selectedStream.enrollments.length}</p>
-                </div>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Уроки</p>
-                  <p className="text-2xl sm:text-3xl font-extrabold text-slate-800 mt-2">{selectedStream.lessons.length}</p>
-                </div>
-                <div className="col-span-2 md:col-span-1 bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Расписание</p>
-                  <p className="text-sm font-bold text-slate-700 mt-2">{selectedStream.schedule || "Не настроено"}</p>
+              <div className="space-y-6">
+                <TeacherInboxCard
+                  onOpenApplications={() => setActiveTab("applications")}
+                  onOpenHomework={() => setActiveTab("homework")}
+                  onSelectStream={(streamId) => setSelectedStreamId(streamId)}
+                />
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ученики</p>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-slate-800 mt-2">{selectedStream.enrollments.length}</p>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Уроки</p>
+                    <p className="text-2xl sm:text-3xl font-extrabold text-slate-800 mt-2">{selectedStream.lessons.length}</p>
+                  </div>
+                  <div className="col-span-2 md:col-span-1 bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5">
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Расписание</p>
+                    <p className="text-sm font-bold text-slate-700 mt-2">{selectedStream.schedule || "Не настроено"}</p>
+                  </div>
                 </div>
               </div>
             )}
