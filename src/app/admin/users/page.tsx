@@ -134,10 +134,10 @@ export default function AdminUsersPage() {
 
   return (
     <>
-      <div className="p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Управление пользователями</h1>
-          <p className="text-slate-600 mt-1">Всего пользователей: {usersTotal}</p>
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Управление пользователями</h1>
+          <p className="text-slate-600 mt-1 text-sm sm:text-base">Всего пользователей: {usersTotal}</p>
         </div>
 
         {/* Filters */}
@@ -203,7 +203,64 @@ export default function AdminUsersPage() {
               <p className="text-slate-600">Пользователей не найдено</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+              {/* Mobile / tablet cards */}
+              <div className="lg:hidden divide-y divide-slate-200">
+                {users.map((user) => (
+                  <div key={user.id} className="p-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-slate-900 truncate">{user.name}</p>
+                        <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                      </div>
+                      {user.isBlocked ? (
+                        <span className="shrink-0 px-2 py-0.5 text-[11px] font-medium bg-red-100 text-red-800 rounded-full">
+                          Заблокирован
+                        </span>
+                      ) : (
+                        <span className="shrink-0 px-2 py-0.5 text-[11px] font-medium bg-emerald-100 text-emerald-800 rounded-full">
+                          Активен
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-600">
+                      <span className="inline-block px-2 py-0.5 bg-slate-100 rounded-full font-medium">{user.role}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {user.isBlocked ? (
+                        <button
+                          onClick={() => unblockUser(user.id)}
+                          className="min-h-9 px-3 text-xs font-semibold text-green-700 bg-green-50 hover:bg-green-100 active:bg-green-200 rounded-lg transition-colors"
+                        >
+                          Разблокировать
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => blockUser(user.id)}
+                          className="min-h-9 px-3 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 active:bg-red-200 rounded-lg transition-colors"
+                        >
+                          Заблокировать
+                        </button>
+                      )}
+                      <button
+                        onClick={() => resetPassword(user.id)}
+                        className="min-h-9 px-3 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 rounded-lg transition-colors"
+                      >
+                        Сбросить пароль
+                      </button>
+                      <button
+                        onClick={() => deleteUser(user.id)}
+                        className="min-h-9 px-3 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 rounded-lg transition-colors"
+                      >
+                        Удалить
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop table */}
+              <div className="hidden lg:block overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50">
                   <tr>
@@ -280,7 +337,8 @@ export default function AdminUsersPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </>
           )}
         </div>
       </div>

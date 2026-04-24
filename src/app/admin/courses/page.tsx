@@ -58,17 +58,17 @@ export default function AdminCoursesPage() {
   const filteredCourses = courses;
 
   return (
-    <div className="p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Управление курсами</h1>
-          <p className="text-slate-600 mt-1">Все курсы всех учителей на платформе</p>
+    <div className="p-4 sm:p-6 lg:p-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Управление курсами</h1>
+          <p className="text-slate-600 mt-1 text-sm sm:text-base">Все курсы всех учителей на платформе</p>
         </div>
 
         {/* Filters */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-slate-700">Фильтр:</span>
-            <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <span className="text-sm font-medium text-slate-700 shrink-0">Фильтр:</span>
+            <div className="flex gap-2 flex-wrap">
               {[
                 { value: "all", label: "Все курсы" },
                 { value: "published", label: "Опубликованные" },
@@ -166,7 +166,40 @@ export default function AdminCoursesPage() {
               <p className="text-slate-600">Курсов не найдено</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+              {/* Mobile / tablet cards */}
+              <div className="lg:hidden divide-y divide-slate-200">
+                {filteredCourses.map((course) => (
+                  <div key={course.id} className="p-4 sm:p-5">
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-slate-900 truncate">{course.title}</p>
+                        {course.description && (
+                          <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{course.description}</p>
+                        )}
+                        <p className="text-xs text-slate-500 mt-1">{course.teacher.name}</p>
+                      </div>
+                      {course.published ? (
+                        <span className="shrink-0 px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full">
+                          Опубликован
+                        </span>
+                      ) : (
+                        <span className="shrink-0 px-2 py-1 text-xs font-medium bg-slate-100 text-slate-800 rounded-full">
+                          Черновик
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 text-xs text-slate-600 mt-2">
+                      <span><strong className="text-slate-900">{course.stats.streams}</strong> потоков</span>
+                      <span><strong className="text-slate-900">{course.stats.students}</strong> студентов</span>
+                      <span><strong className="text-slate-900">{course.stats.lessons}</strong> уроков</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop table */}
+              <div className="hidden lg:block overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
@@ -230,7 +263,8 @@ export default function AdminCoursesPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </>
           )}
         </div>
       </div>
