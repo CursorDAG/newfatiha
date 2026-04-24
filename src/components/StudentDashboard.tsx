@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
-  Menu,
   X,
   Home,
   BookOpen,
@@ -564,7 +563,7 @@ export default function StudentDashboard({
   const [jitsiToken, setJitsiToken] = useState<string | undefined>(undefined);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const activitySessionIdRef = useRef<string | undefined>(undefined);
-  const { startOnboarding, isCompleted, resetOnboarding } = useOnboarding();
+  const { startOnboarding, isCompleted } = useOnboarding();
 
   useEffect(() => {
     if (!isCompleted) {
@@ -575,10 +574,21 @@ export default function StudentDashboard({
     }
   }, [isCompleted, startOnboarding]);
 
-  const handleRestartOnboarding = () => {
-    resetOnboarding();
-    startOnboarding(studentSteps);
-  };
+  useEffect(() => {
+    const handler = () => setMobileMenuOpen((v) => !v);
+    window.addEventListener("student-shell-toggle-sidebar", handler);
+    return () => window.removeEventListener("student-shell-toggle-sidebar", handler);
+  }, []);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [mobileMenuOpen]);
 
   // Fetch Jitsi JWT token for a stream
   const fetchJitsiToken = async (streamId: string): Promise<string | undefined> => {
@@ -688,16 +698,6 @@ export default function StudentDashboard({
     <div className="min-h-screen bg-slate-50 text-slate-800" data-onboarding="student-dashboard">
       {/* <OnboardingTooltip /> */} {/* Временно отключено - блокирует экран */}
 
-      {/* Help button */}
-      <button
-        onClick={handleRestartOnboarding}
-        className="fixed top-4 right-4 z-30 bg-emerald-600 text-white rounded-xl shadow-lg p-3 hover:bg-emerald-700 transition-colors"
-        aria-label="Помощь"
-        title="Показать обучение"
-      >
-        <Info className="w-5 h-5" />
-      </button>
-
       {/* ── Full-viewport live lesson overlay ──────────────────────── */}
       {activeLiveLesson && (
         <div className="fixed inset-0 z-50 bg-white flex flex-col">
@@ -717,64 +717,58 @@ export default function StudentDashboard({
         </div>
       )}
 
-      {/* Mobile menu button - скрыт на страницах где есть StudentHeader с собственным меню */}
-      {/* Кнопка перемещена в sidebar для избежания дублирования со StudentHeader */}
-
       {/* Mobile menu overlay - затемнение фона */}
       {mobileMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          className="lg:hidden fixed inset-0 bg-black/50 z-[59]"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
-
-      {/* Кнопка открытия мобильного меню - отображается только на мобильных когда меню закрыто */}
-      {/* Эта кнопка нужна для навигации по табам (Главная, Уроки, Д/З, Тесты, Прогресс, Расписание, Информация) */}
-      <button
-        onClick={() => setMobileMenuOpen(true)}
-        className="lg:hidden fixed top-20 left-4 z-20 bg-white rounded-xl shadow-lg p-3 border border-slate-200 hover:bg-slate-50 transition-colors"
-        aria-label="Открыть меню навигации"
-      >
-        <Menu className="w-6 h-6 text-slate-700" />
-      </button>
 
       <div className="w-full px-3 py-3 sm:px-4 sm:py-4 lg:px-8 lg:py-6 grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
         {/* ── Sidebar ────────────────────────────────────────────────── */}
         {/* На мобильных: показывается как модальное меню с кнопкой закрытия */}
         {/* На десктопе: статический sidebar */}
-        <nav className={`lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-2 h-fit transition-transform lg:translate-x-0 relative ${
+        <nav className={`lg:col-span-1 bg-white lg:rounded-xl lg:shadow-sm lg:border lg:border-slate-200 p-4 sm:p-6 space-y-2 lg:h-fit lg:relative ${
           mobileMenuOpen
-            ? "fixed inset-4 top-20 z-40 max-h-[calc(100vh-6rem)] overflow-y-auto"
+            ? "fixed left-0 top-0 bottom-0 w-[82vw] max-w-sm z-[60] overflow-y-auto shadow-2xl pt-16 pb-6"
             : "hidden lg:block"
         }`}>
-          {/* Кнопка закрытия для мобильного меню */}
-          <button
-            onClick={() => setMobileMenuOpen(false)}
-            className="lg:hidden absolute top-3 right-3 p-2 rounded-lg hover:bg-slate-100 transition-colors"
-            aria-label="Закрыть меню"
-          >
-            <X className="w-5 h-5 text-slate-600" />
-          </button>
+          {/* Шапка мобильного drawer: заголовок + крестик */}
+          <div className="lg:hidden absolute top-0 left-0 right-0 px-4 h-14 flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-emerald-50 to-white">
+            <span className="text-sm font-bold text-emerald-800">Разделы</span>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="min-h-11 min-w-11 -mr-2 p-2 rounded-lg hover:bg-emerald-100 transition-colors flex items-center justify-center"
+              aria-label="Закрыть меню"
+            >
+              <X className="w-5 h-5 text-emerald-700" />
+            </button>
+          </div>
           {/* User block */}
-          <div className="pb-6 mb-4 border-b border-slate-200">
-            <div className="w-14 h-14 rounded-full bg-emerald-100 border-2 border-emerald-200 flex items-center justify-center text-emerald-700 font-bold text-xl mb-3">
-              <User className="w-7 h-7" />
+          <div className="pb-5 mb-4 border-b border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
+                {userName.charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-slate-900 text-sm leading-tight truncate">
+                  {userName}
+                </p>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Студент</p>
+              </div>
             </div>
-            <p className="font-bold text-slate-900 text-base leading-tight truncate">
-              {userName}
-            </p>
-            <p className="text-sm text-slate-500 font-medium mt-1">Студент</p>
           </div>
 
           {/* Enrolled streams with teacher info */}
           {enrollments.length > 0 && (
             <div className="pb-4 mb-4 border-b border-slate-200" data-onboarding="my-streams">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Мои потоки</p>
-              <div className="space-y-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Мои потоки</p>
+              <div className="space-y-2">
                 {enrollments.map((e) => (
-                  <div key={e.enrollmentId} className="text-sm">
-                    <p className="font-semibold text-slate-800 truncate">{e.stream.name}</p>
-                    <p className="text-slate-500 truncate text-xs mt-0.5 flex items-center gap-1">
+                  <div key={e.enrollmentId} className="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
+                    <p className="font-semibold text-slate-800 truncate text-xs">{e.stream.name}</p>
+                    <p className="text-slate-500 truncate text-[11px] mt-0.5 flex items-center gap-1">
                       <User className="w-3 h-3" />
                       {e.stream.teacherName}
                     </p>
@@ -784,40 +778,43 @@ export default function StudentDashboard({
             </div>
           )}
 
+          <div className="space-y-1">
           {tabs.map((t) => {
             const Icon = t.icon;
+            const isActive = activeTab === t.id;
             return (
               <button
                 key={t.id}
                 onClick={() => handleTabChange(t.id)}
                 data-onboarding={`student-tab-${t.id}`}
-                className={`w-full text-left p-4 rounded-xl transition-all font-semibold text-sm flex items-center gap-3 ${
-                  activeTab === t.id
-                    ? "bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-sm"
-                    : "text-slate-600 hover:bg-slate-50 border border-transparent hover:border-slate-200"
+                className={`w-full text-left px-3 min-h-11 py-2 rounded-xl transition-all font-semibold text-sm flex items-center gap-3 ${
+                  isActive
+                    ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-md shadow-emerald-500/20"
+                    : "text-slate-600 hover:bg-slate-100 active:bg-slate-200"
                 }`}
               >
-                <Icon className="w-5 h-5 shrink-0" />
+                <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
                 <span className="flex-1">{t.label}</span>
                 {t.id === "homework" && pendingHomeworkCount > 0 && (
-                  <span className="text-xs font-bold bg-red-500 text-white px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center ${isActive ? "bg-white/25 text-white" : "bg-red-500 text-white"}`}>
                     {pendingHomeworkCount}
                   </span>
                 )}
                 {t.id === "results" && pendingQuizCount > 0 && (
-                  <span className="text-xs font-bold bg-amber-500 text-white px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center ${isActive ? "bg-white/25 text-white" : "bg-amber-500 text-white"}`}>
                     {pendingQuizCount}
                   </span>
                 )}
               </button>
             );
           })}
+          </div>
 
-          <div className="pt-4 border-t border-slate-200 mt-2">
+          <div className="pt-3 border-t border-slate-200 mt-3">
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="w-full text-left p-4 rounded-xl transition-all font-semibold text-sm text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 flex items-center gap-3"
+              className="w-full text-left px-3 min-h-11 py-2 rounded-xl transition-all font-semibold text-sm text-red-600 hover:bg-red-50 active:bg-red-100 flex items-center gap-3"
             >
               <LogOut className="w-5 h-5" />
               <span>Выйти</span>
@@ -829,53 +826,56 @@ export default function StudentDashboard({
         <section className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-slate-200 min-h-[650px] overflow-hidden flex flex-col">
           {/* ── Home Tab ─────────────────────────────────────────────── */}
           {activeTab === "home" && (
-            <div className="p-4 sm:p-6 lg:p-8 flex-1 space-y-5">
-              {/* Welcome - компактный на мобиле */}
-              <div className="flex items-baseline gap-2 flex-wrap">
-                <h2 className="text-base sm:text-2xl font-bold text-slate-900">
-                  Привет, {userName}!
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-500">
-                  {pendingHomeworkCount > 0
-                    ? `${pendingHomeworkCount} ${pendingHomeworkCount === 1 ? "задание ждёт" : "заданий ждут"}`
-                    : enrollments.filter((e) => e.status === "ACTIVE").length > 0
-                    ? "Все задания выполнены"
-                    : new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long" })}
-                </p>
+            <div className="p-4 sm:p-6 lg:p-8 flex-1 space-y-6">
+              {/* Welcome hero */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 p-5 sm:p-6 text-white shadow-lg">
+                <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10 blur-2xl" aria-hidden />
+                <div className="absolute -left-6 -bottom-10 w-28 h-28 rounded-full bg-teal-300/20 blur-2xl" aria-hidden />
+                <div className="relative">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-emerald-100/90">
+                    {new Date().toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" })}
+                  </p>
+                  <h2 className="text-xl sm:text-3xl font-bold mt-1 leading-tight">
+                    Ассаламу алейкум, {userName}!
+                  </h2>
+                  <p className="text-sm text-emerald-50/90 mt-2">
+                    {pendingHomeworkCount > 0
+                      ? `${pendingHomeworkCount} ${pendingHomeworkCount === 1 ? "задание ждёт выполнения" : "заданий ждут выполнения"}`
+                      : enrollments.filter((e) => e.status === "ACTIVE").length > 0
+                      ? "Все задания выполнены — так держать!"
+                      : "Готов к новым знаниям"}
+                  </p>
+                </div>
               </div>
 
               {/* Stat cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4" data-onboarding="home-stats">
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5 text-center hover:shadow-sm transition-shadow">
-                  <div className="flex justify-center mb-2">
-                    <BookOpen className="w-8 h-8 text-emerald-600" />
+              <div className="grid grid-cols-3 gap-2 sm:gap-4" data-onboarding="home-stats">
+                <div className="bg-white border border-emerald-100 rounded-2xl p-3 sm:p-5 hover:shadow-md transition-shadow">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 flex items-center justify-center mb-2 sm:mb-3">
+                    <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
                   </div>
-                  <p className="text-3xl font-bold text-emerald-700">
+                  <p className="text-2xl sm:text-3xl font-bold text-slate-900 leading-none">
                     {enrollments.filter((e) => e.status === "ACTIVE").length}
                   </p>
-                  <p className="text-xs font-semibold text-emerald-600 mt-1">Активных потоков</p>
+                  <p className="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 leading-tight">Активных потоков</p>
                 </div>
-                <div className={`rounded-xl p-5 text-center border hover:shadow-sm transition-shadow ${pendingHomeworkCount > 0 ? "bg-amber-50 border-amber-200" : "bg-slate-50 border-slate-200"}`}>
-                  <div className="flex justify-center mb-2">
-                    <FileText className={`w-8 h-8 ${pendingHomeworkCount > 0 ? "text-amber-600" : "text-slate-400"}`} />
+                <div className={`rounded-2xl p-3 sm:p-5 border hover:shadow-md transition-shadow ${pendingHomeworkCount > 0 ? "bg-white border-amber-200" : "bg-white border-slate-200"}`}>
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-2 sm:mb-3 ${pendingHomeworkCount > 0 ? "bg-amber-50" : "bg-slate-100"}`}>
+                    <FileText className={`w-5 h-5 sm:w-6 sm:h-6 ${pendingHomeworkCount > 0 ? "text-amber-600" : "text-slate-400"}`} />
                   </div>
-                  <p className={`text-3xl font-bold ${pendingHomeworkCount > 0 ? "text-amber-600" : "text-slate-400"}`}>
+                  <p className={`text-2xl sm:text-3xl font-bold leading-none ${pendingHomeworkCount > 0 ? "text-amber-600" : "text-slate-400"}`}>
                     {pendingHomeworkCount}
                   </p>
-                  <p className={`text-xs font-semibold mt-1 ${pendingHomeworkCount > 0 ? "text-amber-600" : "text-slate-400"}`}>
-                    Заданий к сдаче
-                  </p>
+                  <p className="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 leading-tight">К сдаче</p>
                 </div>
-                <div className={`rounded-xl p-5 text-center border hover:shadow-sm transition-shadow ${pendingQuizCount > 0 ? "bg-blue-50 border-blue-200" : "bg-slate-50 border-slate-200"}`}>
-                  <div className="flex justify-center mb-2">
-                    <FlaskConical className={`w-8 h-8 ${pendingQuizCount > 0 ? "text-blue-600" : "text-slate-400"}`} />
+                <div className={`rounded-2xl p-3 sm:p-5 border hover:shadow-md transition-shadow ${pendingQuizCount > 0 ? "bg-white border-blue-200" : "bg-white border-slate-200"}`}>
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-2 sm:mb-3 ${pendingQuizCount > 0 ? "bg-blue-50" : "bg-slate-100"}`}>
+                    <FlaskConical className={`w-5 h-5 sm:w-6 sm:h-6 ${pendingQuizCount > 0 ? "text-blue-600" : "text-slate-400"}`} />
                   </div>
-                  <p className={`text-3xl font-bold ${pendingQuizCount > 0 ? "text-blue-600" : "text-slate-400"}`}>
+                  <p className={`text-2xl sm:text-3xl font-bold leading-none ${pendingQuizCount > 0 ? "text-blue-600" : "text-slate-400"}`}>
                     {pendingQuizCount}
                   </p>
-                  <p className={`text-xs font-semibold mt-1 ${pendingQuizCount > 0 ? "text-blue-600" : "text-slate-400"}`}>
-                    Тестов на проверке
-                  </p>
+                  <p className="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 leading-tight">На проверке</p>
                 </div>
               </div>
 
@@ -1128,83 +1128,100 @@ export default function StudentDashboard({
           {/* ── Lessons Tab ──────────────────────────────────────────── */}
           {activeTab === "lessons" && (
             <div className="p-4 sm:p-6 lg:p-8 flex-1">
-              <div className="mb-8 pb-6 border-b border-slate-200">
-                <div className="flex items-center gap-3 mb-2">
-                  <BookOpen className="w-7 h-7 text-emerald-600" />
-                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Мои уроки</h2>
+              <div className="mb-5 pb-4 border-b border-slate-200 sm:mb-8 sm:pb-6">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 sm:w-7 sm:h-7 text-emerald-600" />
+                  <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-slate-900">Мои уроки</h2>
                 </div>
-                <p className="text-sm text-slate-500 mt-2">
+                <p className="text-xs sm:text-sm text-slate-500 mt-1 sm:mt-2">
                   Все уроки ваших потоков
                 </p>
               </div>
 
               {enrollments.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-                  <BookOpen className="w-16 h-16 text-slate-300 mb-4" />
-                  <p className="font-semibold text-lg text-slate-600">Вы ещё не зачислены ни в один поток</p>
-                  <p className="text-sm mt-2">Попросите преподавателя прислать пригласительную ссылку</p>
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center mb-5 shadow-sm">
+                    <BookOpen className="w-10 h-10 text-emerald-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-1.5">Ещё нет потоков</h3>
+                  <p className="text-sm text-slate-500 max-w-xs leading-relaxed">
+                    Попросите преподавателя прислать пригласительную ссылку на курс
+                  </p>
                 </div>
               ) : (
-                <div className="space-y-10" data-onboarding="lessons-list">
+                <div className="space-y-8" data-onboarding="lessons-list">
                   {enrollments.map((e) => (
                     <div key={e.enrollmentId}>
-                      {/* Stream header */}
-                      <div className="flex items-center justify-between mb-5">
-                        <div>
-                          <div className="flex items-center gap-3">
-                            <h3 className="font-bold text-slate-900 text-xl">
-                              {e.stream.name}
-                            </h3>
-                            <span
-                              className={`text-xs font-bold px-3 py-1 rounded-full border ${
-                                statusColor[e.status] ?? "bg-slate-100 text-slate-700 border-slate-200"
-                              }`}
-                            >
-                              {statusLabel[e.status] ?? e.status}
-                            </span>
+                      {/* Stream header card */}
+                      <div className="mb-4 rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-teal-50 border border-emerald-100 p-4 sm:p-5 shadow-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-bold text-slate-900 text-lg sm:text-xl truncate">
+                                {e.stream.name}
+                              </h3>
+                              <span
+                                className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                                  statusColor[e.status] ?? "bg-slate-100 text-slate-700 border-slate-200"
+                                }`}
+                              >
+                                {statusLabel[e.status] ?? e.status}
+                              </span>
+                            </div>
+                            <p className="text-xs sm:text-sm text-slate-600 mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                              <span>{e.stream.courseName}</span>
+                              <span className="text-slate-300">•</span>
+                              <span>{e.stream.level}</span>
+                              <span className="text-slate-300">•</span>
+                              <span>{e.stream.schedule}</span>
+                            </p>
                           </div>
-                          <p className="text-sm text-slate-600 mt-1.5 flex items-center gap-2">
-                            <span>{e.stream.courseName}</span>
-                            <span className="text-slate-300">•</span>
-                            <span>{e.stream.level}</span>
-                            <span className="text-slate-300">•</span>
-                            <span>{e.stream.schedule}</span>
-                          </p>
-                          <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
-                            <User className="w-3.5 h-3.5" />
-                            Учитель: <span className="font-semibold text-slate-700">{e.stream.teacherName}</span>
-                          </p>
+                          <div className="shrink-0 hidden sm:flex w-10 h-10 rounded-xl bg-emerald-600 text-white items-center justify-center font-bold text-sm shadow-sm">
+                            {e.stream.teacherName.charAt(0).toUpperCase()}
+                          </div>
                         </div>
+                        <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5" />
+                          Учитель: <span className="font-semibold text-slate-700">{e.stream.teacherName}</span>
+                        </p>
                       </div>
 
                       {e.stream.lessons.length === 0 ? (
-                        <div className="border border-dashed border-slate-300 rounded-xl p-8 text-center text-slate-400 text-sm bg-slate-50">
-                          <BookOpen className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                          <p>Уроков пока нет</p>
+                        <div className="rounded-2xl p-8 text-center bg-slate-50 border border-dashed border-slate-200">
+                          <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center mx-auto mb-3 shadow-sm">
+                            <BookOpen className="w-7 h-7 text-slate-300" />
+                          </div>
+                          <p className="text-sm font-semibold text-slate-500">Уроков пока нет</p>
+                          <p className="text-xs text-slate-400 mt-1">Учитель ещё не добавил материалы</p>
                         </div>
                       ) : (
-                        <div className="space-y-3">
+                        <div className="space-y-2.5">
                           {e.stream.lessons.map((lesson, idx) => {
                             const LessonIcon = getLessonIcon(lesson.type);
+                            const accent = lesson.type === "LIVE"
+                              ? { ring: "border-red-100", iconBg: "bg-red-50", iconClr: "text-red-600", typeClr: "text-red-600" }
+                              : lesson.type === "VIDEO"
+                              ? { ring: "border-violet-100", iconBg: "bg-violet-50", iconClr: "text-violet-600", typeClr: "text-violet-600" }
+                              : { ring: "border-emerald-100", iconBg: "bg-emerald-50", iconClr: "text-emerald-600", typeClr: "text-emerald-600" };
                             return (
                               <div
                                 key={lesson.id}
-                                className="border border-slate-200 rounded-xl p-5 bg-white flex items-center justify-between gap-4 hover:shadow-md hover:border-emerald-200 transition-all"
+                                className={`border ${accent.ring} rounded-2xl p-3 sm:p-4 bg-white flex items-center justify-between gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all`}
                               >
-                                <div className="flex items-center gap-4 min-w-0 flex-1">
-                                  <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
-                                    <LessonIcon className="w-6 h-6 text-emerald-600" />
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                  <div className={`w-11 h-11 rounded-xl ${accent.iconBg} flex items-center justify-center shrink-0`}>
+                                    <LessonIcon className={`w-5 h-5 ${accent.iconClr}`} />
                                   </div>
                                   <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
                                         #{idx + 1}
                                       </span>
-                                      <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">
+                                      <span className={`text-[10px] font-bold uppercase tracking-wider ${accent.typeClr}`}>
                                         {lesson.type}
                                       </span>
                                     </div>
-                                    <p className="font-semibold text-slate-900 truncate text-base">
+                                    <p className="font-semibold text-slate-900 truncate text-sm sm:text-base">
                                       {lesson.title}
                                     </p>
                                   </div>
@@ -1221,9 +1238,8 @@ export default function StudentDashboard({
                                           streamName: e.stream.name,
                                         })
                                       }
-                                      className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm hover:shadow"
+                                      className="flex items-center gap-1.5 bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 active:from-red-700 active:to-red-800 text-white text-xs sm:text-sm font-bold px-3.5 sm:px-4 min-h-11 rounded-xl transition-all shadow-sm shadow-red-500/30"
                                     >
-                                      <Radio className="w-4 h-4" />
                                       <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                                       Войти
                                     </button>
@@ -1231,9 +1247,8 @@ export default function StudentDashboard({
                                   {lesson.type === "TEXT" && (
                                     <button
                                       onClick={() => router.push(`/lesson/${lesson.id}`)}
-                                      className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold px-5 py-2.5 rounded-xl transition-all"
+                                      className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-700 text-xs sm:text-sm font-bold px-3.5 sm:px-4 min-h-11 rounded-xl transition-all border border-emerald-200"
                                     >
-                                      <FileText className="w-4 h-4" />
                                       Открыть
                                     </button>
                                   )}
@@ -1242,9 +1257,8 @@ export default function StudentDashboard({
                                       href={lesson.content}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold px-5 py-2.5 rounded-xl transition-all inline-flex"
+                                      className="flex items-center gap-1.5 bg-violet-50 hover:bg-violet-100 active:bg-violet-200 text-violet-700 text-xs sm:text-sm font-bold px-3.5 sm:px-4 min-h-11 rounded-xl transition-all border border-violet-200"
                                     >
-                                      <Video className="w-4 h-4" />
                                       Смотреть
                                     </a>
                                   )}
@@ -1264,20 +1278,27 @@ export default function StudentDashboard({
           {/* ── Homework Tab ─────────────────────────────────────────── */}
           {activeTab === "homework" && (
             <div className="p-4 sm:p-6 lg:p-8 flex-1">
-              <div className="mb-8 border-b pb-4">
-                <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">
-                  Домашние задания
-                </h2>
-                <p className="text-sm text-slate-600 mt-1">
+              <div className="mb-5 pb-4 border-b border-slate-200 sm:mb-8 sm:pb-6">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 sm:w-7 sm:h-7 text-emerald-600" />
+                  <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-slate-900">
+                    Домашние задания
+                  </h2>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1 sm:mt-2">
                   Задания по всем вашим потокам
                 </p>
               </div>
 
               {homeworkAssignments.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-                  <span className="text-5xl mb-4">✅</span>
-                  <p className="font-semibold text-lg">Заданий пока нет</p>
-                  <p className="text-sm mt-1">Преподаватель ещё не добавил домашние задания</p>
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center mb-5 shadow-sm">
+                    <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-1.5">Заданий пока нет</h3>
+                  <p className="text-sm text-slate-500 max-w-xs leading-relaxed">
+                    Как только преподаватель добавит задание — оно появится здесь
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-8" data-onboarding="homework-section">
@@ -1320,21 +1341,25 @@ export default function StudentDashboard({
           {/* ── Quiz Results Tab ─────────────────────────────────────── */}
           {activeTab === "results" && (
             <div className="p-4 sm:p-6 lg:p-8 flex-1">
-              <div className="mb-8 pb-6 border-b border-slate-200">
-                <div className="flex items-center gap-3 mb-2">
-                  <FlaskConical className="w-7 h-7 text-emerald-600" />
-                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Мои тесты</h2>
+              <div className="mb-5 pb-4 border-b border-slate-200 sm:mb-8 sm:pb-6">
+                <div className="flex items-center gap-2">
+                  <FlaskConical className="w-5 h-5 sm:w-7 sm:h-7 text-emerald-600" />
+                  <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-slate-900">Мои тесты</h2>
                 </div>
-                <p className="text-sm text-slate-500 mt-2">
+                <p className="text-xs sm:text-sm text-slate-500 mt-1 sm:mt-2">
                   История результатов по квизам и тестам
                 </p>
               </div>
 
               {quizResults.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-                  <FlaskConical className="w-16 h-16 text-slate-300 mb-4" />
-                  <p className="font-semibold text-lg text-slate-600">Тестов пока нет</p>
-                  <p className="text-sm mt-2">Результаты появятся после прохождения тестов на уроках</p>
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center mb-5 shadow-sm">
+                    <FlaskConical className="w-10 h-10 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-1.5">Тестов пока нет</h3>
+                  <p className="text-sm text-slate-500 max-w-xs leading-relaxed">
+                    Результаты появятся после прохождения тестов на уроках
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-10">
@@ -1351,10 +1376,10 @@ export default function StudentDashboard({
                         {group.results.map((qr) => (
                             <div
                               key={qr.id}
-                              className="border border-slate-200 rounded-xl p-5 bg-white flex items-center justify-between gap-4 hover:shadow-md transition-all"
+                              className="border border-slate-200 rounded-xl p-4 sm:p-5 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:shadow-md transition-all"
                             >
                               <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-3 mb-2">
+                                <div className="flex items-start gap-3 mb-2">
                                   <div className="w-10 h-10 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
                                     {qr.quiz.type === "VOICE" ? (
                                       <Video className="w-5 h-5 text-blue-600" />
@@ -1364,7 +1389,7 @@ export default function StudentDashboard({
                                   </div>
                                   <div className="min-w-0 flex-1">
                                     <p className="font-semibold text-slate-900 truncate">{qr.quiz.title}</p>
-                                    <div className="flex items-center gap-3 mt-1">
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
                                       <span className="text-xs text-slate-500">
                                         {qr.quiz.type === "VOICE" ? "Голосовой" : "Тест с выбором"}
                                       </span>
@@ -1374,8 +1399,7 @@ export default function StudentDashboard({
                                         Сдано{" "}
                                         {new Date(qr.createdAt).toLocaleDateString("ru-RU", {
                                           day: "numeric",
-                                          month: "long",
-                                          year: "numeric",
+                                          month: "short",
                                         })}
                                       </span>
                                       {qr.checkedAt && (
@@ -1386,7 +1410,7 @@ export default function StudentDashboard({
                                             Проверено{" "}
                                             {new Date(qr.checkedAt).toLocaleDateString("ru-RU", {
                                               day: "numeric",
-                                              month: "long",
+                                              month: "short",
                                             })}
                                           </span>
                                         </>
@@ -1396,7 +1420,7 @@ export default function StudentDashboard({
                                 </div>
                               </div>
                               <span
-                                className={`shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-full border ${quizStatusColor[qr.status]}`}
+                                className={`self-start sm:self-center shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border ${quizStatusColor[qr.status]}`}
                               >
                                 <QuizStatusIcon status={qr.status} className="w-4 h-4" />
                                 {quizStatusLabel[qr.status]}
@@ -1414,12 +1438,12 @@ export default function StudentDashboard({
           {/* ── Progress Tab ─────────────────────────────────────────── */}
           {activeTab === "progress" && (
             <div className="p-4 sm:p-6 lg:p-8 flex-1">
-              <div className="mb-8 pb-6 border-b border-slate-200">
-                <div className="flex items-center gap-3 mb-2">
-                  <BarChart3 className="w-7 h-7 text-emerald-600" />
-                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Мой прогресс</h2>
+              <div className="mb-5 pb-4 border-b border-slate-200 sm:mb-8 sm:pb-6">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 sm:w-7 sm:h-7 text-emerald-600" />
+                  <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-slate-900">Мой прогресс</h2>
                 </div>
-                <p className="text-sm text-slate-500 mt-2">
+                <p className="text-xs sm:text-sm text-slate-500 mt-1 sm:mt-2">
                   Отслеживайте свою успеваемость и достижения
                 </p>
               </div>
@@ -1432,12 +1456,12 @@ export default function StudentDashboard({
           {/* ── Schedule Tab ─────────────────────────────────────────── */}
           {activeTab === "schedule" && (
             <div className="p-4 sm:p-6 lg:p-8 flex-1">
-              <div className="mb-8 pb-6 border-b border-slate-200">
-                <div className="flex items-center gap-3 mb-2">
-                  <Calendar className="w-7 h-7 text-emerald-600" />
-                  <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">Расписание</h2>
+              <div className="mb-5 pb-4 border-b border-slate-200 sm:mb-8 sm:pb-6">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 sm:w-7 sm:h-7 text-emerald-600" />
+                  <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-slate-900">Расписание</h2>
                 </div>
-                <p className="text-sm text-slate-500 mt-2">
+                <p className="text-xs sm:text-sm text-slate-500 mt-1 sm:mt-2">
                   Расписание занятий по вашим потокам
                 </p>
               </div>
@@ -1467,9 +1491,14 @@ export default function StudentDashboard({
 
                 if (activeEnrollments.length === 0) {
                   return (
-                    <div className="flex flex-col items-center justify-center h-64 text-slate-400">
-                      <span className="text-5xl mb-4">🗓</span>
-                      <p className="font-semibold">Нет активных записей</p>
+                    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center mb-5 shadow-sm">
+                        <Calendar className="w-10 h-10 text-emerald-600" />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900 mb-1.5">Нет активных записей</h3>
+                      <p className="text-sm text-slate-500 max-w-xs leading-relaxed">
+                        Запишитесь на курс, чтобы увидеть расписание занятий
+                      </p>
                     </div>
                   );
                 }
@@ -1478,45 +1507,47 @@ export default function StudentDashboard({
                   <div className="space-y-6">
                     {/* Weekly grid */}
                     {hasAnySlots ? (
-                      <div className="grid grid-cols-7 gap-2">
-                        {DAY_NAMES.map((day, idx) => (
-                          <div key={day} className="flex flex-col gap-1.5">
-                            <div className={`text-center text-xs font-bold py-1.5 rounded-lg ${
-                              idx === todayDow
-                                ? "bg-emerald-600 text-white"
-                                : "bg-slate-100 text-slate-500"
-                            }`}>
-                              {day}
+                      <div className="-mx-4 sm:mx-0 px-4 sm:px-0 overflow-x-auto">
+                        <div className="grid grid-cols-7 gap-1.5 sm:gap-2 min-w-[560px] sm:min-w-0">
+                          {DAY_NAMES.map((day, idx) => (
+                            <div key={day} className="flex flex-col gap-1.5">
+                              <div className={`text-center text-xs font-bold py-2 rounded-xl ${
+                                idx === todayDow
+                                  ? "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-sm shadow-emerald-500/20"
+                                  : "bg-slate-100 text-slate-500"
+                              }`}>
+                                {day}
+                              </div>
+                              {byDay[idx].length === 0 ? (
+                                <div className="h-14 rounded-xl border border-dashed border-slate-200" />
+                              ) : (
+                                byDay[idx].map((slot, si) => (
+                                  <div
+                                    key={si}
+                                    className={`rounded-xl p-1.5 text-center border ${
+                                      idx === todayDow
+                                        ? "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-300"
+                                        : "bg-white border-slate-200"
+                                    }`}
+                                  >
+                                    <p className={`text-xs font-bold leading-tight truncate ${idx === todayDow ? "text-emerald-800" : "text-slate-800"}`}>
+                                      {formatTime(slot.startMinutes)}
+                                    </p>
+                                    <p className="text-[10px] text-slate-500 leading-tight mt-0.5 truncate">
+                                      {slot.durationMinutes} мин
+                                    </p>
+                                    <p className="text-[10px] font-semibold text-emerald-700 mt-1 truncate">
+                                      {slot.streamName}
+                                    </p>
+                                  </div>
+                                ))
+                              )}
                             </div>
-                            {byDay[idx].length === 0 ? (
-                              <div className="h-12 rounded-lg border border-dashed border-slate-200" />
-                            ) : (
-                              byDay[idx].map((slot, si) => (
-                                <div
-                                  key={si}
-                                  className={`rounded-lg p-2 text-center border ${
-                                    idx === todayDow
-                                      ? "bg-emerald-50 border-emerald-300"
-                                      : "bg-white border-slate-200"
-                                  }`}
-                                >
-                                  <p className="text-xs font-bold text-slate-800 leading-tight truncate">
-                                    {formatTime(slot.startMinutes)}
-                                  </p>
-                                  <p className="text-[10px] text-slate-500 leading-tight mt-0.5 truncate">
-                                    {slot.durationMinutes} мин
-                                  </p>
-                                  <p className="text-[10px] font-semibold text-emerald-700 mt-1 truncate">
-                                    {slot.streamName}
-                                  </p>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     ) : (
-                      <div className="text-center py-6 bg-amber-50 border border-amber-200 rounded-xl">
+                      <div className="text-center py-6 bg-amber-50 border border-amber-200 rounded-2xl">
                         <p className="text-sm text-amber-700 font-semibold">Слоты расписания ещё не заданы</p>
                         <p className="text-xs text-amber-600 mt-1">Учитель ещё не настроил точное расписание занятий</p>
                       </div>
@@ -1524,25 +1555,25 @@ export default function StudentDashboard({
 
                     {/* Stream summary cards */}
                     <div className="space-y-2">
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Ваши потоки</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Ваши потоки</p>
                       {activeEnrollments.map((e) => (
                         <div
                           key={e.enrollmentId}
-                          className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-4"
+                          className="bg-gradient-to-br from-white to-emerald-50/30 border border-emerald-100 rounded-2xl p-3.5 flex items-center gap-3 shadow-sm"
                         >
-                          <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-700 text-base font-bold border border-emerald-200 shrink-0">
+                          <div className="w-11 h-11 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center text-white text-lg shrink-0 shadow-sm">
                             📅
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-slate-800 text-sm">{e.stream.name}</p>
-                            <p className="text-xs text-slate-500 mt-0.5">
+                            <p className="font-bold text-slate-800 text-sm truncate">{e.stream.name}</p>
+                            <p className="text-xs text-slate-500 mt-0.5 truncate">
                               {e.stream.courseName} · {e.stream.schedule}
                             </p>
-                            <p className="text-xs text-slate-400 mt-0.5">
+                            <p className="text-[11px] text-slate-400 mt-0.5 truncate">
                               Учитель: <span className="font-semibold text-slate-600">{e.stream.teacherName}</span>
                             </p>
                           </div>
-                          <span className="shrink-0 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                          <span className="shrink-0 text-[11px] font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">
                             {e.stream.level}
                           </span>
                         </div>
@@ -1557,6 +1588,15 @@ export default function StudentDashboard({
           {/* ── Info Tab ─────────────────────────────────────────────── */}
           {activeTab === "info" && (
             <div className="p-4 sm:p-6 lg:p-8 flex-1">
+              <div className="mb-5 pb-4 border-b border-slate-200 sm:mb-8 sm:pb-6">
+                <div className="flex items-center gap-2">
+                  <Info className="w-5 h-5 sm:w-7 sm:h-7 text-emerald-600" />
+                  <h2 className="text-xl sm:text-3xl font-bold tracking-tight text-slate-900">Информация</h2>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1 sm:mt-2">
+                  Руководство по работе с платформой
+                </p>
+              </div>
               <StudentInfoTab />
             </div>
           )}
