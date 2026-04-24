@@ -139,7 +139,7 @@ export default function TeacherShell({
       <main className="w-full px-2 py-2 sm:px-4 sm:py-4 lg:px-8 lg:py-6 grid grid-cols-1 lg:grid-cols-4 gap-3 lg:gap-6">
         {/* Sidebar - на мобильных слайд-сайдбар слева (tabs потока), на десктопе статичный */}
         <nav
-          className={`lg:col-span-1 bg-white lg:rounded-2xl lg:shadow-sm lg:border lg:border-slate-200 p-4 lg:p-6 space-y-2 h-fit lg:relative ${
+          className={`lg:col-span-1 bg-white lg:rounded-2xl lg:shadow-sm lg:border lg:border-slate-200 p-4 lg:p-6 space-y-2 lg:h-fit lg:relative ${
             mobileMenuOpen
               ? "fixed left-0 top-0 bottom-0 w-[82vw] max-w-sm z-[60] overflow-y-auto shadow-2xl pt-16 pb-6"
               : "hidden lg:block"
