@@ -221,6 +221,8 @@ export const getUsersQuerySchema = z.object({
   search: z.string().optional(),
   limit: z.string().regex(/^\d+$/).transform(Number).optional(),
   offset: z.string().regex(/^\d+$/).transform(Number).optional(),
+  sortBy: z.enum(["name", "email", "createdAt"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
 });
 
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;

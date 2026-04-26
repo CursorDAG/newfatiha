@@ -71,7 +71,7 @@ export class EmailService {
   }): Promise<void> {
     try {
       const transporter = await this.getTransporter();
-      const config = getEmailConfig();
+      const config = await getEmailConfig();
 
       const info = await transporter.sendMail({
         from: `"${config.from.name}" <${config.from.email}>`,

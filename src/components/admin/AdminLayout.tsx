@@ -13,8 +13,10 @@ import {
   Megaphone,
   Settings,
   X,
+  Mail,
 } from "lucide-react";
 import AdminHeader from "@/components/dashboard/AdminHeader";
+import GlobalSearch from "@/components/admin/GlobalSearch";
 
 type NavItem = {
   href: string;
@@ -29,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/courses", label: "Курсы", icon: BookOpen },
   { href: "/admin/cms", label: "CMS", icon: FileEdit },
   { href: "/admin/broadcasts", label: "Рассылки", icon: Megaphone },
+  { href: "/admin/mail", label: "Почта", icon: Mail },
   { href: "/admin/settings", label: "Настройки", icon: Settings },
 ];
 
@@ -55,6 +58,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* Global Search */}
+      <GlobalSearch />
+
       {/* Top Header */}
       <AdminHeader
         adminName={session?.user?.name || undefined}

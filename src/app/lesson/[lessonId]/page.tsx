@@ -55,11 +55,11 @@ export default async function LessonPage({
   }
 
   // Generate Jitsi JWT token if configured
-  const jitsiConfig = getJitsiConfig();
+  const jitsiConfig = await getJitsiConfig();
   let jitsiToken: string | undefined;
   let jitsiDomain = "meet.jit.si";
 
-  if (jitsiConfig) {
+  if (jitsiConfig && jitsiConfig.appId && jitsiConfig.secret) {
     jitsiDomain = jitsiConfig.domain;
     jitsiToken = generateJitsiToken(
       lesson.stream.id, // room name
@@ -71,6 +71,9 @@ export default async function LessonPage({
       },
       jitsiConfig
     );
+  } else if (jitsiConfig) {
+    // Config exists but no JWT credentials - use custom domain without JWT
+    jitsiDomain = jitsiConfig.domain;
   }
 
   return (

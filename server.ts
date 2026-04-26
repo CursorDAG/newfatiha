@@ -7,6 +7,7 @@ import next from 'next';
 import { Server } from 'socket.io';
 import { initSocketServer } from './src/lib/socket-server';
 import { memoryMonitor } from './src/lib/memory-monitor';
+import { initEmailSystem } from './src/lib/email/init';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
@@ -15,7 +16,7 @@ const port = parseInt(process.env.PORT || '3000', 10);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
-app.prepare().then(() => {
+app.prepare().then(async () => {
   const server = createServer(async (req, res) => {
     try {
       const parsedUrl = parse(req.url!, true);
@@ -39,6 +40,9 @@ app.prepare().then(() => {
 
   // Initialize socket handlers
   initSocketServer(io);
+
+  // Initialize email system
+  await initEmailSystem();
 
   // Start memory monitoring
   memoryMonitor.start();

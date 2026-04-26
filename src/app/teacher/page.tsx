@@ -90,7 +90,7 @@ export default async function TeacherPage() {
   }))
 
   // Get Jitsi configuration
-  const jitsiConfig = getJitsiConfig()
+  const jitsiConfig = await getJitsiConfig()
   const jitsiDomain = jitsiConfig?.domain ?? "meet.jit.si"
 
   return (

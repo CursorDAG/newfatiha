@@ -1,5 +1,6 @@
 import * as nodemailer from "nodemailer";
 import { logger } from "@/lib/logger";
+import { getSetting } from "@/lib/settings";
 
 /**
  * Email configuration and transporter setup
@@ -20,15 +21,24 @@ export interface EmailConfig {
 }
 
 /**
- * Get email configuration from environment variables
+ * Get email configuration from database settings or environment variables
  */
-export function getEmailConfig(): EmailConfig {
-  const host = process.env.SMTP_HOST || "smtp.ethereal.email";
-  const port = parseInt(process.env.SMTP_PORT || "587", 10);
-  const user = process.env.SMTP_USER || "";
-  const pass = process.env.SMTP_PASS || "";
-  const from = process.env.SMTP_FROM || "noreply@fatiha.ru";
-  const fromName = process.env.SMTP_FROM_NAME || "Fatiha.ru";
+export async function getEmailConfig(): Promise<EmailConfig> {
+  // Try to get from database settings first
+  const smtpHost = await getSetting<string>("smtpHost");
+  const smtpPort = await getSetting<number>("smtpPort");
+  const smtpUser = await getSetting<string>("smtpUser");
+  const smtpPassword = await getSetting<string>("smtpPassword");
+  const smtpFrom = await getSetting<string>("smtpFrom");
+  const smtpFromName = await getSetting<string>("smtpFromName");
+
+  // Fallback to environment variables
+  const host = smtpHost || process.env.SMTP_HOST || "smtp.ethereal.email";
+  const port = smtpPort || parseInt(process.env.SMTP_PORT || "587", 10);
+  const user = smtpUser || process.env.SMTP_USER || "";
+  const pass = smtpPassword || process.env.SMTP_PASS || "";
+  const from = smtpFrom || process.env.SMTP_FROM || "info@fatiha.ru";
+  const fromName = smtpFromName || process.env.SMTP_FROM_NAME || "Fatiha.ru";
 
   return {
     host,
@@ -49,7 +59,7 @@ export function getEmailConfig(): EmailConfig {
  * Create nodemailer transporter
  */
 export async function createTransporter() {
-  const config = getEmailConfig();
+  const config = await getEmailConfig();
 
   // If no SMTP credentials, create Ethereal test account
   if (!config.auth.user || !config.auth.pass) {

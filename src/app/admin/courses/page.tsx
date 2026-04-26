@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { BookOpen, Users, TrendingUp, AlertCircle } from "lucide-react";
+import { BookOpen, Users, TrendingUp, AlertCircle, Download } from "lucide-react";
 
 type Course = {
   id: string;
@@ -59,13 +59,24 @@ export default function AdminCoursesPage() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-        <div className="mb-6 sm:mb-8">
+      <div className="mb-6 sm:mb-8 flex items-start justify-between gap-4">
+        <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Управление курсами</h1>
           <p className="text-slate-600 mt-1 text-sm sm:text-base">Все курсы всех учителей на платформе</p>
         </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+        <a
+          href="/api/admin/export?type=courses"
+          download
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+        >
+          <Download className="w-4 h-4" />
+          Экспорт в CSV
+        </a>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <span className="text-sm font-medium text-slate-700 shrink-0">Фильтр:</span>
             <div className="flex gap-2 flex-wrap">
@@ -166,107 +177,84 @@ export default function AdminCoursesPage() {
               <p className="text-slate-600">Курсов не найдено</p>
             </div>
           ) : (
-            <>
-              {/* Mobile / tablet cards */}
-              <div className="lg:hidden divide-y divide-slate-200">
-                {filteredCourses.map((course) => (
-                  <div key={course.id} className="p-4 sm:p-5">
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{course.title}</p>
-                        {course.description && (
-                          <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{course.description}</p>
-                        )}
-                        <p className="text-xs text-slate-500 mt-1">{course.teacher.name}</p>
-                      </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredCourses.map((course) => (
+                <div
+                  key={course.id}
+                  className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-emerald-200 transition-all duration-200"
+                >
+                  {/* Превью */}
+                  <div className="h-40 bg-gradient-to-br from-emerald-500 to-teal-600 relative overflow-hidden">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <BookOpen className="w-16 h-16 text-white opacity-50" />
+                    </div>
+                    {/* Статус бейдж */}
+                    <div className="absolute top-3 right-3">
                       {course.published ? (
-                        <span className="shrink-0 px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full">
+                        <span className="px-3 py-1 text-xs font-semibold bg-white/90 text-emerald-700 rounded-full backdrop-blur-sm">
                           Опубликован
                         </span>
                       ) : (
-                        <span className="shrink-0 px-2 py-1 text-xs font-medium bg-slate-100 text-slate-800 rounded-full">
+                        <span className="px-3 py-1 text-xs font-semibold bg-white/90 text-slate-700 rounded-full backdrop-blur-sm">
                           Черновик
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-slate-600 mt-2">
-                      <span><strong className="text-slate-900">{course.stats.streams}</strong> потоков</span>
-                      <span><strong className="text-slate-900">{course.stats.students}</strong> студентов</span>
-                      <span><strong className="text-slate-900">{course.stats.lessons}</strong> уроков</span>
+                  </div>
+
+                  {/* Контент */}
+                  <div className="p-5">
+                    <h3 className="text-lg font-bold text-slate-900 mb-2 line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                      {course.title}
+                    </h3>
+
+                    {course.description && (
+                      <p className="text-sm text-slate-600 mb-3 line-clamp-2">
+                        {course.description}
+                      </p>
+                    )}
+
+                    {/* Учитель */}
+                    <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-100">
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
+                        {course.teacher.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="text-sm text-slate-600">{course.teacher.name}</div>
+                    </div>
+
+                    {/* Статистика */}
+                    <div className="grid grid-cols-3 gap-3 mb-4">
+                      <div className="text-center">
+                        <div className="text-xl font-bold text-slate-900">{course.stats.streams}</div>
+                        <div className="text-xs text-slate-500">Потоков</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xl font-bold text-emerald-600">{course.stats.students}</div>
+                        <div className="text-xs text-slate-500">Студентов</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xl font-bold text-blue-600">{course.stats.lessons}</div>
+                        <div className="text-xs text-slate-500">Уроков</div>
+                      </div>
+                    </div>
+
+                    {/* Действия */}
+                    <div className="flex gap-2">
+                      <button className="flex-1 py-2 px-3 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors">
+                        Редактировать
+                      </button>
+                      <button className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Desktop table */}
-              <div className="hidden lg:block overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Название
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Учитель
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Потоков
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Студентов
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Уроков
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Статус
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {filteredCourses.map((course) => (
-                    <tr key={course.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">{course.title}</p>
-                          {course.description && (
-                            <p className="text-xs text-slate-500 mt-1 line-clamp-1">
-                              {course.description}
-                            </p>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
-                        {course.teacher.name}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
-                        {course.stats.streams}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
-                        {course.stats.students}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
-                        {course.stats.lessons}
-                      </td>
-                      <td className="px-6 py-4">
-                        {course.published ? (
-                          <span className="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-800 rounded-full">
-                            Опубликован
-                          </span>
-                        ) : (
-                          <span className="px-2 py-1 text-xs font-medium bg-slate-100 text-slate-800 rounded-full">
-                            Черновик
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
-            </>
+                </div>
+              ))}
+            </div>
           )}
-        </div>
       </div>
+    </div>
   );
 }

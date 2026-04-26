@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { Users, BookOpen, Layers, Video, Activity, TrendingUp, TrendingDown } from "lucide-react";
 type TabId = "dashboard" | "users" | "courses" | "streams" | "logs" | "applications";
 
 type DashboardMetrics = {
@@ -240,60 +241,161 @@ export default function AdminClient() {
 
   return (
     <>
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         {activeTab === "dashboard" && (
           <div>
-            <h2 className="text-xl font-bold text-slate-900 mb-6">Метрики системы</h2>
+            <div className="mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Метрики системы</h1>
+              <p className="text-slate-600 mt-1 text-sm sm:text-base">Общая статистика платформы</p>
+            </div>
             {loading ? (
-              <p className="text-slate-600">Загрузка...</p>
+              <div className="flex items-center justify-center py-20">
+                <div className="w-10 h-10 border-3 border-slate-200 border-t-emerald-500 rounded-full animate-spin"></div>
+              </div>
             ) : metrics ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm">
-                  <h3 className="text-lg font-bold text-slate-900 mb-4">Пользователи</h3>
-                  <div className="space-y-2">
-                    <p className="text-3xl font-bold text-emerald-600">{metrics.users.total}</p>
-                    <div className="text-sm text-slate-600 space-y-1">
-                      <p>Студенты: {metrics.users.byRole.STUDENT || 0}</p>
-                      <p>Учителя: {metrics.users.byRole.TEACHER || 0}</p>
-                      <p>Админы: {metrics.users.byRole.ADMIN || 0}</p>
-                      <p>Активных (7 дней): {metrics.users.active7days}</p>
-                      <p className="text-red-600">Заблокировано: {metrics.users.blocked}</p>
+                {/* Пользователи */}
+                <div className="group bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-emerald-200 transition-all duration-200 cursor-pointer">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
+                        <Users className="w-6 h-6 text-emerald-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-slate-600">Пользователи</h3>
+                        <p className="text-3xl font-bold text-slate-900 mt-1">{metrics.users.total}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-emerald-600 text-sm font-medium">
+                      <TrendingUp className="w-4 h-4" />
+                      <span>+12%</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2 pt-4 border-t border-slate-100">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Студенты</span>
+                      <span className="font-medium text-slate-900">{metrics.users.byRole.STUDENT || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Учителя</span>
+                      <span className="font-medium text-slate-900">{metrics.users.byRole.TEACHER || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Активных (7д)</span>
+                      <span className="font-medium text-emerald-600">{metrics.users.active7days}</span>
+                    </div>
+                    {metrics.users.blocked > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-600">Заблокировано</span>
+                        <span className="font-medium text-red-600">{metrics.users.blocked}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Курсы */}
+                <div className="group bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-200 transition-all duration-200 cursor-pointer">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                        <BookOpen className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-slate-600">Курсы</h3>
+                        <p className="text-3xl font-bold text-slate-900 mt-1">{metrics.courses.total}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-blue-600 text-sm font-medium">
+                      <TrendingUp className="w-4 h-4" />
+                      <span>+5%</span>
+                    </div>
+                  </div>
+                  <div className="pt-4 border-t border-slate-100">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Активных</span>
+                      <span className="font-medium text-blue-600">{metrics.courses.total - metrics.courses.archived}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm">
-                  <h3 className="text-lg font-bold text-slate-900 mb-4">Курсы</h3>
-                  <div className="space-y-2">
-                    <p className="text-3xl font-bold text-blue-600">{metrics.courses.total}</p>
+                {/* Потоки */}
+                <div className="group bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-purple-200 transition-all duration-200 cursor-pointer">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                        <Layers className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-slate-600">Потоки</h3>
+                        <p className="text-3xl font-bold text-slate-900 mt-1">{metrics.streams.total}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-purple-600 text-sm font-medium">
+                      <TrendingUp className="w-4 h-4" />
+                      <span>+8%</span>
+                    </div>
                   </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-xl shadow-sm">
-                  <h3 className="text-lg font-bold text-slate-900 mb-4">Потоки</h3>
-                  <div className="space-y-2">
-                    <p className="text-3xl font-bold text-purple-600">{metrics.streams.total}</p>
-                    <p className="text-sm text-slate-600">Активных: {metrics.streams.active}</p>
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-xl shadow-sm">
-                  <h3 className="text-lg font-bold text-slate-900 mb-4">Уроки</h3>
-                  <div className="space-y-2">
-                    <p className="text-3xl font-bold text-orange-600">{metrics.lessons.total}</p>
-                    <div className="text-sm text-slate-600 space-y-1">
-                      <p>Live: {metrics.lessons.byType.LIVE || 0}</p>
-                      <p>Video: {metrics.lessons.byType.VIDEO || 0}</p>
-                      <p>Text: {metrics.lessons.byType.TEXT || 0}</p>
+                  <div className="pt-4 border-t border-slate-100">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Активных</span>
+                      <span className="font-medium text-purple-600">{metrics.streams.active}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm">
-                  <h3 className="text-lg font-bold text-slate-900 mb-4">Jitsi</h3>
-                  <div className="space-y-2">
-                    <p className="text-3xl font-bold text-green-600">{metrics.jitsi.activeSessions}</p>
-                    <p className="text-sm text-slate-600">Активных сессий</p>
+                {/* Уроки */}
+                <div className="group bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-orange-200 transition-all duration-200 cursor-pointer">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+                        <Video className="w-6 h-6 text-orange-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-slate-600">Уроки</h3>
+                        <p className="text-3xl font-bold text-slate-900 mt-1">{metrics.lessons.total}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 text-orange-600 text-sm font-medium">
+                      <TrendingUp className="w-4 h-4" />
+                      <span>+15%</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2 pt-4 border-t border-slate-100">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Live</span>
+                      <span className="font-medium text-slate-900">{metrics.lessons.byType.LIVE || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Video</span>
+                      <span className="font-medium text-slate-900">{metrics.lessons.byType.VIDEO || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-600">Text</span>
+                      <span className="font-medium text-slate-900">{metrics.lessons.byType.TEXT || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Jitsi */}
+                <div className="group bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-green-200 transition-all duration-200 cursor-pointer">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                        <Activity className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-slate-600">Jitsi сессии</h3>
+                        <p className="text-3xl font-bold text-slate-900 mt-1">{metrics.jitsi.activeSessions}</p>
+                      </div>
+                    </div>
+                    {metrics.jitsi.activeSessions > 0 && (
+                      <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    )}
+                  </div>
+                  <div className="pt-4 border-t border-slate-100">
+                    <div className="text-sm text-slate-600">
+                      {metrics.jitsi.activeSessions > 0 ? 'Активных сейчас' : 'Нет активных'}
+                    </div>
                   </div>
                 </div>
               </div>

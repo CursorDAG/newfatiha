@@ -1,3 +1,8 @@
 {
-  "language": "russian"
+  "language": "russian",
+  "permissions": {
+    "allow": [
+      "Bash(ssh -i \"C:/Users/bityi/.ssh/id_ed25519_fatiha\" -o StrictHostKeyChecking=no root@192.168.88.60 \"docker builder prune -af 2>&1 | tail -5 && echo '---' && df -h /\")"
+    ]
+  }
 }

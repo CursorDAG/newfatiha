@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { LayoutDashboard, Users, BookOpen, GraduationCap, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, BookOpen, GraduationCap, LogOut, Menu, X, Search } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
 type AdminHeaderProps = {
@@ -75,6 +75,19 @@ export default function AdminHeader({ adminName }: AdminHeaderProps) {
 
           {/* Right side */}
           <div className="flex-shrink-0 flex items-center gap-2 ml-auto">
+            {/* Search button */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("open-global-search"))}
+              className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600/50 hover:bg-emerald-600 rounded-lg transition-colors text-sm"
+              title="Поиск (Ctrl+K)"
+            >
+              <Search className="w-4 h-4" />
+              <span className="hidden lg:inline text-emerald-100">Поиск</span>
+              <kbd className="hidden xl:inline-block px-1.5 py-0.5 text-xs bg-emerald-800/50 rounded border border-emerald-600">
+                ⌘K
+              </kbd>
+            </button>
+
             <NotificationBell />
 
             <span className="text-xs font-medium text-emerald-100 hidden xl:block max-w-[110px] truncate">

@@ -50,6 +50,17 @@ export const GET = withErrorHandling(async (req: Request) => {
     ];
   }
 
+  // Сортировка
+  const sortBy = query.sortBy || 'createdAt';
+  const sortOrder = query.sortOrder || 'desc';
+
+  const orderBy: Record<string, string> = {};
+  if (sortBy === 'name' || sortBy === 'email' || sortBy === 'createdAt') {
+    orderBy[sortBy] = sortOrder;
+  } else {
+    orderBy.createdAt = 'desc';
+  }
+
   // Получение пользователей
   const [users, total] = await Promise.all([
     prisma.user.findMany({
@@ -61,10 +72,11 @@ export const GET = withErrorHandling(async (req: Request) => {
         role: true,
         gender: true,
         isBlocked: true,
+        emailVerifiedAt: true,
         createdAt: true,
         updatedAt: true,
       },
-      orderBy: { createdAt: "desc" },
+      orderBy,
       take: limit,
       skip: offset,
     }),

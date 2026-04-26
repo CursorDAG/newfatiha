@@ -75,13 +75,13 @@ export const POST = withErrorHandling(async (req: Request) => {
   }
 
   // Get Jitsi configuration
-  const jitsiConfig = getJitsiConfig();
+  const jitsiConfig = await getJitsiConfig();
 
   // If JWT is not configured, return disabled status
-  if (!jitsiConfig) {
+  if (!jitsiConfig || !jitsiConfig.appId || !jitsiConfig.secret) {
     return NextResponse.json({
       enabled: false,
-      domain: "meet.jit.si",
+      domain: jitsiConfig?.domain || "meet.jit.si",
       token: null,
     });
   }

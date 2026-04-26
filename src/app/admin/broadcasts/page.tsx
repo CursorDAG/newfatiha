@@ -119,16 +119,16 @@ export default function BroadcastsPage() {
 
   return (
     <>
-      <div className="p-8">
-        <div className="flex items-center justify-between mb-8">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Массовые рассылки</h1>
-            <p className="text-slate-600 mt-1">Отправка уведомлений пользователям платформы</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Массовые рассылки</h1>
+            <p className="text-slate-600 mt-1 text-sm sm:text-base">Отправка уведомлений пользователям платформы</p>
           </div>
 
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors"
+            className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shrink-0"
           >
             <Send className="w-4 h-4" />
             Создать рассылку

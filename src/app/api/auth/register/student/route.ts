@@ -15,6 +15,20 @@ import { logger } from "@/lib/logger";
  * Register a new student account
  */
 export const POST = withErrorHandling(async (req: Request) => {
+  // Check if student registration is allowed
+  const registrationSettings = await prisma.platformSettings.findUnique({
+    where: { key: "allowStudentRegistration" },
+  });
+
+  const allowRegistration = registrationSettings?.value ?? true;
+
+  if (!allowRegistration) {
+    return NextResponse.json(
+      { error: "Регистрация студентов временно отключена" },
+      { status: 403 }
+    );
+  }
+
   const { email, password, name, gender } = await validateRequest(req, registerUserSchema);
 
   // Check if user already exists

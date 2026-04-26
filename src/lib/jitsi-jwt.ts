@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { logger } from "./logger";
+import { getSetting } from "./settings";
 
 /**
  * Jitsi JWT configuration
@@ -86,26 +87,45 @@ export function generateJitsiToken(
 }
 
 /**
- * Get Jitsi configuration from environment variables
+ * Get Jitsi configuration from database settings or environment variables
  * Returns null if Jitsi JWT is not configured (falls back to public Jitsi)
  */
-export function getJitsiConfig(): JitsiConfig | null {
-  const domain = process.env.JITSI_DOMAIN;
+export async function getJitsiConfig(): Promise<JitsiConfig | null> {
+  // Try to get from database settings first
+  const jitsiServer = await getSetting<string>("jitsiServer");
+
+  // Extract domain from URL if it's a full URL
+  let domain: string | undefined = jitsiServer;
+  if (domain) {
+    try {
+      const url = new URL(domain);
+      domain = url.hostname;
+    } catch {
+      // If not a valid URL, use as-is
+    }
+  }
+
+  // Fallback to environment variables
+  if (!domain) {
+    domain = process.env.JITSI_DOMAIN;
+  }
+
   const appId = process.env.JITSI_JWT_APP_ID;
   const secret = process.env.JITSI_JWT_SECRET;
 
-  // If any of the required variables are missing, return null
-  // This allows the app to fall back to public meet.jit.si
-  if (!domain || !appId || !secret) {
+  // If domain is missing, return null (will use public meet.jit.si)
+  // If appId/secret are missing, return config with domain only (no JWT)
+  if (!domain) {
     return null;
   }
 
-  return { domain, appId, secret };
+  return { domain, appId: appId || "", secret: secret || "" };
 }
 
 /**
  * Check if Jitsi JWT authentication is enabled
  */
-export function isJitsiJwtEnabled(): boolean {
-  return getJitsiConfig() !== null;
+export async function isJitsiJwtEnabled(): Promise<boolean> {
+  const config = await getJitsiConfig();
+  return config !== null && !!config.appId && !!config.secret;
 }

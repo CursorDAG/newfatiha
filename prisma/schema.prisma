@@ -725,3 +725,14 @@ model Broadcast {
   @@index([sentById])
   @@index([sentAt])
 }
+
+model PlatformSettings {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  category  String   // general, integrations, email, registration, notifications
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}

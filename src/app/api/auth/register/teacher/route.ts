@@ -16,6 +16,13 @@ import { logger } from "@/lib/logger";
 export const POST = withErrorHandling(async (req: Request) => {
   const { email, password, name } = await validateRequest(req, registerTeacherStep1Schema);
 
+  // Check if teacher applications require moderation
+  const moderationSettings = await prisma.platformSettings.findUnique({
+    where: { key: "moderateTeacherApplications" },
+  });
+
+  const requiresModeration = moderationSettings?.value ?? true;
+
   // Check if user already exists
   const existingUser = await prisma.user.findUnique({
     where: { email: email.toLowerCase() },
@@ -31,14 +38,14 @@ export const POST = withErrorHandling(async (req: Request) => {
   // Generate verification token
   const verificationToken = randomUUID();
 
-  // Create user with PENDING_VERIFICATION status
+  // Create user with PENDING_VERIFICATION status (or ACTIVE if moderation is disabled)
   const user = await prisma.user.create({
     data: {
       email: email.toLowerCase(),
       password: hashedPassword,
       name,
       role: "TEACHER",
-      status: "PENDING_VERIFICATION",
+      status: requiresModeration ? "PENDING_VERIFICATION" : "ACTIVE",
       emailVerified: false,
       verificationToken,
     },
@@ -60,9 +67,12 @@ export const POST = withErrorHandling(async (req: Request) => {
     // Don't throw - user is created, they can resend verification later
   }
 
-  return NextResponse.json({
-    success: true,
-    message: "Регистрация успешна. Проверьте email для подтверждения адреса.",
-    userId: user.id,
-  });
+  return NextResponse.json(
+    {
+      success: true,
+      message: "Регистрация успешна. Проверьте email для подтверждения адреса.",
+      userId: user.id,
+    },
+    { status: 201 }
+  );
 });

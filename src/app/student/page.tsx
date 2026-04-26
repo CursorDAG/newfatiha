@@ -133,7 +133,7 @@ export default async function StudentPage() {
   }));
 
   // Get Jitsi configuration
-  const jitsiConfig = getJitsiConfig()
+  const jitsiConfig = await getJitsiConfig()
   const jitsiDomain = jitsiConfig?.domain ?? "meet.jit.si"
 
   return (
