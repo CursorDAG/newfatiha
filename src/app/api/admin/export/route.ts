@@ -113,7 +113,7 @@ export async function GET(req: NextRequest) {
 
     // Создать CSV
     const csv = data.map(row =>
-      (row as unknown[]).map((cell: unknown) => {
+      row.map((cell: unknown) => {
         // Экранировать кавычки и обернуть в кавычки если есть запятые
         const str = String(cell).replace(/"/g, '""');
         return str.includes(',') || str.includes('\n') ? `"${str}"` : str;

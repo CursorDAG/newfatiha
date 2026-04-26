@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ValidationError } from "@/lib/errors";
 import { createTransporter, getEmailConfig } from "@/lib/email/config";
+import { adminBroadcastTemplate } from "@/lib/email/templates/admin-broadcast";
 import { logger } from "@/lib/logger";
 import { z } from "zod";
 
@@ -67,6 +68,13 @@ export const POST = withErrorHandling(async (req: Request) => {
   const transporter = await createTransporter();
   const config = await getEmailConfig();
 
+  // Создать красивый HTML шаблон
+  const emailTemplate = adminBroadcastTemplate({
+    subject,
+    message,
+    isHtml,
+  });
+
   const results = {
     total: recipients.length,
     sent: 0,
@@ -79,9 +87,9 @@ export const POST = withErrorHandling(async (req: Request) => {
       await transporter.sendMail({
         from: `"Администрация Fatiha.ru" <admin@fatiha.ru>`,
         to: email,
-        subject,
-        html: isHtml ? message : undefined,
-        text: isHtml ? undefined : message,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text,
       });
 
       results.sent++;

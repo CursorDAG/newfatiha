@@ -3,6 +3,7 @@
  */
 
 export { baseTemplate } from "./base";
+export { adminBroadcastTemplate } from "./admin-broadcast";
 export { lessonStartingTemplate } from "./lesson-starting";
 export { newLessonTemplate } from "./new-lesson";
 export { homeworkCheckedTemplate } from "./homework-checked";
@@ -26,6 +27,10 @@ export { userUnblockedTemplate } from "./user-unblocked";
 export type {
   BaseTemplateParams,
 } from "./base";
+
+export type {
+  AdminBroadcastData,
+} from "./admin-broadcast";
 
 export type {
   LessonStartingData,
