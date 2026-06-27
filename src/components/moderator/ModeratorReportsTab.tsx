@@ -1,5 +1,8 @@
 "use client";
 
+// TODO(reviews): добавить модерацию отзывов (Review). Отзывы PUBLISHED по умолчанию;
+// для скрытия достаточно перевести status в ReviewStatus.HIDDEN. Полная панель — отдельная задача.
+
 import { useState, useEffect, useCallback } from "react";
 import ReportReviewModal from "./ReportReviewModal";
 

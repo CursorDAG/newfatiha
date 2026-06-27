@@ -2,7 +2,8 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getStreamGenderTypeLabel, getStreamGenderTypeIcon } from "@/lib/gender-rules";
+import { getCourseRating } from "@/lib/reviews";
+import CoursesBrowser, { type CourseCardData } from "./CoursesBrowser";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ async function getOpenCourses() {
         include: {
           teacher: {
             select: {
+              id: true,
               name: true,
               gender: true,
             },
@@ -49,198 +51,125 @@ export default async function CoursesPage() {
   const session = await getServerSession(authOptions);
   const streams = await getOpenCourses();
 
-  const formatSchedule = (slots: Array<{ dayOfWeek: number; startMinutes: number; durationMinutes: number }>) => {
-    if (slots.length === 0) return "Расписание не указано";
+  // Эффективная выборка рейтингов: одна агрегация на уникальный курс (без N+1 в рендере).
+  const uniqueCourseIds = Array.from(new Set(streams.map((s) => s.courseId)));
+  const ratingEntries = await Promise.all(
+    uniqueCourseIds.map(async (courseId) => {
+      const rating = await getCourseRating(courseId);
+      return [courseId, rating] as const;
+    })
+  );
+  const ratingByCourse = new Map(ratingEntries);
 
-    const days = ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
-    const grouped = slots.reduce((acc, slot) => {
-      if (!acc[slot.dayOfWeek]) acc[slot.dayOfWeek] = [];
-      const hours = Math.floor(slot.startMinutes / 60);
-      const minutes = slot.startMinutes % 60;
-      acc[slot.dayOfWeek].push(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`);
-      return acc;
-    }, {} as Record<number, string[]>);
+  // Сериализация для client-компонента (Decimal price → number, Date → ISO string).
+  const courses: CourseCardData[] = streams.map((stream) => {
+    const rating = ratingByCourse.get(stream.courseId) ?? { average: 0, count: 0 };
+    return {
+      id: stream.id,
+      courseId: stream.courseId,
+      courseTitle: stream.course.title,
+      courseDescription: stream.course.description,
+      streamName: stream.name,
+      level: stream.level,
+      color: stream.color,
+      genderType: stream.genderType,
+      capacity: stream.course.capacity,
+      activeEnrollments: stream._count.enrollments,
+      price: stream.price != null ? Number(stream.price) : null,
+      currency: stream.currency,
+      enrollmentDeadline: stream.enrollmentDeadline
+        ? stream.enrollmentDeadline.toISOString()
+        : null,
+      createdAt: stream.createdAt.toISOString(),
+      teacherId: stream.course.teacher.id,
+      teacherName: stream.course.teacher.name,
+      scheduleSlots: stream.scheduleSlots.map((slot) => ({
+        dayOfWeek: slot.dayOfWeek,
+        startMinutes: slot.startMinutes,
+        durationMinutes: slot.durationMinutes,
+      })),
+      ratingAverage: rating.average,
+      ratingCount: rating.count,
+    };
+  });
 
-    return Object.entries(grouped)
-      .map(([day, times]) => `${days[Number(day)]}: ${times.join(", ")}`)
-      .join(" • ");
-  };
+  const sessionInfo = session
+    ? { role: session.user.role as string }
+    : null;
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-50">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+    <div
+      className="min-h-screen font-sans text-cream relative overflow-hidden"
+      style={{
+        background:
+          "radial-gradient(circle at 50% 0%, #0B1F19 0%, #031410 65%, #010806 100%)",
+      }}
+    >
+      {/* Ambient background */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute inset-0 pattern-islamic opacity-60" />
+        <div className="absolute -top-[10%] -right-[10%] h-[600px] w-[600px] rounded-full bg-[#D4AF37]/[0.05] blur-[130px]" />
+        <div className="absolute top-[30%] -left-[15%] h-[700px] w-[700px] rounded-full bg-[#06201A]/60 blur-[150px]" />
+      </div>
+
+      <div className="relative z-10">
+        {/* Navbar */}
+        <header className="sticky top-0 z-50 bg-[#031410]/80 backdrop-blur-xl border-b border-gold/15">
+          <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+            <Link href="/" className="flex items-center gap-2.5 shrink-0">
+              <span className="w-9 h-9 bg-gradient-to-br from-gold to-[#8C6D1F] rounded-xl flex items-center justify-center text-[#031410] text-lg font-bold shadow-md shadow-gold/20">
+                ف
+              </span>
+              <span className="text-xl font-extrabold text-cream tracking-tight font-serif">
+                Fatiha<span className="text-gold">.ru</span>
+              </span>
+            </Link>
+
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl flex items-center justify-center text-xl shadow-lg">
-                📚
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-slate-800">Каталог курсов</h1>
-                <p className="text-sm text-slate-600">Выберите курс для обучения</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              {session ? (
+              {sessionInfo ? (
                 <Link
-                  href={session.user.role === "STUDENT" ? "/student" : "/teacher"}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors"
+                  href={sessionInfo.role === "STUDENT" ? "/student" : "/teacher"}
+                  className="btn-shimmer px-5 py-2 rounded-xl text-sm transition-all hover:-translate-y-px"
                 >
-                  Мой кабинет
+                  Мой кабинет →
                 </Link>
               ) : (
                 <>
                   <Link
                     href="/auth/signin"
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors"
+                    className="hidden sm:inline-flex border border-gold/40 text-gold hover:bg-gold/10 hover:border-gold font-bold px-5 py-2 rounded-xl text-sm transition-all"
                   >
                     Войти
                   </Link>
                   <Link
                     href="/auth/register/student"
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl shadow-lg shadow-emerald-600/20 transition-all"
+                    className="btn-shimmer px-5 py-2 rounded-xl text-sm transition-all hover:-translate-y-px"
                   >
                     Регистрация
                   </Link>
                 </>
               )}
             </div>
-          </div>
-        </div>
+          </nav>
+        </header>
+
+        {/* Hero header */}
+        <section className="max-w-7xl mx-auto px-6 pt-14 pb-8 text-center">
+          <span className="eyebrow mb-4 justify-center">Каталог курсов</span>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-cream mt-3 mb-4 font-serif">
+            Найдите свой курс
+          </h1>
+          <p className="text-cream/60 text-lg max-w-2xl mx-auto">
+            Открытые потоки для записи. Используйте поиск, фильтры и сортировку,
+            чтобы выбрать подходящую учебную группу.
+          </p>
+        </section>
+
+        {/* Browser (search / filters / list) */}
+        <section className="max-w-7xl mx-auto px-6 pb-20">
+          <CoursesBrowser courses={courses} session={sessionInfo} />
+        </section>
       </div>
-
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {streams.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
-              📭
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Нет доступных курсов</h2>
-            <p className="text-slate-600">В данный момент нет открытых курсов для записи</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {streams.map((stream) => {
-              const availableSpots = stream.course.capacity - stream._count.enrollments;
-              const isFull = availableSpots <= 0;
-
-              return (
-                <div
-                  key={stream.id}
-                  className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden hover:shadow-xl transition-shadow"
-                >
-                  {/* Header with color */}
-                  <div
-                    className="h-2"
-                    style={{ backgroundColor: stream.color }}
-                  />
-
-                  <div className="p-6">
-                    {/* Course title */}
-                    <h3 className="text-xl font-bold text-slate-800 mb-2">
-                      {stream.course.title}
-                    </h3>
-
-                    {/* Stream info */}
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="px-3 py-1 bg-slate-100 text-slate-700 text-sm font-semibold rounded-lg">
-                        {stream.name}
-                      </span>
-                      <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-lg">
-                        {stream.level}
-                      </span>
-                    </div>
-
-                    {/* Description */}
-                    {stream.course.description && (
-                      <p className="text-slate-600 text-sm mb-4 line-clamp-3">
-                        {stream.course.description}
-                      </p>
-                    )}
-
-                    {/* Teacher */}
-                    <div className="flex items-center gap-2 mb-3 text-sm text-slate-600">
-                      <span>👨‍🏫</span>
-                      <span>Учитель: {stream.course.teacher.name}</span>
-                    </div>
-
-                    {/* Gender type */}
-                    <div className="flex items-center gap-2 mb-3 text-sm text-slate-600">
-                      <span>{getStreamGenderTypeIcon(stream.genderType)}</span>
-                      <span>{getStreamGenderTypeLabel(stream.genderType)}</span>
-                    </div>
-
-                    {/* Schedule */}
-                    <div className="mb-3 text-sm text-slate-600">
-                      <div className="font-semibold mb-1">📅 Расписание:</div>
-                      <div className="text-xs">{formatSchedule(stream.scheduleSlots)}</div>
-                    </div>
-
-                    {/* Price */}
-                    {stream.price && (
-                      <div className="mb-4 text-lg font-bold text-emerald-600">
-                        {stream.price.toString()} {stream.currency}
-                      </div>
-                    )}
-
-                    {/* Available spots */}
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between text-sm mb-1">
-                        <span className="text-slate-600">Свободных мест:</span>
-                        <span className={`font-bold ${isFull ? "text-red-600" : "text-emerald-600"}`}>
-                          {availableSpots} из {stream.course.capacity}
-                        </span>
-                      </div>
-                      <div className="w-full bg-slate-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full transition-all ${isFull ? "bg-red-500" : "bg-emerald-500"}`}
-                          style={{ width: `${((stream.course.capacity - availableSpots) / stream.course.capacity) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Deadline */}
-                    {stream.enrollmentDeadline && (
-                      <div className="mb-4 text-xs text-slate-500">
-                        Запись до: {new Date(stream.enrollmentDeadline).toLocaleDateString("ru-RU")}
-                      </div>
-                    )}
-
-                    {/* Action button */}
-                    {session ? (
-                      session.user.role === "STUDENT" ? (
-                        <Link
-                          href={`/courses/${stream.id}/apply`}
-                          className={`block w-full text-center py-3 rounded-xl font-bold transition-all ${
-                            isFull
-                              ? "bg-slate-200 text-slate-500 cursor-not-allowed"
-                              : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20"
-                          }`}
-                        >
-                          {isFull ? "Мест нет" : "Подать заявку"}
-                        </Link>
-                      ) : (
-                        <div className="text-center text-sm text-slate-500 py-3">
-                          Доступно только для студентов
-                        </div>
-                      )
-                    ) : (
-                      <Link
-                        href="/auth/register/student"
-                        className="block w-full text-center py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all"
-                      >
-                        Зарегистрироваться
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </main>
+    </div>
   );
 }

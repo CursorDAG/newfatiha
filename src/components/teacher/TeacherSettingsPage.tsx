@@ -17,6 +17,7 @@ type Props = {
   bio: string | null;
   skills: string[];
   gender: string;
+  paymentRequisites: string | null;
 };
 
 type Section = "profile" | "security" | "account";
@@ -136,6 +137,7 @@ export default function TeacherSettingsPage({
   bio: initialBio,
   skills: initialSkills,
   gender: initialGender,
+  paymentRequisites: initialPaymentRequisites,
 }: Props) {
   const [activeSection, setActiveSection] = useState<Section>("profile");
   const globalToast = useToast();
@@ -146,6 +148,7 @@ export default function TeacherSettingsPage({
   const [skills, setSkills] = useState<string[]>(initialSkills);
   const [skillInput, setSkillInput] = useState("");
   const [gender, setGender] = useState(initialGender);
+  const [paymentRequisites, setPaymentRequisites] = useState(initialPaymentRequisites ?? "");
   const [profileSaving, setProfileSaving] = useState(false);
 
   // ── Avatar state ───────────────────────────────────────────────────────────
@@ -173,6 +176,7 @@ export default function TeacherSettingsPage({
     name.trim() !== userName ||
     bio !== (initialBio ?? "") ||
     gender !== initialGender ||
+    paymentRequisites !== (initialPaymentRequisites ?? "") ||
     JSON.stringify(skills) !== JSON.stringify(initialSkills);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -219,7 +223,7 @@ export default function TeacherSettingsPage({
       const res = await fetch("/api/teacher/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), bio: bio.trim() || null, skills, gender }),
+        body: JSON.stringify({ name: name.trim(), bio: bio.trim() || null, skills, gender, paymentRequisites: paymentRequisites.trim() || null }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? "Не удалось сохранить");
@@ -452,6 +456,22 @@ export default function TeacherSettingsPage({
             </button>
           </div>
         )}
+      </div>
+
+      {/* Payment requisites */}
+      <div>
+        <label className="block text-xs font-semibold text-slate-600 mb-1.5">Реквизиты для оплаты</label>
+        <textarea
+          className={`${inputClass} resize-none`}
+          rows={4}
+          placeholder="Укажите реквизиты для оплаты: номер карты, СБП, имя получателя. Студент увидит их после одобрения заявки."
+          value={paymentRequisites}
+          onChange={(e) => setPaymentRequisites(e.target.value.slice(0, 2000))}
+          maxLength={2000}
+        />
+        <p className="text-xs text-slate-400 mt-1">
+          Эти реквизиты показываются студенту для оплаты курса вручную. Оплату вы подтверждаете сами после получения средств.
+        </p>
       </div>
 
       {/* Save */}

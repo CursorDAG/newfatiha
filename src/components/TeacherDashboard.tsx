@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import CreateCourseModal from "@/components/CreateCourseModal";
 import ScheduleGrid, { type ScheduleSlot, type SlotInput } from "@/components/ScheduleGrid";
 import TeacherShell, { type TeacherTabId } from "@/components/teacher/TeacherShell";
@@ -332,11 +332,20 @@ export default function TeacherDashboard({
   teacherEmail: string;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedStreamId, setSelectedStreamId] = useState<string>(initialStreams[0]?.id ?? '');
-  const [activeTab, setActiveTab] = useState<TeacherTabId>("overview");
+  const [activeTab, setActiveTab] = useState<TeacherTabId>(
+    (searchParams.get("tab") as TeacherTabId | null) ?? "overview",
+  );
   const [loading, setLoading] = useState(false);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [jitsiToken, setJitsiToken] = useState<string | undefined>(undefined);
+
+  // Навигация ведётся внешним сайдбаром через ?tab= — синхронизируем
+  useEffect(() => {
+    const t = (searchParams.get("tab") as TeacherTabId | null) ?? "overview";
+    setActiveTab(t);
+  }, [searchParams]);
 
   const pushToast = useCallback((t: Omit<ToastItem, "id">) => {
     const id = crypto.randomUUID();

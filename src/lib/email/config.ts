@@ -61,8 +61,8 @@ export async function getEmailConfig(): Promise<EmailConfig> {
 export async function createTransporter() {
   const config = await getEmailConfig();
 
-  // If no SMTP credentials, create Ethereal test account
-  if (!config.auth.user || !config.auth.pass) {
+  // If no SMTP credentials and we are using default ethereal host, create Ethereal test account
+  if ((!config.auth.user || !config.auth.pass) && (!config.host || config.host.includes("ethereal"))) {
     logger.warn("No SMTP credentials found, creating Ethereal test account");
 
     try {
@@ -88,10 +88,15 @@ export async function createTransporter() {
     }
   }
 
-  return nodemailer.createTransport({
+  const transportOptions: any = {
     host: config.host,
     port: config.port,
     secure: config.secure,
-    auth: config.auth,
-  });
+  };
+  
+  if (config.auth.user && config.auth.pass) {
+    transportOptions.auth = config.auth;
+  }
+  
+  return nodemailer.createTransport(transportOptions);
 }

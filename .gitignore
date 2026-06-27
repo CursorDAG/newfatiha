@@ -39,3 +39,32 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temporary reports and scripts
+*_REPORT*.md
+*_SUMMARY*.md
+*_PLAN*.md
+*_ANALYSIS*.md
+STAGE*.md
+PHASE*.md
+FINAL*.md
+ДЕТАЛЬНЫЙ*.md
+ОТЧЕТ*.md
+ЭТАП*.md
+ФИНАЛЬНЫЙ*.md
+bug-fix-instructions.md
+testing-status.md
+settings-integration-complete.md
+EMAIL-*.md
+check_*.py
+add_smtp_settings.py
+fix_docker_smtp.py
+email-*.html
+
+# debug/scratch scripts (могут содержать секреты — не коммитить)
+scratch_*
+_archive_reports/
+.claude/plans/
+
+# Библиотека: PDF скачиваются скриптом prisma/fetch-pdfs.mjs, в репо не храним
+/public/library/*.pdf

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
   BookOpen, Calendar, MessageSquare, Bell, Settings,
-  LogOut, Menu, X,
+  LogOut, Menu, X, Library,
 } from "lucide-react";
 import NotificationBell from "@/components/NotificationBell";
 
@@ -21,6 +21,7 @@ export default function TeacherHeader({ teacherName }: TeacherHeaderProps) {
 
   const navLinks = [
     { href: "/teacher",                    label: "Мои курсы",           icon: BookOpen },
+    { href: "/library",                    label: "Библиотека",          icon: Library },
     { href: "/teacher/schedule",           label: "Расписание",          icon: Calendar },
     { href: "/chat",                       label: "Чат",                 icon: MessageSquare },
     { href: "/notifications",              label: "Уведомления",         icon: Bell },

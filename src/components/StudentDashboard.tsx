@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
-  X,
-  Home,
   BookOpen,
   FileText,
   Calendar,
@@ -13,7 +10,6 @@ import {
   FlaskConical,
   Video,
   FileVideo,
-  LogOut,
   Radio,
   Clock,
   CheckCircle2,
@@ -21,11 +17,11 @@ import {
   XCircle,
   User,
   Info,
-  type LucideIcon,
 } from "lucide-react";
 import LiveJitsiEmbed from "@/components/student/LiveJitsiEmbed";
 import StudentProgressDashboard from "@/components/student/StudentProgressDashboard";
 import StudentInfoTab from "@/components/student/StudentInfoTab";
+import CourseReviewBlock from "@/components/reviews/CourseReviewBlock";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { studentSteps } from "@/components/onboarding/studentSteps";
 // import { OnboardingTooltip } from "@/components/onboarding/OnboardingTooltip"; // Временно отключено - блокирует экран
@@ -45,6 +41,7 @@ type StreamData = {
   name: string;
   level: string;
   schedule: string;
+  courseId: string;
   courseName: string;
   teacherName: string;
   scheduleSlots: ScheduleSlot[];
@@ -52,6 +49,8 @@ type StreamData = {
 };
 
 type Enrollment = { enrollmentId: string; status: string; stream: StreamData };
+
+type MyReview = { courseId: string; rating: number; comment: string | null };
 
 type HomeworkSubmission = {
   id: string;
@@ -547,6 +546,7 @@ export default function StudentDashboard({
   enrollments,
   homeworkAssignments,
   quizResults = [],
+  myReviews = [],
   jitsiDomain = "meet.jit.si",
 }: {
   userName: string;
@@ -555,15 +555,25 @@ export default function StudentDashboard({
   enrollments: Enrollment[];
   homeworkAssignments: HomeworkAssignment[];
   quizResults?: QuizResult[];
+  myReviews?: MyReview[];
   jitsiDomain?: string;
 }) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabId>("home");
+  const searchParams = useSearchParams();
+  // Отзыв студента по курсу для предзаполнения формы
+  const reviewByCourse = new Map(myReviews.map((r) => [r.courseId, r]));
+  const tabFromUrl = (searchParams.get("tab") as TabId | null) ?? "home";
+  const [activeTab, setActiveTab] = useState<TabId>(tabFromUrl);
   const [activeLiveLesson, setActiveLiveLesson] = useState<ActiveLiveLesson>(null);
   const [jitsiToken, setJitsiToken] = useState<string | undefined>(undefined);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const activitySessionIdRef = useRef<string | undefined>(undefined);
   const { startOnboarding, isCompleted } = useOnboarding();
+
+  // Навигация ведётся внешним сайдбаром через ?tab= — синхронизируем
+  useEffect(() => {
+    const t = (searchParams.get("tab") as TabId | null) ?? "home";
+    setActiveTab(t);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!isCompleted) {
@@ -573,22 +583,6 @@ export default function StudentDashboard({
       return () => clearTimeout(timer);
     }
   }, [isCompleted, startOnboarding]);
-
-  useEffect(() => {
-    const handler = () => setMobileMenuOpen((v) => !v);
-    window.addEventListener("student-shell-toggle-sidebar", handler);
-    return () => window.removeEventListener("student-shell-toggle-sidebar", handler);
-  }, []);
-
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = prev;
-      };
-    }
-  }, [mobileMenuOpen]);
 
   // Fetch Jitsi JWT token for a stream
   const fetchJitsiToken = async (streamId: string): Promise<string | undefined> => {
@@ -658,21 +652,6 @@ export default function StudentDashboard({
     };
   }, []);
 
-  const tabs: Array<{ id: TabId; label: string; icon: LucideIcon }> = [
-    { id: "home", label: "Главная", icon: Home },
-    { id: "lessons", label: "Мои уроки", icon: BookOpen },
-    { id: "homework", label: "Домашние задания", icon: FileText },
-    { id: "results", label: "Тесты", icon: FlaskConical },
-    { id: "progress", label: "Мой прогресс", icon: BarChart3 },
-    { id: "schedule", label: "Расписание", icon: Calendar },
-    { id: "info", label: "Информация", icon: Info },
-  ];
-
-  const handleTabChange = (tab: TabId) => {
-    setActiveTab(tab);
-    setMobileMenuOpen(false);
-  };
-
   // Count pending homework for badge
   const pendingHomeworkCount = homeworkAssignments.filter(
     (a) => !a.submission,
@@ -695,7 +674,7 @@ export default function StudentDashboard({
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800" data-onboarding="student-dashboard">
+    <div className="text-slate-800" data-onboarding="student-dashboard">
       {/* <OnboardingTooltip /> */} {/* Временно отключено - блокирует экран */}
 
       {/* ── Full-viewport live lesson overlay ──────────────────────── */}
@@ -717,113 +696,9 @@ export default function StudentDashboard({
         </div>
       )}
 
-      {/* Mobile menu overlay - затемнение фона */}
-      {mobileMenuOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-[59]"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
-      <div className="w-full px-3 py-3 sm:px-4 sm:py-4 lg:px-8 lg:py-6 grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
-        {/* ── Sidebar ────────────────────────────────────────────────── */}
-        {/* На мобильных: показывается как модальное меню с кнопкой закрытия */}
-        {/* На десктопе: статический sidebar */}
-        <nav className={`lg:col-span-1 bg-white lg:rounded-xl lg:shadow-sm lg:border lg:border-slate-200 p-4 sm:p-6 space-y-2 lg:h-fit lg:relative ${
-          mobileMenuOpen
-            ? "fixed left-0 top-0 bottom-0 w-[82vw] max-w-sm z-[60] overflow-y-auto shadow-2xl pt-16 pb-6"
-            : "hidden lg:block"
-        }`}>
-          {/* Шапка мобильного drawer: заголовок + крестик */}
-          <div className="lg:hidden absolute top-0 left-0 right-0 px-4 h-14 flex items-center justify-between border-b border-slate-200 bg-gradient-to-r from-emerald-50 to-white">
-            <span className="text-sm font-bold text-emerald-800">Разделы</span>
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              className="min-h-11 min-w-11 -mr-2 p-2 rounded-lg hover:bg-emerald-100 transition-colors flex items-center justify-center"
-              aria-label="Закрыть меню"
-            >
-              <X className="w-5 h-5 text-emerald-700" />
-            </button>
-          </div>
-          {/* User block */}
-          <div className="pb-5 mb-4 border-b border-slate-200">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-white font-bold text-lg shadow-sm shrink-0">
-                {userName.charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-slate-900 text-sm leading-tight truncate">
-                  {userName}
-                </p>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">Студент</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Enrolled streams with teacher info */}
-          {enrollments.length > 0 && (
-            <div className="pb-4 mb-4 border-b border-slate-200" data-onboarding="my-streams">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Мои потоки</p>
-              <div className="space-y-2">
-                {enrollments.map((e) => (
-                  <div key={e.enrollmentId} className="rounded-lg bg-slate-50 p-2.5 border border-slate-100">
-                    <p className="font-semibold text-slate-800 truncate text-xs">{e.stream.name}</p>
-                    <p className="text-slate-500 truncate text-[11px] mt-0.5 flex items-center gap-1">
-                      <User className="w-3 h-3" />
-                      {e.stream.teacherName}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-1">
-          {tabs.map((t) => {
-            const Icon = t.icon;
-            const isActive = activeTab === t.id;
-            return (
-              <button
-                key={t.id}
-                onClick={() => handleTabChange(t.id)}
-                data-onboarding={`student-tab-${t.id}`}
-                className={`w-full text-left px-3 min-h-11 py-2 rounded-xl transition-all font-semibold text-sm flex items-center gap-3 ${
-                  isActive
-                    ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-md shadow-emerald-500/20"
-                    : "text-slate-600 hover:bg-slate-100 active:bg-slate-200"
-                }`}
-              >
-                <Icon className={`w-5 h-5 shrink-0 ${isActive ? "text-white" : "text-slate-400"}`} />
-                <span className="flex-1">{t.label}</span>
-                {t.id === "homework" && pendingHomeworkCount > 0 && (
-                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center ${isActive ? "bg-white/25 text-white" : "bg-red-500 text-white"}`}>
-                    {pendingHomeworkCount}
-                  </span>
-                )}
-                {t.id === "results" && pendingQuizCount > 0 && (
-                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center ${isActive ? "bg-white/25 text-white" : "bg-amber-500 text-white"}`}>
-                    {pendingQuizCount}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-          </div>
-
-          <div className="pt-3 border-t border-slate-200 mt-3">
-            <button
-              type="button"
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="w-full text-left px-3 min-h-11 py-2 rounded-xl transition-all font-semibold text-sm text-red-600 hover:bg-red-50 active:bg-red-100 flex items-center gap-3"
-            >
-              <LogOut className="w-5 h-5" />
-              <span>Выйти</span>
-            </button>
-          </div>
-        </nav>
-
-        {/* ── Main content ───────────────────────────────────────────── */}
-        <section className="lg:col-span-3 bg-white rounded-xl shadow-sm border border-slate-200 min-h-[650px] overflow-hidden flex flex-col">
+      <div className="w-full">
+        {/* ── Main content (на всю ширину — навигацию ведёт внешний сайдбар) ── */}
+        <section className="glass-card rounded-2xl min-h-[650px] overflow-hidden flex flex-col">
           {/* ── Home Tab ─────────────────────────────────────────────── */}
           {activeTab === "home" && (
             <div className="p-4 sm:p-6 lg:p-8 flex-1 space-y-6">
@@ -1268,6 +1143,19 @@ export default function StudentDashboard({
                           })}
                         </div>
                       )}
+
+                      {/* Отзыв о курсе */}
+                      {(() => {
+                        const existing = reviewByCourse.get(e.stream.courseId);
+                        return (
+                          <CourseReviewBlock
+                            courseId={e.stream.courseId}
+                            courseTitle={e.stream.courseName}
+                            existingRating={existing?.rating ?? 0}
+                            existingComment={existing?.comment ?? null}
+                          />
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>

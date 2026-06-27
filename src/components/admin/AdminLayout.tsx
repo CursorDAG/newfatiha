@@ -57,7 +57,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   }, [sidebarOpen]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="admin-shell min-h-screen bg-slate-50 flex flex-col">
       {/* Global Search */}
       <GlobalSearch />
 

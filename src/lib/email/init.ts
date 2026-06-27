@@ -10,7 +10,7 @@ export async function initEmailSystem() {
     const transporter = await createTransporter();
 
     // Получаем конфиг без verify (может быть медленным)
-    const config = transporter.options as { auth?: { user?: string; pass?: string } };
+    const config = transporter.options as { host?: string; from?: string; auth?: { user?: string; pass?: string } };
 
     logger.info("✅ Email система инициализирована");
 
@@ -21,8 +21,8 @@ export async function initEmailSystem() {
       console.log("=".repeat(80));
       console.log("\n📧 Письма НЕ будут доходить до реальных пользователей!");
       console.log("📧 Все письма можно посмотреть на: https://ethereal.email/messages");
-      console.log(`📧 Логин: ${config.auth.user}`);
-      console.log(`📧 Пароль: ${config.auth.pass}`);
+      console.log(`📧 Логин: ${config.auth?.user}`);
+      console.log(`📧 Пароль: ${config.auth?.pass}`);
       console.log("\n💡 Для отправки реальных писем настройте SMTP:");
       console.log("   1. Добавьте в .env:");
       console.log("      SMTP_HOST=smtp.gmail.com");

@@ -28,6 +28,9 @@ export default async function SettingsPage() {
       bio: true,
       skills: true,
       gender: true,
+      teacherProfile: {
+        select: { paymentRequisites: true },
+      },
     },
   });
 
@@ -44,6 +47,7 @@ export default async function SettingsPage() {
       bio={user.bio ?? null}
       skills={user.skills}
       gender={user.gender}
+      paymentRequisites={user.teacherProfile?.paymentRequisites ?? null}
     />
   );
 }

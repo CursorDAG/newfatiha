@@ -39,7 +39,7 @@ export default function AdminMailPage() {
         to,
         subject,
         message,
-        isHtml,
+        ...(isHtml ? { html: message } : { text: message }),
       };
 
       if (to === "custom") {

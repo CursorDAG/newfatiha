@@ -66,8 +66,12 @@ export const POST = withErrorHandling(async (req: Request, context) => {
     throw new ForbiddenError("Вы не можете управлять этой заявкой");
   }
 
-  // Check status
-  if (enrollmentRequest.status !== "APPROVED_PENDING_PAYMENT") {
+  // Check status — оплату можно подтвердить и из ожидания оплаты,
+  // и после того как студент сообщил об оплате
+  if (
+    enrollmentRequest.status !== "APPROVED_PENDING_PAYMENT" &&
+    enrollmentRequest.status !== "PAYMENT_PENDING_CONFIRMATION"
+  ) {
     throw new ValidationError("Заявка не ожидает подтверждения оплаты");
   }
 

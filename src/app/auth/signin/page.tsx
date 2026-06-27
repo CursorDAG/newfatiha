@@ -1,19 +1,23 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Mail, Lock, Loader2, BookOpen } from "lucide-react";
 
-function SignInForm() {
+export default function SignInPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams?.get("callbackUrl") || "/auth/redirect";
-  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [callbackUrl, setCallbackUrl] = useState("/auth/redirect");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setCallbackUrl(params.get("callbackUrl") || "/auth/redirect");
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,93 +46,88 @@ function SignInForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      {error && (
-        <div className="bg-red-50/80 border border-red-200 text-red-600 rounded-xl p-3 text-sm font-medium animate-in slide-in-from-top-2">
-          {error}
-        </div>
-      )}
-      
-      <div>
-        <label className="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Email</label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">📧</span>
-          <input
-            type="email"
-            required
-            placeholder="student@fatiha.ru"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all shadow-sm"
-          />
-        </div>
+    <main
+      className="relative flex flex-1 items-center justify-center overflow-hidden p-6"
+      style={{ minHeight: "calc(100vh - 80px)", background: "var(--bg-primary)" }}
+    >
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute left-[-10%] top-[-10%] h-[45%] w-[45%] rounded-full bg-[#D4AF37]/[0.06] blur-[130px]" />
+        <div className="absolute bottom-[5%] right-[-10%] h-[50%] w-[45%] rounded-full bg-[#06201A]/60 blur-[150px]" />
       </div>
 
-      <div>
-        <label className="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Пароль</label>
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔒</span>
-          <input
-            type="password"
-            required
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all shadow-sm"
-          />
-        </div>
-        <div className="flex justify-end mt-2">
-          <Link href="#" className="text-sm font-semibold text-emerald-600 hover:text-emerald-500 transition-colors">
-            Забыли пароль?
-          </Link>
-        </div>
-      </div>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-600/20 transition-all transform hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 disabled:cursor-not-allowed mt-2 flex items-center justify-center gap-2"
-      >
-        {loading ? (
-          <>
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            <span>Вход...</span>
-          </>
-        ) : (
-          "Войти в кабинет"
-        )}
-      </button>
-    </form>
-  );
-}
-
-export default function SignInPage() {
-  return (
-    <main className="flex-1 flex items-center justify-center p-6 min-h-[calc(100vh-80px)] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-slate-50 relative overflow-hidden">
-      {/* Decorative Blobs */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none data-blobs">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-200/40 blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
-        <div className="absolute bottom-[10%] right-[-5%] w-[35%] h-[45%] rounded-full bg-blue-200/30 blur-3xl animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
-      </div>
-
-      <div className="w-full max-w-md relative z-10 w-full">
-        {/* Card */}
-        <div className="bg-white/90 backdrop-blur-xl border border-white/50 shadow-2xl rounded-3xl p-8 sm:p-10 animate-in zoom-in-95 duration-500">
-          <div className="text-center mb-10">
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-6 shadow-lg shadow-emerald-600/30 transform rotate-3 hover:rotate-6 transition-transform">
-              📖
+      <div className="relative z-10 w-full max-w-md">
+        <div className="glass-card animate-in zoom-in-95 rounded-3xl p-8 duration-500 sm:p-10">
+          <div className="mb-10 text-center">
+            <div className="mx-auto mb-6 flex h-16 w-16 rotate-3 items-center justify-center rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#8C6D1F] text-[#06201A] shadow-lg shadow-amber-500/20 transition-transform hover:rotate-6">
+              <BookOpen className="h-8 w-8" strokeWidth={1.8} />
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">С возвращением!</h1>
-            <p className="text-slate-500 mt-2 text-sm font-medium">Войдите в свою учетную запись, чтобы продолжить обучение</p>
+            <h1 className="font-serif text-3xl font-extrabold tracking-tight text-cream">С возвращением!</h1>
+            <p className="mt-2 text-sm font-medium text-white/50">
+              Войдите в свою учетную запись, чтобы продолжить обучение
+            </p>
           </div>
 
-          <Suspense fallback={<div className="h-64 flex items-center justify-center text-emerald-600"><div className="animate-spin w-8 h-8 flex border-4 border-current border-t-transparent rounded-full" /></div>}>
-            <SignInForm />
-          </Suspense>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-sm font-medium text-red-300 animate-in slide-in-from-top-2">
+                {error}
+              </div>
+            )}
 
-          <p className="text-center text-sm font-medium text-slate-500 mt-8 pt-6 border-t border-slate-100">
+            <div>
+              <label className="mb-1.5 ml-1 block text-sm font-semibold text-cream/80">Email</label>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#D4AF37]/70" strokeWidth={1.5} />
+                <input
+                  type="email"
+                  required
+                  placeholder="student@fatiha.ru"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] py-3 pl-11 pr-4 text-cream placeholder:text-white/30 outline-none transition-all focus:border-[#D4AF37]/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-[#D4AF37]/40"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1.5 ml-1 block text-sm font-semibold text-cream/80">Пароль</label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#D4AF37]/70" strokeWidth={1.5} />
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.04] py-3 pl-11 pr-4 text-cream placeholder:text-white/30 outline-none transition-all focus:border-[#D4AF37]/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-[#D4AF37]/40"
+                />
+              </div>
+              <div className="mt-2 flex justify-end">
+                <Link href="#" className="text-sm font-semibold text-[#D4AF37] transition-colors hover:text-[#E8D48B]">
+                  Забыли пароль?
+                </Link>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#C49A2B] py-3.5 font-bold text-[#06201A] shadow-lg shadow-amber-500/20 transition-all hover:-translate-y-0.5 hover:from-[#E8D48B] hover:to-[#D4AF37] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Вход...</span>
+                </>
+              ) : (
+                "Войти в кабинет"
+              )}
+            </button>
+          </form>
+
+          <p className="mt-8 border-t border-white/10 pt-6 text-center text-sm font-medium text-white/50">
             Нет аккаунта?{" "}
-            <Link href="/auth/register/student" className="text-emerald-600 hover:text-emerald-500 font-bold transition-colors">
+            <Link href="/auth/register/student" className="font-bold text-[#D4AF37] transition-colors hover:text-[#E8D48B]">
               Зарегистрироваться
             </Link>
           </p>

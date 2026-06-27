@@ -31,7 +31,10 @@
       "Bash(npm install:*)",
       "Bash(npm test:*)",
       "Bash(npx husky:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(node d:/tmp/claude-browser/browser.mjs exec '[[\"scroll\",\"900\"],[\"shot\",\"v2-courses\"]]')",
+      "Bash(node d:/tmp/claude-browser/browser.mjs exec '[[\"scroll\",\"1900\"],[\"shot\",\"v2-advantages\"]]')",
+      "Bash(node d:/tmp/claude-browser/browser.mjs exec '[[\"clearlogs\"],[\"viewport\",\"390\",\"844\",\"mobile\"],[\"goto\",\"http://localhost:3000/\",\"load\"],[\"shot\",\"v2-mobile-hero\"],[\"logs\",\"errors\",\"8\"]]')"
     ]
   },
   "prefersReducedMotion": false

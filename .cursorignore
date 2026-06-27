@@ -1,0 +1,20 @@
+# Ignore heavy reports and logs from indexing to save context
+*_REPORT*.md
+*_SUMMARY*.md
+*_PLAN*.md
+*_ANALYSIS*.md
+STAGE*.md
+PHASE*.md
+FINAL*.md
+ДЕТАЛЬНЫЙ*.md
+ОТЧЕТ*.md
+ЭТАП*.md
+ФИНАЛЬНЫЙ*.md
+
+# Ignore large cache files
+tsconfig.tsbuildinfo
+package-lock.json
+
+# Prevent documentation from being auto-indexed into context (can still be read on demand)
+docs/workflows/
+_archive_reports/

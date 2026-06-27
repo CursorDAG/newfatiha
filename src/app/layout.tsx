@@ -1,16 +1,22 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Inter, Playfair_Display } from "next/font/google";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import ConditionalNavbar from "@/components/ConditionalNavbar";
 import { SessionProvider } from "@/components/SessionProvider";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
+import ThemeEngine from "@/components/design/ThemeEngine";
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta-sans",
-  subsets: ["latin", "cyrillic-ext"],
-  weight: ["400", "500", "600", "700"],
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin", "cyrillic"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
+
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin", "cyrillic"],
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -23,7 +29,7 @@ export const metadata: Metadata = {
     maximumScale: 5,
     userScalable: true,
   },
-  themeColor: "#059669",
+  themeColor: "#031410",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -49,15 +55,13 @@ export default async function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body
-        className={`${plusJakartaSans.variable} antialiased min-h-screen flex flex-col bg-slate-50`}
+        className={`${inter.variable} ${playfairDisplay.variable} antialiased min-h-screen flex flex-col`}
         style={{ scrollbarGutter: "stable" }}
       >
         <SessionProvider>
           <OnboardingProvider>
-            <ConditionalNavbar userName={session?.user?.name} role={session?.user?.role} />
-            <div className="flex-1 flex flex-col items-stretch justify-start">
-              {children}
-            </div>
+            <ThemeEngine />
+            {children}
           </OnboardingProvider>
         </SessionProvider>
       </body>

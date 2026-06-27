@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import StudentDashboard from "@/components/StudentDashboard";
+import StudentDashboardWrapper from "@/components/design/StudentDashboardWrapper";
 import { getJitsiConfig } from "@/lib/jitsi-jwt";
 
 export default async function StudentPage() {
@@ -72,6 +72,7 @@ export default async function StudentPage() {
       name: e.stream.name,
       level: e.stream.level,
       schedule: e.stream.schedule,
+      courseId: e.stream.courseId,
       courseName: e.stream.course.title,
       teacherName: e.stream.course.teacher.name,
       scheduleSlots: e.stream.scheduleSlots.map((s) => ({
@@ -136,14 +137,26 @@ export default async function StudentPage() {
   const jitsiConfig = await getJitsiConfig()
   const jitsiDomain = jitsiConfig?.domain ?? "meet.jit.si"
 
+  // Собственные отзывы студента (для предзаполнения формы)
+  const myReviews = await prisma.review.findMany({
+    where: { studentId: session.user.id },
+    select: { courseId: true, rating: true, comment: true },
+  });
+  const serializedReviews = myReviews.map((r) => ({
+    courseId: r.courseId,
+    rating: r.rating,
+    comment: r.comment,
+  }));
+
   return (
-    <StudentDashboard
+    <StudentDashboardWrapper
       userName={session.user.name ?? "Студент"}
       userId={session.user.id}
       userEmail={session.user.email ?? ""}
       enrollments={serializedEnrollments}
       homeworkAssignments={serializedAssignments}
       quizResults={serializedQuizResults}
+      myReviews={serializedReviews}
       jitsiDomain={jitsiDomain}
     />
   );

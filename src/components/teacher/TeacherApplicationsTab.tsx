@@ -145,6 +145,8 @@ export default function TeacherApplicationsTab() {
         return <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-sm font-semibold rounded-lg">⏳ На рассмотрении</span>;
       case "APPROVED_PENDING_PAYMENT":
         return <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-lg">💳 Ожидает оплаты</span>;
+      case "PAYMENT_PENDING_CONFIRMATION":
+        return <span className="px-3 py-1 bg-amber-100 text-amber-700 text-sm font-semibold rounded-lg">⌛ Требует подтверждения оплаты</span>;
       case "PAYMENT_CONFIRMED":
         return <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-lg">✓ Оплата подтверждена</span>;
       case "ACTIVE":
@@ -159,14 +161,17 @@ export default function TeacherApplicationsTab() {
   const filteredRequests = requests.filter((req) => {
     if (filter === "all") return true;
     if (filter === "pending") return req.status === "PENDING_REVIEW";
-    if (filter === "payment") return req.status === "APPROVED_PENDING_PAYMENT";
-    if (filter === "completed") return req.status === "ACTIVE";
+    if (filter === "payment")
+      return req.status === "APPROVED_PENDING_PAYMENT" || req.status === "PAYMENT_PENDING_CONFIRMATION";
+    if (filter === "completed") return req.status === "ACTIVE" || req.status === "PAYMENT_CONFIRMED";
     if (filter === "rejected") return req.status === "REJECTED";
     return true;
   });
 
   const pendingCount = requests.filter((r) => r.status === "PENDING_REVIEW").length;
-  const paymentCount = requests.filter((r) => r.status === "APPROVED_PENDING_PAYMENT").length;
+  const paymentCount = requests.filter(
+    (r) => r.status === "APPROVED_PENDING_PAYMENT" || r.status === "PAYMENT_PENDING_CONFIRMATION"
+  ).length;
 
   if (loading) {
     return (
@@ -301,6 +306,15 @@ export default function TeacherApplicationsTab() {
                 </div>
               )}
 
+              {/* ── Студент сообщил об оплате — требует действия ────── */}
+              {request.status === "PAYMENT_PENDING_CONFIRMATION" && (
+                <div className="mt-3 p-3 bg-amber-50 border border-amber-300 rounded-lg text-sm text-amber-900">
+                  ⌛ <span className="font-semibold">Требует действия:</span> студент сообщил об оплате
+                  {request.stream.price && ` ${request.stream.price} ${request.stream.currency}`}. Проверьте
+                  поступление средств и подтвердите зачисление.
+                </div>
+              )}
+
               {/* ── Кнопки действий (с разделителем как в уроках) ─── */}
               {request.status === "PENDING_REVIEW" && (
                 <div className="mt-4 pt-4 border-t border-slate-200">
@@ -354,7 +368,8 @@ export default function TeacherApplicationsTab() {
                 </div>
               )}
 
-              {request.status === "APPROVED_PENDING_PAYMENT" && (
+              {(request.status === "APPROVED_PENDING_PAYMENT" ||
+                request.status === "PAYMENT_PENDING_CONFIRMATION") && (
                 <div className="mt-4 pt-4 border-t border-slate-200">
                   <Button
                     onClick={() => handleConfirmPayment(request.id)}

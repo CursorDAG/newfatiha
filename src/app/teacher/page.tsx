@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
-import TeacherDashboard from "@/components/TeacherDashboard"
+import TeacherDashboardWrapper from "@/components/design/TeacherDashboardWrapper"
 import { getJitsiConfig } from "@/lib/jitsi-jwt"
 
 export default async function TeacherPage() {
@@ -94,7 +94,7 @@ export default async function TeacherPage() {
   const jitsiDomain = jitsiConfig?.domain ?? "meet.jit.si"
 
   return (
-    <TeacherDashboard
+    <TeacherDashboardWrapper
       initialStreams={serializedStreams}
       initialCourses={serializedCourses}
       jitsiDomain={jitsiDomain}

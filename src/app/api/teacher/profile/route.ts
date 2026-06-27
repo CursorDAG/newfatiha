@@ -162,14 +162,38 @@ export const PATCH = withErrorHandling(async (req: Request) => {
     updateData.gender = body.gender;
   }
 
-  if (Object.keys(updateData).length === 0) {
+  // paymentRequisites (stored on TeacherProfile)
+  let paymentRequisites: string | null | undefined;
+  if (body?.paymentRequisites !== undefined) {
+    paymentRequisites =
+      body.paymentRequisites === null
+        ? null
+        : (body.paymentRequisites as string).trim() || null;
+    if (paymentRequisites && paymentRequisites.length > 2000) {
+      throw new ValidationError("Реквизиты не должны превышать 2000 символов", {
+        paymentRequisites: "Payment requisites must not exceed 2000 characters",
+      });
+    }
+  }
+
+  if (Object.keys(updateData).length === 0 && paymentRequisites === undefined) {
     throw new ValidationError("Нет полей для обновления");
   }
 
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: updateData,
-  });
+  if (Object.keys(updateData).length > 0) {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: updateData,
+    });
+  }
+
+  if (paymentRequisites !== undefined) {
+    // TeacherProfile may not exist for ADMIN accounts — updateMany is a no-op then
+    await prisma.teacherProfile.updateMany({
+      where: { userId: session.user.id },
+      data: { paymentRequisites },
+    });
+  }
 
   return NextResponse.json({ success: true });
 });

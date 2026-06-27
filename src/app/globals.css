@@ -1,34 +1,686 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
+/* ===== DESIGN SYSTEM: Custom Properties ===== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary palette - deep luxury black-emerald */
+  --bg-primary: #031410;
+  --bg-surface: #0B1F19;
+  --bg-card: rgba(6, 26, 22, 0.45);
+  --bg-sidebar: rgba(4, 15, 12, 0.96);
+
+  /* Gold accent system */
+  --gold: #D4AF37;
+  --gold-light: #E8D48B;
+  --gold-soft: rgba(212, 175, 55, 0.10);
+  --gold-border: rgba(212, 175, 55, 0.20);
+  --gold-glow: rgba(212, 175, 55, 0.3);
+
+  /* Text colors */
+  --text-cream: #F5F0E8;
+  --text-white: #FFFFFF;
+  --text-muted: rgba(255, 255, 255, 0.6);
+  --text-gold: #D4AF37;
+
+  /* Surfaces */
+  --glass-bg: rgba(6, 26, 22, 0.45);
+  --glass-border: rgba(212, 175, 55, 0.20);
+  --glass-blur: 16px;
+
+  /* Fonts — use CSS vars from Next.js font config */
+  --font-serif: var(--font-playfair), Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-plus-jakarta-sans);
+/* ===== BASE STYLES ===== */
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  background: radial-gradient(circle at 50% 0%, #0B1F19 0%, #031410 65%, #010806 100%);
+  color: var(--text-cream);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Prevent iOS Safari from zooming on focused inputs — needs >=16px on mobile */
-@media (max-width: 767px) {
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-  select,
-  textarea {
-    font-size: 16px;
+/* ===== SCROLLBAR STYLING ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold);
+}
+
+/* ===== GLASSMORPHISM UTILITY ===== */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(212, 175, 55, 0.05);
+}
+
+/* ===== INTERACTIVE HOVER EFFECTS ===== */
+/* Smooth link transitions */
+a, button {
+  transition: color 0.2s ease, background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Focus visible for accessibility */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Better selection color */
+::selection {
+  background: var(--gold-soft);
+  color: var(--gold-light);
+}
+
+.glass-card {
+  position: relative;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(212, 175, 55, 0.05);
+  transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: rgba(6, 26, 22, 0.58);
+  border-color: var(--gold-glow);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(212, 175, 55, 0.12);
+  transform: translateY(-4px);
+}
+
+/* Mouse-tracking glow effect on glass cards */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: var(--mouse-y, 50%);
+  left: var(--mouse-x, 50%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.glass-card:hover::before {
+  opacity: 1;
+}
+
+.glass-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== SHIMMER ANIMATION (Gold glint on CTA button) ===== */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  15% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.btn-shimmer {
+  position: relative;
+  background-color: var(--gold);
+  color: var(--bg-primary);
+  font-weight: 700;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.4) 45%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.4) 55%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ===== BREATHING WAVE ANIMATION (Hero Background) ===== */
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.05) translateY(-10px);
+    opacity: 0.5;
+  }
+}
+
+@keyframes breathe-alt {
+  0%, 100% {
+    transform: scale(1.05) translateY(5px);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scale(1) translateY(-15px);
+    opacity: 0.4;
+  }
+}
+
+@keyframes wave-drift {
+  0% { transform: translateX(0) translateY(0) rotate(0deg); }
+  33% { transform: translateX(15px) translateY(-8px) rotate(1deg); }
+  66% { transform: translateX(-10px) translateY(5px) rotate(-1deg); }
+  100% { transform: translateX(0) translateY(0) rotate(0deg); }
+}
+
+.hero-wave-1 {
+  animation: breathe 8s ease-in-out infinite, wave-drift 20s ease-in-out infinite;
+}
+
+.hero-wave-2 {
+  animation: breathe-alt 10s ease-in-out infinite, wave-drift 25s ease-in-out infinite reverse;
+}
+
+.hero-wave-3 {
+  animation: breathe 12s ease-in-out infinite 2s, wave-drift 30s ease-in-out infinite;
+}
+
+/* ===== PULSE ANIMATION (Prayer active indicator) ===== */
+@keyframes prayer-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.5);
+  }
+  50% {
+    transform: scale(1.3);
+    box-shadow: 0 0 12px 4px rgba(212, 175, 55, 0.3);
+  }
+}
+
+.pulse-gold {
+  animation: prayer-pulse 2s ease-in-out infinite;
+}
+
+/* ===== ACTIVE PRAYER ROW PULSE ===== */
+@keyframes pulse-gold-row-keyframes {
+  0%, 100% {
+    background-color: rgba(212, 175, 55, 0.04);
+    border-color: rgba(212, 175, 55, 0.12);
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.02);
+  }
+  50% {
+    background-color: rgba(212, 175, 55, 0.1);
+    border-color: rgba(212, 175, 55, 0.3);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.06);
+  }
+}
+
+.pulse-gold-row {
+  animation: pulse-gold-row-keyframes 3s ease-in-out infinite;
+}
+
+/* ===== AMBIENT GLOW (Video camera, sidebar arch) ===== */
+@keyframes gold-ambient-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 3px rgba(212, 175, 55, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.7));
+  }
+}
+
+.glow-gold {
+  animation: gold-ambient-glow 3s ease-in-out infinite;
+}
+
+@keyframes arch-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.15));
+  }
+  50% {
+    filter: drop-shadow(0 0 16px rgba(212, 175, 55, 0.3));
+  }
+}
+
+.glow-arch {
+  animation: arch-glow 4s ease-in-out infinite;
+}
+
+/* ===== FADE-IN ANIMATION ===== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-delay-100 { animation-delay: 0.1s; }
+.animate-delay-200 { animation-delay: 0.2s; }
+.animate-delay-300 { animation-delay: 0.3s; }
+
+/* ===== GOLD PROGRESS BAR ===== */
+.progress-gold {
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 100%);
+  height: 3px;
+  border-radius: 2px;
+  transition: width 0.6s ease-out;
+}
+
+/* ===== TYPOGRAPHY HELPERS ===== */
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+/* ===== ARABIC FONTS (для Корана и хадисов) ===== */
+.font-arabic {
+  font-family: 'Amiri', 'Scheherazade New', 'Noto Naskh Arabic', 'Times New Roman', serif;
+  font-feature-settings: "calt", "liga";
+}
+.font-arabic-amiri {
+  font-family: 'Amiri', 'Times New Roman', serif;
+}
+.font-arabic-scheherazade {
+  font-family: 'Scheherazade New', 'Amiri', serif;
+}
+.font-arabic-naskh {
+  font-family: 'Noto Naskh Arabic', 'Amiri', sans-serif;
+}
+
+/* ===== TAJWEED COLORING ===== */
+/* Цвета подобраны под тёмный фон #031410, по стандартной схеме quran.com */
+.tajweed-text tajweed { font-style: normal; }
+.tajweed-text span.end {
+  color: var(--gold);
+  font-size: 0.7em;
+  margin: 0 0.15em;
+}
+tajweed.ham_wasl,
+tajweed.slnt,
+tajweed.laam_shamsiyah { color: #9aa0a6; }            /* немые / соединит. хамза */
+tajweed.madda_normal,
+tajweed.madda_permissible,
+tajweed.madda_necessary,
+tajweed.madda_obligatory { color: #f97316; }          /* мадд (протяжение) */
+tajweed.ghunnah,
+tajweed.idgham_ghunnah { color: #34d399; }             /* гунна / идгам с гунной */
+tajweed.idgham_wo_ghunnah { color: #22d3ee; }          /* идгам без гунны */
+tajweed.ikhafa,
+tajweed.ikhafa_shafawi { color: #c084fc; }             /* ихфа */
+tajweed.iqlab { color: #f472b6; }                      /* икляб */
+tajweed.qalaqah { color: #f87171; }                    /* калькаля */
+
+.text-gold {
+  color: var(--gold);
+}
+
+.text-cream {
+  color: var(--text-cream);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* ===== MOBILE BOTTOM NAV ===== */
+.mobile-nav {
+  background: rgba(4, 15, 12, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--glass-border);
+}
+
+/* ===== SIDEBAR STYLES ===== */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.sidebar-link:hover {
+  color: var(--text-white);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.sidebar-link.active {
+  color: var(--gold);
+  background: rgba(212, 175, 55, 0.12);
+  font-weight: 600;
+}
+
+/* ===== TAILWIND v4 THEME EXTENSION ===== */
+@theme {
+  --color-emerald-primary: #06201A;
+  --color-emerald-surface: #0B1F19;
+  --color-emerald-light: #0D2620;
+  --color-emerald-dark: #031410;
+  --color-gold: #D4AF37;
+  --color-gold-light: #E8D48B;
+  --color-gold-soft: rgba(212, 175, 55, 0.10);
+  --color-cream: #F5F0E8;
+  --color-cream-muted: rgba(255, 255, 255, 0.6);
+  --color-bg-primary: #031410;
+  --color-bg-surface: #0B1F19;
+  --color-bg-sidebar: rgba(4, 15, 12, 0.96);
+  --font-family-serif: var(--font-playfair), Georgia, serif;
+  --font-family-sans: var(--font-inter), system-ui, sans-serif;
+}
+
+/* ===== LIGHT ISLAND: ADMIN SHELL =====
+   Глобальный body задаёт тёмную тему (color: cream). Админка — светлый
+   остров на bg-slate-50. Tailwind preflight ставит формам color: inherit,
+   из-за чего поля ввода наследуют cream и становятся невидимыми на белом фоне.
+   Возвращаем тёмный текст по умолчанию внутри admin-shell. */
+.admin-shell {
+  color: #0f172a; /* slate-900 */
+}
+
+.admin-shell input,
+.admin-shell select,
+.admin-shell textarea {
+  color: #0f172a; /* slate-900 */
+}
+
+.admin-shell input::placeholder,
+.admin-shell textarea::placeholder {
+  color: #94a3b8; /* slate-400 */
+}
+
+/* ===== DASHBOARD CONTENT OVERRIDES ===== */
+/* These override the light-themed StudentDashboard/TeacherDashboard
+   to work within the dark glass-morphism shell. */
+.dashboard-content {
+  /* Cards */
+  --dash-card-bg: rgba(6, 26, 22, 0.45);
+  --dash-card-border: rgba(212, 175, 55, 0.22);
+  --dash-card-hover-border: rgba(212, 175, 55, 0.4);
+}
+
+/* Light surfaces → glass. Exclude rounded-full (avatars/badges keep their fill). */
+.dashboard-content .bg-white:not([class*="rounded-full"]),
+.dashboard-content .bg-slate-50:not([class*="rounded-full"]) {
+  background-color: var(--dash-card-bg) !important;
+  backdrop-filter: blur(12px);
+}
+
+/* Light text → cream (slate-900 included — headings live there) */
+.dashboard-content .text-slate-900,
+.dashboard-content .text-slate-800,
+.dashboard-content .text-slate-700,
+.dashboard-content .text-slate-600,
+.dashboard-content .text-slate-500 {
+  color: var(--text-cream) !important;
+}
+
+.dashboard-content .text-slate-400 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.dashboard-content .text-slate-300 {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Light borders → glass borders */
+.dashboard-content .border-slate-200,
+.dashboard-content .border-slate-100,
+.dashboard-content .border-slate-300 {
+  border-color: var(--dash-card-border) !important;
+}
+
+/* Light inputs */
+.dashboard-content input,
+.dashboard-content select,
+.dashboard-content textarea {
+  background-color: rgba(6, 26, 22, 0.5) !important;
+  border-color: var(--dash-card-border) !important;
+  color: var(--text-cream) !important;
+}
+
+.dashboard-content input::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Tables */
+.dashboard-content table {
+  --tw-border-opacity: 0.12;
+}
+
+/* Status badges — keep some light colors for meaning, add glass bg */
+.dashboard-content .bg-emerald-50,
+.dashboard-content .bg-emerald-100 {
+  background-color: rgba(16, 185, 129, 0.15) !important;
+  color: #34d399 !important;
+}
+
+.dashboard-content .bg-amber-50,
+.dashboard-content .bg-amber-100,
+.dashboard-content .bg-yellow-50,
+.dashboard-content .bg-yellow-100 {
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  color: #fbbf24 !important;
+}
+
+.dashboard-content .bg-red-50,
+.dashboard-content .bg-red-100 {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+}
+
+.dashboard-content .bg-blue-50,
+.dashboard-content .bg-blue-100 {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: #60a5fa !important;
+}
+
+.dashboard-content .bg-slate-100 {
+  background-color: rgba(100, 116, 139, 0.2) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Progress bars */
+.dashboard-content .bg-emerald-500,
+.dashboard-content .bg-emerald-600 {
+  background-color: var(--gold) !important;
+}
+
+/* Tabs — fix active state */
+.dashboard-content .bg-gradient-to-r.from-emerald-500.to-emerald-600 {
+  background: linear-gradient(to right, var(--gold), #8C6D1F) !important;
+}
+
+/* Hero / welcome gradient blocks (emerald→teal) → deep emerald-gold */
+.dashboard-content [class*="from-emerald-50"][class*="to-teal-50"],
+.dashboard-content [class*="from-emerald-50"][class*="to-emerald-50"],
+.dashboard-content [class*="from-white"][class*="to-emerald-50"] {
+  background: rgba(6, 26, 22, 0.55) !important;
+  border-color: var(--dash-card-border) !important;
+}
+.dashboard-content [class*="from-emerald-500"][class*="to-teal-700"],
+.dashboard-content [class*="from-emerald-500"][class*="to-emerald-600"],
+.dashboard-content [class*="from-emerald-600"][class*="to-emerald-800"] {
+  background: linear-gradient(135deg, #0B2A22 0%, #06201A 60%, #031410 100%) !important;
+  border: 1px solid var(--dash-card-border) !important;
+}
+
+/* Avatar/icon circular gradients → gold */
+.dashboard-content [class*="rounded-full"][class*="from-emerald-400"],
+.dashboard-content [class*="rounded-xl"][class*="from-emerald-500"][class*="to-emerald-700"],
+.dashboard-content [class*="rounded-full"][class*="from-emerald-500"] {
+  background: linear-gradient(135deg, var(--gold), #8C6D1F) !important;
+  color: #06201A !important;
+}
+
+/* Solid emerald action buttons → gold */
+.dashboard-content button.bg-emerald-600,
+.dashboard-content a.bg-emerald-600,
+.dashboard-content button.bg-emerald-700,
+.dashboard-content .bg-emerald-600.hover\:bg-emerald-700 {
+  background-color: var(--gold) !important;
+  color: #06201A !important;
+}
+
+/* Emerald accent text on dark → gold */
+.dashboard-content .text-emerald-600,
+.dashboard-content .text-emerald-700,
+.dashboard-content .text-emerald-800 {
+  color: var(--gold) !important;
+}
+
+/* Dividers */
+.dashboard-content .border-slate-200,
+.dashboard-content .border-slate-100 {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Scrollable areas */
+.dashboard-content [class*="overflow-y-auto"],
+.dashboard-content [class*="overflow-x-auto"] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gold-border) transparent;
+}
+
+/* Modals / overlays */
+.dashboard-content [class*="fixed inset-0"][class*="bg-black"] {
+  background-color: rgba(3, 20, 16, 0.8) !important;
+}
+
+/* Bottom safe area for mobile */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .dashboard-content {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ===== LANDING: ISLAMIC GEOMETRIC PATTERN ===== */
+/* Subtle 8-point star tile, very low opacity — premium texture without noise */
+.pattern-islamic {
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.05) 0%, transparent 1.2px),
+    radial-gradient(circle at 0% 50%, rgba(212, 175, 55, 0.04) 0%, transparent 1.2px),
+    radial-gradient(circle at 100% 50%, rgba(212, 175, 55, 0.04) 0%, transparent 1.2px),
+    radial-gradient(circle at 50% 100%, rgba(212, 175, 55, 0.05) 0%, transparent 1.2px),
+    linear-gradient(45deg, transparent 47%, rgba(212, 175, 55, 0.025) 49%, rgba(212, 175, 55, 0.025) 51%, transparent 53%),
+    linear-gradient(-45deg, transparent 47%, rgba(212, 175, 55, 0.025) 49%, rgba(212, 175, 55, 0.025) 51%, transparent 53%);
+  background-size: 56px 56px;
+  background-position: 0 0;
+}
+
+/* ===== LANDING: GOLD ORNAMENTAL DIVIDER ===== */
+.divider-gold {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--gold);
+}
+.divider-gold::before,
+.divider-gold::after {
+  content: '';
+  height: 1px;
+  width: clamp(40px, 12vw, 120px);
+  background: linear-gradient(90deg, transparent, var(--gold-border), var(--gold));
+}
+.divider-gold::after {
+  background: linear-gradient(90deg, var(--gold), var(--gold-border), transparent);
+}
+
+/* ===== LANDING: GOLD ICON TILE ===== */
+.icon-tile {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(212, 175, 55, 0.16), rgba(212, 175, 55, 0.05));
+  border: 1px solid var(--gold-border);
+  color: var(--gold-light);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 6px 18px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+.group:hover .icon-tile {
+  border-color: var(--gold-glow);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 26px rgba(212, 175, 55, 0.18);
+  transform: translateY(-2px);
+}
+
+/* Solid gold tile variant (for numbered steps / strong accents) */
+.icon-tile-solid {
+  background: linear-gradient(145deg, var(--gold), #8C6D1F);
+  color: #06201A;
+  border: none;
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.25);
+}
+
+/* ===== LANDING: SECTION EYEBROW LABEL ===== */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/* ===== LANDING: REVEAL ON SCROLL (CSS-only, progressive) ===== */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    animation: fadeInUp 0.7s ease-out both;
   }
 }

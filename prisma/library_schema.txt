@@ -1,0 +1,75 @@
+# Library Schema Design
+
+## Models:
+
+### LibraryCategory
+- id: uuid
+- name: string (Коран, Хадисы, Учебники, Фикх, Акыда...)
+- slug: string (unique)
+- description: text
+- icon: string
+- order: int
+- parentId: uuid? (для подкатегорий)
+
+### Book
+- id: uuid
+- title: string
+- titleArabic: string?
+- author: string?
+- authorArabic: string?
+- description: text?
+- categoryId: uuid -> LibraryCategory
+- language: string (ar, ru, en...)
+- coverImage: string?
+- sourceType: enum (API, PDF, TEXT)
+- sourceUrl: string? (external API or PDF link)
+- isOpenSource: boolean (default true)
+- license: string? (CC BY-SA, Public Domain...)
+- allowSelfStudy: boolean (default false)
+- createdAt: datetime
+- updatedAt: datetime
+
+### BookChapter
+- id: uuid
+- bookId: uuid -> Book
+- number: int
+- title: string
+- titleArabic: string?
+- content: text (JSON or Text)
+- order: int
+
+### BookTranslation
+- id: uuid
+- bookId: uuid -> Book
+- chapterId: uuid? -> BookChapter (null = общий перевод книги)
+- language: string
+- translatorName: string?
+- content: text (JSON)
+- type: enum (TRANSLATION, TAFSIR, COMMENTARY)
+
+### CourseBook (связь Course ↔ Book)
+- id: uuid
+- courseId: uuid -> Course
+- bookId: uuid -> Book
+- isRequired: boolean
+- order: int
+- addedById: uuid -> User (teacher)
+- createdAt: datetime
+
+### SelfStudyCourse (бесплатные самообучающиеся курсы)
+- id: uuid
+- title: string
+- description: text
+- bookId: uuid -> Book
+- lessonsStructure: json (структура уроков)
+- isActive: boolean
+- createdAt: datetime
+- updatedAt: datetime
+
+### UserBookProgress (прогресс чтения)
+- id: uuid
+- userId: uuid -> User
+- bookId: uuid -> Book
+- lastChapterId: uuid? -> BookChapter
+- lastReadAt: datetime
+- completedChapters: int[]

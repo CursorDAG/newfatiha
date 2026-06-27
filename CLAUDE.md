@@ -27,15 +27,13 @@ npm test                 # Vitest
 
 ## Модульная документация
 
-Для детальной информации читайте соответствующие файлы:
+**ВНИМАНИЕ:** НЕ читай эти файлы по умолчанию, чтобы не перегружать контекст. Открывай и читай их (через вызов инструмента чтения файлов) ТОЛЬКО если пользователь явно просит об этом, или если тебе не хватает знаний для выполнения задачи (например, деплоя):
 
-| Файл | Содержание |
-|------|-----------|
-| [`docs/agent/architecture.md`](./docs/agent/architecture.md) | Архитектура, модели БД, масштабируемость |
-| [`docs/agent/conventions.md`](./docs/agent/conventions.md) | Code conventions, компоненты, тесты |
-| [`docs/agent/api-patterns.md`](./docs/agent/api-patterns.md) | API паттерны, error handling, валидация |
-| [`docs/agent/common-tasks.md`](./docs/agent/common-tasks.md) | Dev setup, частые задачи, troubleshooting |
-| [`docs/agent/features.md`](./docs/agent/features.md) | Registration, enrollment, chat, Jitsi |
+- **Архитектура и БД:** `docs/agent/architecture.md`
+- **Code conventions:** `docs/agent/conventions.md`
+- **API и ошибки:** `docs/agent/api-patterns.md`
+- **Настройка, troubleshooting и деплой:** `docs/agent/common-tasks.md` (также см. `DEPLOYMENT.md`)
+- **Описание существующих фич:** `docs/agent/features.md`
 
 ## Критически важные правила
 
