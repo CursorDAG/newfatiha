@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { BarChart3, Download, RefreshCw, Clock, Video, CheckCircle, XCircle, AlertCircle, Play } from "lucide-react";
+import ProgressChart from "@/components/charts/ProgressChart";
+import SubmissionsTrendChart from "@/components/charts/SubmissionsTrendChart";
 
 type AnalyticsSubmission = {
   id: string;
@@ -159,6 +161,16 @@ export default function TeacherAnalyticsTab({
               </p>
               <p className="text-sm text-slate-600 mt-1">ожидают проверки</p>
             </Card>
+          </div>
+
+          {/* Trends — chart overlays */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <ProgressChart
+              endpoint={`/api/teacher/analytics/trend?streamId=${encodeURIComponent(data.stream.id)}`}
+              title="Посещаемость потока"
+              subtitle="Среднее время в LIVE за день, мин"
+            />
+            <SubmissionsTrendChart streamId={data.stream.id} />
           </div>
 
           <Card padding="p-0" className="mb-8">

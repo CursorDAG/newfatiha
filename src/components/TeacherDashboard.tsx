@@ -29,6 +29,7 @@ import { useHomework } from "@/components/teacher/hooks/useHomework";
 import ReactMarkdown from "react-markdown";
 import TeacherInfoTab from "@/components/teacher/TeacherInfoTab";
 import TeacherInboxCard from "@/components/teacher/TeacherInboxCard";
+import LeaderboardCard from "@/components/LeaderboardCard";
 
 type Course = {
   id: string;
@@ -1554,6 +1555,12 @@ export default function TeacherDashboard({
                     <p className="text-sm font-bold text-slate-700 mt-2">{selectedStream.schedule || "Не настроено"}</p>
                   </div>
                 </div>
+
+                {/* Leaderboard for selected stream */}
+                <LeaderboardCard
+                  streamId={selectedStream.id}
+                  title="Рейтинг учеников"
+                />
               </div>
             )}
           </div>

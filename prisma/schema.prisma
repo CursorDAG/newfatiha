@@ -51,6 +51,11 @@ model User {
   teacherReviews           Review[]                @relation("TeacherReviews")
   courseBooks              CourseBook[]
   userBookProgress         UserBookProgress[]
+  streaks                  Streak[]
+  hasanatBalance           Int                   @default(0)
+  totalHasanatEarned       Int                   @default(0)
+  hasanatTransactions      HasanatTransaction[]
+  leaderboardEntries       LeaderboardEntry[]
 }
 
 model TeacherProfile {
@@ -117,6 +122,7 @@ model Stream {
   scheduleSlots       StreamScheduleSlot[]
   chatRoom            ChatRoom?
   enrollmentRequests  EnrollmentRequest[]
+  leaderboardEntries  LeaderboardEntry[]
 }
 
 model StreamScheduleSlot {
@@ -595,6 +601,7 @@ enum NotificationType {
   ENROLLMENT_PAYMENT_REQUIRED
   ENROLLMENT_PAYMENT_CLAIMED
   ENROLLMENT_CONFIRMED
+  ENROLLMENT_TRIAL_ATTEMPTED
 }
 
 enum NotificationPriority {
@@ -704,6 +711,7 @@ enum EnrollmentRequestStatus {
   PAYMENT_CONFIRMED
   ACTIVE
   REJECTED
+  TRIAL_ATTEMPTED
 }
 
 model Review {
@@ -914,4 +922,71 @@ enum BookTranslationType {
   TRANSLATION
   TAFSIR
   COMMENTARY
+}
+
+enum StreakType {
+  STUDY
+  READING
+  HASANAT
+}
+
+model Streak {
+  id             String     @id @default(uuid())
+  userId         String
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type           StreakType
+  currentStreak  Int        @default(0)
+  maxStreak      Int        @default(0)
+  lastActiveDate DateTime   @default(now())
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@unique([userId, type])
+  @@index([userId, type])
+}
+
+// ============================================================================
+// HASANAT (virtuous deeds currency)
+// ============================================================================
+
+enum HasanatTransactionType {
+  VIEW_LESSON
+  HOMEWORK_SUBMITTED
+  HOMEWORK_ACCEPTED
+  QUIZ_SUBMITTED
+  QUIZ_COMPLETED
+  REVIEW_SUBMITTED
+  STREAK_7_DAYS
+  STREAK_30_DAYS
+}
+
+model LeaderboardEntry {
+  id           String   @id @default(uuid())
+  streamId     String
+  stream       Stream   @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  xp           Int      @default(0)
+  streak       Int      @default(0)
+  weeklyHasanat Int     @default(0)
+  weekStart    DateTime
+  rank         Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([streamId, userId, weekStart])
+  @@index([streamId, weekStart, rank])
+  @@index([streamId, weekStart, xp])
+}
+
+model HasanatTransaction {
+  id        String                @id @default(uuid())
+  userId    String
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      HasanatTransactionType
+  amount    Int
+  reason    String                @db.Text
+  createdAt DateTime              @default(now())
+
+  @@index([userId, createdAt])
 }

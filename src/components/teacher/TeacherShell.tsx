@@ -3,6 +3,7 @@
 import React, { useEffect } from "react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { teacherSteps } from "@/components/onboarding/teacherSteps";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { Info } from "lucide-react";
 
 export type TeacherTabId =
@@ -54,6 +55,7 @@ export default function TeacherShell({
 
   return (
     <div className="text-slate-800" data-onboarding="teacher-dashboard">
+      <OnboardingTour />
       {/* Loading overlay */}
       {loading && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex items-center justify-center">

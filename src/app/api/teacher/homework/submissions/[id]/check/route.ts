@@ -8,6 +8,7 @@ import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib
 import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 import { NotificationService } from "@/lib/notification-service";
 import { recalculateStudentProgress } from "@/lib/progress";
+import { awardHasanat } from "@/lib/hasanat-service";
 import { logger } from "@/lib/logger";
 
 type CheckBody = {
@@ -40,16 +41,21 @@ export const POST = withErrorHandling(async (
     where: { id },
     include: {
       assignment: {
-        include: {
-          stream: true,
-        },
+        select: { title: true, streamId: true },
       },
     },
   });
   if (!submission) throw new NotFoundError("Submission");
 
-  if (session.user.role !== "ADMIN" && submission.assignment.stream.teacherId !== session.user.id) {
-    throw new ForbiddenError("You do not have permission to check this submission");
+  // Check teacher owns the stream
+  if (session.user.role !== "ADMIN") {
+    const stream = await prisma.stream.findUnique({
+      where: { id: submission.assignment.streamId },
+      select: { teacherId: true },
+    });
+    if (!stream || stream.teacherId !== session.user.id) {
+      throw new ForbiddenError("You do not have permission to check this submission");
+    }
   }
 
   let nextStatus: HomeworkSubmissionStatus | undefined;
@@ -85,6 +91,13 @@ export const POST = withErrorHandling(async (
       updated.enrollment.userId,
       submission.assignment.streamId
     ).catch((err) => logger.error({ error: err, userId: updated.enrollment.userId }, "Failed to recalculate progress"));
+
+    // Award hasanat for homework acceptance
+    awardHasanat(
+      updated.enrollment.userId,
+      "HOMEWORK_ACCEPTED",
+      `Домашнее задание "${submission.assignment.title}" принято`,
+    ).catch((err) => logger.error({ error: err, userId: updated.enrollment.userId }, "Failed to award hasanat"));
   }
 
   return NextResponse.json({ success: true, submissionId: updated.id, status: updated.status });

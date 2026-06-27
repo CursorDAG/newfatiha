@@ -1,5 +1,6 @@
 import NextAuth, { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
@@ -7,42 +8,46 @@ import { prisma } from "@/lib/prisma"
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+    }),
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email", placeholder: "teacher@fatiha.ru" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Please enter an email and password')
+          throw new Error("Please enter an email and password")
         }
-        
+
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
+          where: { email: credentials.email },
         })
 
         if (!user || !user.password) {
-          throw new Error('No user found with those credentials')
+          throw new Error("No user found with those credentials")
         }
 
         const isCorrectPassword = await bcrypt.compare(
           credentials.password,
-          user.password
+          user.password,
         )
 
         if (!isCorrectPassword) {
-          throw new Error('Invalid password')
+          throw new Error("Invalid password")
         }
 
         return {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role
+          role: user.role,
         }
-      }
-    })
+      },
+    }),
   ],
   session: {
     strategy: "jwt",

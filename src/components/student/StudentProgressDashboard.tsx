@@ -3,6 +3,9 @@
 import React, { useEffect, useState } from "react";
 import StreamProgressCard from "./StreamProgressCard";
 import ProgressMetricCard from "./ProgressMetricCard";
+import ProgressChart from "@/components/charts/ProgressChart";
+import LessonProgressChart from "@/components/charts/LessonProgressChart";
+import HasanatChart from "@/components/charts/HasanatChart";
 
 interface StreamProgress {
   streamId: string;
@@ -114,6 +117,18 @@ export default function StudentProgressDashboard({
 
   return (
     <div className="space-y-8">
+      {/* Charts — динамика за 30 дней */}
+      <div>
+        <h2 className="text-2xl font-bold text-white mb-6">Динамика за 30 дней</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ProgressChart />
+          <LessonProgressChart />
+          <div className="lg:col-span-2">
+            <HasanatChart />
+          </div>
+        </div>
+      </div>
+
       {/* Overall metrics */}
       <div>
         <h2 className="text-2xl font-bold text-white mb-6">Общий прогресс</h2>

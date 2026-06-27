@@ -7,6 +7,7 @@ import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib
 import { validateRequest } from "@/lib/validate-request";
 import { reviewEnrollmentRequestSchema } from "@/lib/validation";
 import { NotificationService } from "@/lib/notification-service";
+import { recalculateStudentProgress } from "@/lib/progress";
 
 /**
  * POST /api/teacher/enrollment-requests/[id]/review
@@ -93,21 +94,29 @@ export const POST = withErrorHandling(async (req: Request, context) => {
       },
     });
 
-    // If no payment required, create enrollment immediately
+    // If no payment required, create enrollment, progress, and update request
     if (!enrollmentRequest.stream.price) {
-      await prisma.enrollment.create({
-        data: {
-          userId: enrollmentRequest.studentId,
-          streamId: enrollmentRequest.streamId,
-          status: "ACTIVE",
-        },
-      });
+      await prisma.$transaction([
+        prisma.enrollment.create({
+          data: {
+            userId: enrollmentRequest.studentId,
+            streamId: enrollmentRequest.streamId,
+            status: "ACTIVE",
+          },
+        }),
+        prisma.studentProgress.create({
+          data: {
+            userId: enrollmentRequest.studentId,
+            streamId: enrollmentRequest.streamId,
+          },
+        }),
+        prisma.enrollmentRequest.update({
+          where: { id: requestId },
+          data: { status: "ACTIVE" },
+        }),
+      ]);
 
-      // Update request to ACTIVE
-      await prisma.enrollmentRequest.update({
-        where: { id: requestId },
-        data: { status: "ACTIVE" },
-      });
+      await recalculateStudentProgress(enrollmentRequest.studentId, enrollmentRequest.streamId);
 
       // Notify student
       await NotificationService.create({

@@ -65,6 +65,7 @@ export default function RoleSidebar({ role, userName, userInitials, navItems, ba
             <Link
               key={id}
               href={`${base}?tab=${tab}`}
+              data-onboarding={`nav-${tab}`}
               className={`sidebar-link group flex w-full items-center gap-3.5 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
                 isActive ? 'active' : ''
               }`}

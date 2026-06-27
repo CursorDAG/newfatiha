@@ -153,6 +153,8 @@ export default function TeacherApplicationsTab() {
         return <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-lg">✓ Зачислен</span>;
       case "REJECTED":
         return <span className="px-3 py-1 bg-red-100 text-red-700 text-sm font-semibold rounded-lg">✗ Отклонена</span>;
+      case "TRIAL_ATTEMPTED":
+        return <span className="px-3 py-1 bg-violet-100 text-violet-700 text-sm font-semibold rounded-lg">🎓 Пробный урок</span>;
       default:
         return <span className="px-3 py-1 bg-slate-100 text-slate-700 text-sm font-semibold rounded-lg">{status}</span>;
     }
@@ -163,7 +165,7 @@ export default function TeacherApplicationsTab() {
     if (filter === "pending") return req.status === "PENDING_REVIEW";
     if (filter === "payment")
       return req.status === "APPROVED_PENDING_PAYMENT" || req.status === "PAYMENT_PENDING_CONFIRMATION";
-    if (filter === "completed") return req.status === "ACTIVE" || req.status === "PAYMENT_CONFIRMED";
+    if (filter === "completed") return req.status === "ACTIVE" || req.status === "PAYMENT_CONFIRMED" || req.status === "TRIAL_ATTEMPTED";
     if (filter === "rejected") return req.status === "REJECTED";
     return true;
   });

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
+import { recalculateStudentProgress } from "@/lib/progress";
 
 export const POST = withErrorHandling(async (request: Request) => {
   // Apply rate limiting
@@ -65,11 +66,23 @@ export const POST = withErrorHandling(async (request: Request) => {
       });
 
       // Create new active enrollment in target stream
-      await prisma.enrollment.upsert({
-        where: { userId_streamId: { userId: enrollment.userId, streamId: targetStreamId } },
-        update: { status: 'ACTIVE' },
-        create: { userId: enrollment.userId, streamId: targetStreamId, status: 'ACTIVE' }
+      await prisma.$transaction(async (tx) => {
+        await tx.enrollment.upsert({
+          where: { userId_streamId: { userId: enrollment.userId, streamId: targetStreamId } },
+          update: { status: 'ACTIVE' },
+          create: { userId: enrollment.userId, streamId: targetStreamId, status: 'ACTIVE' }
+        });
+
+        // Initialize progress record so the transferred student sees lessons in "My Lessons"
+        await tx.studentProgress.upsert({
+          where: { userId_streamId: { userId: enrollment.userId, streamId: targetStreamId } },
+          create: { userId: enrollment.userId, streamId: targetStreamId },
+          update: {}
+        });
       });
+
+      // Refresh progress totals from DB
+      await recalculateStudentProgress(enrollment.userId, targetStreamId);
 
       return NextResponse.json({ success: true, message: 'Student transferred successfully.' });
     }

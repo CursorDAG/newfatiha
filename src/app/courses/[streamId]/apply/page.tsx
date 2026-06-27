@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getStreamGenderTypeLabel, getStreamGenderTypeIcon, canStudentJoinStream } from "@/lib/gender-rules";
 import ApplyForm from "./apply-form";
+import TrialEnrollmentButton from "./trial-enrollment-button";
 
 export const dynamic = "force-dynamic";
 
@@ -168,6 +169,22 @@ export default async function ApplyPage({ params }: { params: Promise<{ streamId
                       {existingRequest.status === "APPROVED_PENDING_PAYMENT" && "Одобрена, ожидает оплаты"}
                       {existingRequest.status === "PAYMENT_CONFIRMED" && "Оплата подтверждена"}
                       {existingRequest.status === "REJECTED" && "Отклонена"}
+                      {existingRequest.status === "TRIAL_ATTEMPTED" && "Пробный урок прошёл — доступен полный курс"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {existingRequest?.status === "TRIAL_ATTEMPTED" && (
+              <div className="mb-6 bg-violet-50 border border-violet-200 rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🎉</span>
+                  <div>
+                    <div className="font-bold text-violet-900">Пробный урок пройден!</div>
+                    <div className="text-sm text-violet-700">
+                      Спасибо за участие в пробном уроке! Если вам понравился курс, вы можете записаться на полный курс —
+                      свяжитесь с учителем для получения реквизитов.
                     </div>
                   </div>
                 </div>
@@ -239,6 +256,16 @@ export default async function ApplyPage({ params }: { params: Promise<{ streamId
             {/* Application form */}
             {!existingEnrollment && !existingRequest && genderCheck.allowed && (
               <ApplyForm streamId={streamId} />
+            )}
+
+            {/* Trial lesson button (shown when no existing enrollment/request) */}
+            {!existingEnrollment && !existingRequest && genderCheck.allowed && (
+              <div className="mt-6 pt-6 border-t border-slate-200">
+                <div className="text-center mb-4">
+                  <div className="text-sm text-slate-500">Хотите попробовать перед записью?</div>
+                </div>
+                <TrialEnrollmentButton streamId={streamId} />
+              </div>
             )}
           </div>
         </div>

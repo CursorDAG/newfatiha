@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, Loader2, BookOpen } from "lucide-react";
+import { GoogleIcon } from "@/components/GoogleIcon";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -13,11 +14,17 @@ export default function SignInPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [callbackUrl, setCallbackUrl] = useState("/auth/redirect");
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setCallbackUrl(params.get("callbackUrl") || "/auth/redirect");
   }, []);
+
+  const handleGoogleSignIn = () => {
+    setGoogleLoading(true);
+    signIn("google", { callbackUrl });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,6 +131,26 @@ export default function SignInPage() {
               )}
             </button>
           </form>
+
+          <div className="mt-6 flex items-center gap-4">
+            <div className="h-px flex-1 bg-white/10" />
+            <span className="text-xs font-medium text-white/40">или</span>
+            <div className="h-px flex-1 bg-white/10" />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={googleLoading}
+            className="mt-4 flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] py-3.5 font-semibold text-cream transition-all hover:-translate-y-0.5 hover:border-[#DB4437]/40 hover:bg-[#DB4437]/10 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+          >
+            {googleLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin text-[#DB4437]" />
+            ) : (
+              <GoogleIcon className="h-5 w-5" />
+            )}
+            <span>Войти через Google</span>
+          </button>
 
           <p className="mt-8 border-t border-white/10 pt-6 text-center text-sm font-medium text-white/50">
             Нет аккаунта?{" "}

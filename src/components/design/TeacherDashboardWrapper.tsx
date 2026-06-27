@@ -7,6 +7,9 @@ import {
 import RoleDashboardLayout from './RoleDashboardLayout';
 import TeacherDashboard from '@/components/TeacherDashboard';
 import type { RoleNavItem } from './RoleSidebar';
+import StreakDashboard from '@/components/StreakDashboard';
+import { HasanatProvider } from '@/components/HasanatProvider';
+import HasanatBadge from '@/components/HasanatBadge';
 
 interface TeacherDashboardWrapperProps {
   initialStreams: any[];
@@ -54,14 +57,20 @@ export default function TeacherDashboardWrapper(props: TeacherDashboardWrapperPr
       showRightSidebar={false}
     >
       <div className="dashboard-content">
-        <TeacherDashboard
-          initialStreams={props.initialStreams}
-          initialCourses={props.initialCourses}
-          jitsiDomain={props.jitsiDomain}
-          teacherId={props.teacherId}
-          teacherName={props.teacherName}
-          teacherEmail={props.teacherEmail}
-        />
+        <HasanatProvider userId={props.teacherId}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <StreakDashboard userId={props.teacherId} />
+            <HasanatBadge />
+          </div>
+          <TeacherDashboard
+            initialStreams={props.initialStreams}
+            initialCourses={props.initialCourses}
+            jitsiDomain={props.jitsiDomain}
+            teacherId={props.teacherId}
+            teacherName={props.teacherName}
+            teacherEmail={props.teacherEmail}
+          />
+        </HasanatProvider>
       </div>
     </RoleDashboardLayout>
   );

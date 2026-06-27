@@ -127,7 +127,7 @@ async function main() {
     { name: 'Аиша', email: 'aisha@student.ru', streamId: eveningStream.id, gender: 'FEMALE' as const },
   ]
 
-  const students = []
+  const students: { id: string }[] = []
   for (const s of studentData) {
     const pswd = await bcrypt.hash('student123', 10)
     const student = await prisma.user.upsert({
@@ -430,6 +430,56 @@ async function main() {
     },
   })
   console.log('Test enrollment requests created.')
+
+  // ── 12. Seed leaderboard entries ──────────────────────────────────
+  async function seedLeaderboard(streamId: string, streamStudents: { id: string }[]) {
+    // Calculate week start (Monday)
+    const now = new Date()
+    const day = now.getDay()
+    const isoDay = day === 0 ? 7 : day
+    const weekStart = new Date(now)
+    weekStart.setDate(now.getDate() - isoDay + 1)
+    weekStart.setHours(0, 0, 0, 0)
+
+    for (const student of streamStudents) {
+      const xp = Math.floor(Math.random() * 1200) + 300
+      const weeklyHasanat = Math.floor(xp * 0.8)
+
+      await prisma.leaderboardEntry.upsert({
+        where: {
+          streamId_userId_weekStart: { streamId, userId: student.id, weekStart },
+        },
+        update: { xp, weeklyHasanat },
+        create: {
+          streamId,
+          userId: student.id,
+          xp,
+          streak: Math.floor(Math.random() * 14) + 1,
+          weeklyHasanat,
+          weekStart,
+        },
+      })
+    }
+
+    // Compute ranks
+    await prisma.$executeRaw`
+      WITH ranked AS (
+        SELECT id,
+               ROW_NUMBER() OVER (ORDER BY xp DESC, "weeklyHasanat" DESC) AS rn
+        FROM "LeaderboardEntry"
+        WHERE "streamId" = ${streamId} AND "weekStart" = ${weekStart}
+      )
+      UPDATE "LeaderboardEntry" le
+      SET "rank" = ranked.rn
+      FROM ranked
+      WHERE le.id = ranked.id
+    `
+  }
+
+  // students[0], students[1] → morningStream; students[2], students[3] → eveningStream
+  await seedLeaderboard(morningStream.id, students.slice(0, 2))
+  await seedLeaderboard(eveningStream.id, students.slice(2, 4))
+  console.log('Leaderboard seed data created.')
 
   console.log('Seeding finished.')
 }

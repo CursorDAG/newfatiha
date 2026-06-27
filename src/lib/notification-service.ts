@@ -1010,4 +1010,38 @@ export class NotificationService {
       logger.error({ error, requestId }, "Failed to notify about enrollment confirmation");
     }
   }
+
+  /**
+   * Уведомить учителя о записи студента на пробный урок
+   */
+  static async notifyTrialAttempted(requestId: string, teacherId: string) {
+    try {
+      const request = await prisma.enrollmentRequest.findUnique({
+        where: { id: requestId },
+        include: {
+          student: true,
+          stream: {
+            include: {
+              course: true,
+            },
+          },
+        },
+      });
+
+      if (!request) {
+        throw new Error("Enrollment request not found");
+      }
+
+      await this.create({
+        userId: teacherId,
+        type: "ENROLLMENT_TRIAL_ATTEMPTED",
+        title: "Новый пробный урок",
+        message: `${request.student.name || "Студент"} записался на пробный урок курса "${request.stream.course.title}" (${request.stream.name})`,
+        link: `/teacher`,
+        priority: "HIGH",
+      });
+    } catch (error) {
+      logger.error({ error, requestId }, "Failed to notify about trial attempt");
+    }
+  }
 }

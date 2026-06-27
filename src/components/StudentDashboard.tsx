@@ -22,8 +22,10 @@ import LiveJitsiEmbed from "@/components/student/LiveJitsiEmbed";
 import StudentProgressDashboard from "@/components/student/StudentProgressDashboard";
 import StudentInfoTab from "@/components/student/StudentInfoTab";
 import CourseReviewBlock from "@/components/reviews/CourseReviewBlock";
+import LeaderboardCard from "@/components/LeaderboardCard";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { studentSteps } from "@/components/onboarding/studentSteps";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 // import { OnboardingTooltip } from "@/components/onboarding/OnboardingTooltip"; // Временно отключено - блокирует экран
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -675,7 +677,7 @@ export default function StudentDashboard({
 
   return (
     <div className="text-slate-800" data-onboarding="student-dashboard">
-      {/* <OnboardingTooltip /> */} {/* Временно отключено - блокирует экран */}
+      <OnboardingTour />
 
       {/* ── Full-viewport live lesson overlay ──────────────────────── */}
       {activeLiveLesson && (
@@ -753,6 +755,17 @@ export default function StudentDashboard({
                   <p className="text-[11px] sm:text-xs font-medium text-slate-500 mt-1 leading-tight">На проверке</p>
                 </div>
               </div>
+
+              {/* Leaderboard for first active stream */}
+              {enrollments.find((e) => e.status === "ACTIVE") && (
+                <div className="mt-2">
+                  <LeaderboardCard
+                    streamId={enrollments.find((e) => e.status === "ACTIVE")!.stream.id}
+                    title="Рейтинг потока"
+                    compact
+                  />
+                </div>
+              )}
 
               {/* Priority-sorted "what's important now" */}
               <div data-onboarding="upcoming-lessons">

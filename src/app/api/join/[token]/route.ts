@@ -5,6 +5,7 @@ import { NotFoundError, ConflictError, ValidationError, ForbiddenError } from '@
 import { rateLimit, rateLimitConfigs } from '@/lib/rate-limit';
 import { canStudentJoinStream } from '@/lib/gender-rules';
 import { NotificationService } from '@/lib/notification-service';
+import { recalculateStudentProgress } from '@/lib/progress';
 import { logger } from '@/lib/logger';
 
 // GET /api/join/[token] — validate invite token before student joins
@@ -108,19 +109,33 @@ export const POST = withErrorHandling(async (
     throw new ForbiddenError(genderCheck.reason || 'Невозможно записаться в эту группу');
   }
 
-  const enrollment = await prisma.enrollment.upsert({
-    where: { userId_streamId: { userId, streamId: stream.id } },
-    update: { status: 'ACTIVE' },
-    create: { userId, streamId: stream.id, status: 'ACTIVE' }
+  const result = await prisma.$transaction(async (tx) => {
+    const enrollment = await tx.enrollment.upsert({
+      where: { userId_streamId: { userId, streamId: stream.id } },
+      update: { status: 'ACTIVE' },
+      create: { userId, streamId: stream.id, status: 'ACTIVE' }
+    });
+
+    // Initialize progress record if it doesn't exist yet
+    await tx.studentProgress.upsert({
+      where: { userId_streamId: { userId, streamId: stream.id } },
+      create: { userId, streamId: stream.id },
+      update: {}
+    });
+
+    return enrollment;
   });
+
+  // Refresh totals from DB
+  await recalculateStudentProgress(userId, stream.id);
 
   // Notify teacher about new student
   await NotificationService.notifyStudentJoined(
-    enrollment.id,
+    result.id,
     stream.course.teacherId
   ).catch((err) => {
-    logger.error({ error: err, enrollmentId: enrollment.id }, "Failed to send notification");
+    logger.error({ error: err, enrollmentId: result.id }, "Failed to send notification");
   });
 
-  return NextResponse.json({ success: true, enrollment });
+  return NextResponse.json({ success: true, enrollment: result });
 });

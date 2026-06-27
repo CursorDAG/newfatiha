@@ -69,9 +69,11 @@ export default async function MyApplicationsPage() {
       case "PAYMENT_CONFIRMED":
         return <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-lg">✓ Оплата получена, доступ открыт</span>;
       case "ACTIVE":
-        return <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-lg">✓ Оплата получена, доступ открыт</span>;
+        return <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-sm font-semibold rounded-lg">✓ Зачислен</span>;
       case "REJECTED":
         return <span className="px-3 py-1 bg-red-100 text-red-700 text-sm font-semibold rounded-lg">✗ Отклонено</span>;
+      case "TRIAL_ATTEMPTED":
+        return <span className="px-3 py-1 bg-violet-100 text-violet-700 text-sm font-semibold rounded-lg">🎓 Пробный урок пройден</span>;
       default:
         return <span className="px-3 py-1 bg-slate-100 text-slate-700 text-sm font-semibold rounded-lg">{status}</span>;
     }
@@ -209,6 +211,24 @@ export default async function MyApplicationsPage() {
                     <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
                       <div className="font-bold text-red-900 mb-2">Причина отклонения:</div>
                       <div className="text-sm text-red-800">{app.rejectionReason}</div>
+                    </div>
+                  )}
+
+                  {/* Post-trial upsell */}
+                  {app.status === "TRIAL_ATTEMPTED" && (
+                    <div className="mb-4 p-4 bg-violet-50 border border-violet-200 rounded-xl space-y-3">
+                      <div className="font-bold text-violet-900">🎉 Пробный урок пройден!</div>
+                      <p className="text-sm text-violet-800">
+                        Спасибо за участие в пробном уроке курса «{app.stream.course.title}»!
+                        Если вам понравилось, вы можете записаться на полный курс — свяжитесь с учителем
+                        для получения реквизитов и записи.
+                      </p>
+                      <Link
+                        href={`/student`}
+                        className="inline-block px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-xl shadow-lg shadow-violet-600/20 transition-all text-sm"
+                      >
+                        Вернуться в личный кабинет
+                      </Link>
                     </div>
                   )}
 

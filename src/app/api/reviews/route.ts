@@ -4,6 +4,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
+import { awardHasanat } from "@/lib/hasanat-service";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/reviews
@@ -97,6 +99,13 @@ export const POST = withErrorHandling(async (req: Request) => {
       streamId: enrollment.streamId,
     },
   });
+
+  // Award hasanat for leaving a review
+  awardHasanat(
+    session.user.id,
+    "REVIEW_SUBMITTED",
+    `Отзыв на курс "${courseId}"`,
+  ).catch((err) => logger.error({ error: err, userId: session.user.id }, "Failed to award hasanat for review"));
 
   return NextResponse.json({
     success: true,

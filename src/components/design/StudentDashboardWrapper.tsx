@@ -5,6 +5,9 @@ import RoleDashboardLayout from './RoleDashboardLayout';
 import RightSidebar, { type SidebarSession, type SidebarTask } from './RightSidebar';
 import StudentDashboard from '@/components/StudentDashboard';
 import type { RoleNavItem } from './RoleSidebar';
+import StreakDashboard from '@/components/StreakDashboard';
+import { HasanatProvider } from '@/components/HasanatProvider';
+import HasanatBadge from '@/components/HasanatBadge';
 
 interface StudentDashboardWrapperProps {
   userName: string;
@@ -74,16 +77,22 @@ export default function StudentDashboardWrapper(props: StudentDashboardWrapperPr
       rightSidebar={<RightSidebar sessions={sessions} tasks={tasks} />}
     >
       <div className="dashboard-content">
-        <StudentDashboard
-          userName={props.userName}
-          userId={props.userId}
-          userEmail={props.userEmail}
-          enrollments={props.enrollments}
-          homeworkAssignments={props.homeworkAssignments}
-          quizResults={props.quizResults}
-          myReviews={props.myReviews}
-          jitsiDomain={props.jitsiDomain}
-        />
+        <HasanatProvider userId={props.userId}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <StreakDashboard userId={props.userId} />
+            <HasanatBadge />
+          </div>
+          <StudentDashboard
+            userName={props.userName}
+            userId={props.userId}
+            userEmail={props.userEmail}
+            enrollments={props.enrollments}
+            homeworkAssignments={props.homeworkAssignments}
+            quizResults={props.quizResults}
+            myReviews={props.myReviews}
+            jitsiDomain={props.jitsiDomain}
+          />
+        </HasanatProvider>
       </div>
     </RoleDashboardLayout>
   );

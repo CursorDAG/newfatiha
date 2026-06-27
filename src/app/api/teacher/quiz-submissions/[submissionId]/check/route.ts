@@ -8,6 +8,7 @@ import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib
 import { rateLimit, rateLimitConfigs } from "@/lib/rate-limit";
 import { NotificationService } from "@/lib/notification-service";
 import { recalculateStudentProgress } from "@/lib/progress";
+import { awardHasanat } from "@/lib/hasanat-service";
 import { logger } from "@/lib/logger";
 
 export const POST = withErrorHandling(async (
@@ -90,6 +91,13 @@ export const POST = withErrorHandling(async (
       submission.studentId,
       submission.quiz.lesson.stream.id
     ).catch((err) => logger.error({ error: err, studentId: submission.studentId }, "Failed to recalculate progress"));
+
+    // Award hasanat for quiz completion
+    awardHasanat(
+      submission.studentId,
+      status === "PASSED" ? "QUIZ_COMPLETED" : "QUIZ_COMPLETED",
+      `Тест "${submission.quiz.id}" завершён: ${status}`,
+    ).catch((err) => logger.error({ error: err, studentId: submission.studentId }, "Failed to award hasanat"));
   }
 
   return NextResponse.json({ success: true, submissionId: updated.id, status: updated.status });

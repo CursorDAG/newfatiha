@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
+import { GoogleIcon } from "@/components/GoogleIcon";
+import { signIn } from "next-auth/react";
 
 export default function StudentRegisterPage() {
   const router = useRouter();
@@ -260,6 +262,21 @@ export default function StudentRegisterPage() {
               )}
             </button>
           </form>
+
+          <div className="mt-6 flex items-center gap-4">
+            <div className="h-px flex-1 bg-slate-200" />
+            <span className="text-xs font-medium text-slate-400">или</span>
+            <div className="h-px flex-1 bg-slate-200" />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => signIn("google", { callbackUrl: "/auth/redirect" })}
+            className="mt-4 flex w-full items-center justify-center gap-3 rounded-xl bg-white py-3.5 font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all hover:-translate-y-0.5 hover:bg-[#DB4437] hover:text-white hover:shadow-md hover:shadow-[#DB4437]/20"
+          >
+            <GoogleIcon className="h-5 w-5" />
+            <span>Продолжить через Google</span>
+          </button>
 
           <p className="text-center text-sm font-medium text-slate-500 mt-6 pt-6 border-t border-slate-100">
             Уже есть аккаунт?{" "}

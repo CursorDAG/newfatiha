@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { NotificationService } from "@/lib/notification-service";
+import { recalculateStudentProgress } from "@/lib/progress";
 
 /**
  * POST /api/teacher/enrollment-requests/[id]/confirm-payment
@@ -95,13 +96,20 @@ export const POST = withErrorHandling(async (req: Request, context) => {
     throw new ValidationError("Студент уже зачислен на этот курс");
   }
 
-  // Create enrollment and update request
+  // Create enrollment, StudentProgress, and update request
   await prisma.$transaction([
     prisma.enrollment.create({
       data: {
         userId: enrollmentRequest.studentId,
         streamId: enrollmentRequest.streamId,
         status: "ACTIVE",
+      },
+    }),
+    // Initialize progress record so the student sees lessons in "My Lessons"
+    prisma.studentProgress.create({
+      data: {
+        userId: enrollmentRequest.studentId,
+        streamId: enrollmentRequest.streamId,
       },
     }),
     prisma.enrollmentRequest.update({
@@ -113,6 +121,9 @@ export const POST = withErrorHandling(async (req: Request, context) => {
       },
     }),
   ]);
+
+  // Refresh progress totals from DB
+  await recalculateStudentProgress(enrollmentRequest.studentId, enrollmentRequest.streamId);
 
   // Notify student
   await NotificationService.create({

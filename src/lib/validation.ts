@@ -162,6 +162,10 @@ export const createEnrollmentRequestSchema = z.object({
   message: z.string().max(1000, "Message too long").optional(),
 });
 
+export const createTrialEnrollmentRequestSchema = z.object({
+  streamId: z.string().uuid("Invalid stream ID"),
+});
+
 export const reviewEnrollmentRequestSchema = z.object({
   action: z.enum(["APPROVE", "REJECT"]),
   rejectionReason: z.string().max(1000, "Rejection reason too long").optional(),
@@ -233,6 +237,7 @@ export type UpdateTicketInput = z.infer<typeof updateTicketSchema>;
 export type ReviewReportInput = z.infer<typeof reviewReportSchema>;
 export type RegisterUserInput = z.infer<typeof registerUserSchema>;
 export type CreateEnrollmentRequestInput = z.infer<typeof createEnrollmentRequestSchema>;
+export type CreateTrialEnrollmentRequestInput = z.infer<typeof createTrialEnrollmentRequestSchema>;
 export type ReviewEnrollmentRequestInput = z.infer<typeof reviewEnrollmentRequestSchema>;
 export type ConfirmPaymentInput = z.infer<typeof confirmPaymentSchema>;
 export type RegisterTeacherStep1Input = z.infer<typeof registerTeacherStep1Schema>;

@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ValidationError, ForbiddenError } from "@/lib/errors";
 import { recalculateStudentProgress } from "@/lib/progress";
+import { awardHasanat } from "@/lib/hasanat-service";
 import { logger } from "@/lib/logger";
 
 export const POST = withErrorHandling(async (req: Request) => {
@@ -115,6 +116,59 @@ export const POST = withErrorHandling(async (req: Request) => {
     recalculateStudentProgress(session.user.id, streamId).catch((err) =>
       logger.error({ error: err, userId: session.user.id, streamId }, "Failed to recalculate progress")
     );
+
+    // Award hasanat for completing a lesson
+    awardHasanat(
+      session.user.id,
+      "VIEW_LESSON",
+      `Просмотр урока: ${lessonId}`,
+    ).catch((err) =>
+      logger.error({ error: err, userId: session.user.id, lessonId }, "Failed to award hasanat"),
+    );
+  }
+
+  // 6. Auto-checkin STUDY streak when 80% of video watched
+  if (completed) {
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    const existing = await prisma.streak.findUnique({
+      where: {
+        userId_type: { userId: session.user.id, type: "STUDY" },
+      },
+      select: { id: true, currentStreak: true, maxStreak: true, lastActiveDate: true },
+    });
+
+    if (existing) {
+      const last = new Date(Date.UTC(
+        existing.lastActiveDate.getUTCFullYear(),
+        existing.lastActiveDate.getUTCMonth(),
+        existing.lastActiveDate.getUTCDate(),
+      ));
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (last.getTime() !== today.getTime()) {
+        const newStreak =
+          last.getTime() === yesterday.getTime()
+            ? existing.currentStreak + 1
+            : 1;
+        const maxStreak = Math.max(existing.maxStreak, newStreak);
+        await prisma.streak.update({
+          where: { id: existing.id },
+          data: { currentStreak: newStreak, maxStreak, lastActiveDate: today },
+        });
+      }
+    } else {
+      await prisma.streak.create({
+        data: {
+          userId: session.user.id,
+          type: "STUDY",
+          currentStreak: 1,
+          maxStreak: 1,
+          lastActiveDate: today,
+        },
+      });
+    }
   }
 
   return NextResponse.json({

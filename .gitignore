@@ -68,3 +68,4 @@ _archive_reports/
 
 # Библиотека: PDF скачиваются скриптом prisma/fetch-pdfs.mjs, в репо не храним
 /public/library/*.pdf
+phase1_improvements.mjs
