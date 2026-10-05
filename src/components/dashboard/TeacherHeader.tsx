@@ -29,8 +29,18 @@ export default function TeacherHeader({ teacherName }: TeacherHeaderProps) {
   ];
 
   return (
-    <header className="bg-emerald-700 text-white shadow-md w-full shrink-0">
-      <div className="w-full px-4 sm:px-8 py-3">
+    <>
+      {/* Mobile menu backdrop */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <header className="bg-emerald-700 text-white shadow-md w-full shrink-0 relative z-50">
+        <div className="w-full px-4 sm:px-8 py-3">
         <div className="flex items-center gap-3">
           {/* Mobile sidebar toggle (teacher tabs) */}
           <button
@@ -141,6 +151,7 @@ export default function TeacherHeader({ teacherName }: TeacherHeaderProps) {
           </nav>
         )}
       </div>
-    </header>
+      </header>
+    </>
   );
 }

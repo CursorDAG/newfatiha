@@ -51,7 +51,7 @@ export const POST = withErrorHandling(async (req: Request, context?: { params: P
 
   // Send notification email
   try {
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3051";
     const loginUrl = `${baseUrl}/auth/signin`;
 
     await EmailService.sendUserUnblocked(user.email, {

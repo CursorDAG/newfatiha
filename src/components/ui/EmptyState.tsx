@@ -1,9 +1,9 @@
-import React from "react";
+import { ReactNode } from "react";
 
 interface EmptyStateProps {
-  icon?: React.ReactNode;
+  icon: ReactNode;
   title: string;
-  description?: string;
+  description: string;
   action?: {
     label: string;
     onClick: () => void;
@@ -12,18 +12,14 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-      {icon && (
-        <div className="w-16 h-16 mb-4 text-slate-300 flex items-center justify-center">
-          {icon}
-        </div>
-      )}
-      <h3 className="text-lg font-semibold text-slate-900 mb-2">{title}</h3>
-      {description && <p className="text-slate-600 mb-4 max-w-md">{description}</p>}
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="text-[#D4AF37] mb-4">{icon}</div>
+      <h3 className="text-xl font-bold text-cream mb-2">{title}</h3>
+      <p className="text-white/60 mb-6 max-w-md">{description}</p>
       {action && (
         <button
           onClick={action.onClick}
-          className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+          className="bg-gradient-to-r from-[#D4AF37] to-[#C49A2B] text-[#06201A] font-bold px-6 py-3 rounded-xl shadow-lg shadow-amber-500/20 transition-all hover:-translate-y-0.5 hover:from-[#E8D48B] hover:to-[#D4AF37]"
         >
           {action.label}
         </button>

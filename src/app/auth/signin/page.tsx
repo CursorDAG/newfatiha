@@ -42,14 +42,18 @@ export default function SignInPage() {
       if (res?.error) {
         setError("Неверный email или пароль");
       } else if (res?.url) {
-        router.push(res.url);
-        router.refresh();
+        window.location.href = res.url;
       }
     } catch {
       setError("Произошла ошибка при входе");
     } finally {
       setLoading(false);
     }
+  };
+
+  const testClick = () => {
+    console.log("[TEST] Button onClick works!");
+    alert("Direct onClick handler works!");
   };
 
   return (
@@ -106,6 +110,7 @@ export default function SignInPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
                   className="w-full rounded-xl border border-white/10 bg-white/[0.04] py-3 pl-11 pr-4 text-cream placeholder:text-white/30 outline-none transition-all focus:border-[#D4AF37]/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-[#D4AF37]/40"
                 />
               </div>

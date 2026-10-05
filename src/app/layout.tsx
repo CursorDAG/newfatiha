@@ -48,7 +48,7 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions);
 
   return (
-    <html lang="ru">
+    <html lang="ru" suppressHydrationWarning>
       <head>
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -57,8 +57,9 @@ export default async function RootLayout({
       <body
         className={`${inter.variable} ${playfairDisplay.variable} antialiased min-h-screen flex flex-col`}
         style={{ scrollbarGutter: "stable" }}
+        suppressHydrationWarning
       >
-        <SessionProvider>
+        <SessionProvider session={session}>
           <OnboardingProvider>
             <ThemeEngine />
             {children}

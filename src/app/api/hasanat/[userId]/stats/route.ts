@@ -11,14 +11,14 @@ import { withErrorHandling } from "@/lib/api-handler";
 import { AuthError, ForbiddenError, ValidationError } from "@/lib/errors";
 import { HASANAT_LABELS } from "@/lib/hasanat";
 
-export const GET = withErrorHandling(async (req: Request) => {
+export const GET = withErrorHandling(async (req: Request, context?: { params: Promise<Record<string, string>> }) => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     throw new AuthError("Необходима авторизация");
   }
 
-  const url = new URL(req.url);
-  const userId = url.searchParams.get("userId");
+  const params = await context?.params;
+  const userId = params?.userId;
 
   if (!userId) {
     throw new ValidationError("Не указан userId");

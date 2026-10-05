@@ -102,7 +102,7 @@ export class EmailScheduler {
       },
     });
 
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3051";
 
     for (const slot of upcomingSlots) {
       const stream = slot.stream;
@@ -199,7 +199,7 @@ export class EmailScheduler {
       },
     });
 
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3051";
 
     for (const assignment of upcomingDeadlines) {
       if (!assignment.dueAt) continue;

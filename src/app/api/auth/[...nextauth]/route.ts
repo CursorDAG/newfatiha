@@ -65,14 +65,14 @@ export const authOptions: NextAuthOptions = {
       if (url.startsWith(baseUrl)) return url;
       return `${baseUrl}/auth/redirect`;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.name = user.name;
         token.role = user.role;
         token.id = user.id;
       }
-      // Refresh user status on each request
-      if (token.id) {
+      // Only refresh user data on explicit update (not on every session check)
+      if (trigger === "update" && token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
           select: { status: true, role: true },

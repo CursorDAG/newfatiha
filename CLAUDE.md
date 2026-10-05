@@ -2,12 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Статус проекта:** MVP завершён (запись уроков, аналитика, PWA).
+**Статус проекта:** MVP завершён. Активная разработка — геймификация, библиотека, OAuth, улучшенная аналитика.
 
 ## Команды
 
 ```bash
-npm run dev              # Dev сервер (custom server.ts + Socket.io)
+npm run dev              # Dev сервер (custom server.ts + Socket.io, порт 3051)
 npm run build && npm start  # Production
 npx prisma generate      # После изменений схемы
 npx prisma migrate dev   # Создать и применить миграцию
@@ -15,6 +15,8 @@ npx prisma db seed       # Seed тест-данных
 docker-compose up -d     # PostgreSQL
 npm test                 # Vitest
 ```
+
+**Важно:** Dev сервер работает на порту **3051** (не 3000). Это предотвращает конфликты при параллельной разработке нескольких проектов.
 
 **Тест аккаунты:** `admin@fatiha.ru` / `admin123` (admin/teacher), `ali@student.ru` / `student123` (student)
 
@@ -34,6 +36,7 @@ npm test                 # Vitest
 - **API и ошибки:** `docs/agent/api-patterns.md`
 - **Настройка, troubleshooting и деплой:** `docs/agent/common-tasks.md` (также см. `DEPLOYMENT.md`)
 - **Описание существующих фич:** `docs/agent/features.md`
+- **История изменений:** `CHANGELOG.md` — полная история релизов и known issues
 
 ## Критически важные правила
 

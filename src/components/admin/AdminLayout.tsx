@@ -57,7 +57,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   }, [sidebarOpen]);
 
   return (
-    <div className="admin-shell min-h-screen bg-slate-50 flex flex-col">
+    <div className="admin-shell min-h-screen bg-[#06201A] flex flex-col">
       {/* Global Search */}
       <GlobalSearch />
 
@@ -78,30 +78,30 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
         {/* Sidebar */}
         <aside
-          className={`w-64 bg-white border-r border-slate-200 flex flex-col ${
+          className={`w-64 bg-[#0A2820] border-r border-emerald-800/30 flex flex-col ${
             sidebarOpen
               ? "fixed left-0 top-0 bottom-0 z-40 shadow-xl"
               : "hidden lg:flex"
           }`}
         >
-          <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+          <div className="p-6 border-b border-emerald-800/30 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2.5" onClick={() => setSidebarOpen(false)}>
-              <span className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md">
+              <span className="w-9 h-9 bg-gradient-to-br from-[#D4AF37] to-[#C49A2B] rounded-xl flex items-center justify-center text-[#06201A] text-lg font-bold shadow-md">
                 ف
               </span>
               <div>
-                <span className="text-xl font-extrabold text-slate-800 tracking-tight block">
-                  Fatiha<span className="text-emerald-600">.ru</span>
+                <span className="text-xl font-extrabold text-white tracking-tight block">
+                  Fatiha<span className="text-[#D4AF37]">.ru</span>
                 </span>
-                <span className="text-xs text-slate-500 font-medium">Админ-панель</span>
+                <span className="text-xs text-emerald-300 font-medium">Админ-панель</span>
               </div>
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1.5 rounded-lg hover:bg-slate-100"
+              className="lg:hidden p-1.5 rounded-lg hover:bg-emerald-800/50"
               aria-label="Закрыть меню"
             >
-              <X className="w-5 h-5 text-slate-600" />
+              <X className="w-5 h-5 text-emerald-300" />
             </button>
           </div>
 
@@ -117,8 +117,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   onClick={() => setSidebarOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                     isActive
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      ? "bg-gradient-to-r from-[#D4AF37]/20 to-[#C49A2B]/20 text-[#D4AF37] border border-[#D4AF37]/30"
+                      : "text-emerald-100 hover:bg-emerald-800/30 hover:text-white"
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -128,10 +128,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             })}
           </nav>
 
-          <div className="p-4 border-t border-slate-200">
+          <div className="p-4 border-t border-emerald-800/30">
             <Link
               href="/"
-              className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:text-slate-900 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-emerald-300 hover:text-[#D4AF37] transition-colors"
             >
               ← На главную
             </Link>

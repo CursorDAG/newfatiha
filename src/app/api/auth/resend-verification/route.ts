@@ -52,7 +52,7 @@ export const POST = withErrorHandling(async (req: Request) => {
   });
 
   // Send verification email
-  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3051";
   const verificationUrl = `${baseUrl}/auth/verify-email?token=${verificationToken}`;
 
   await EmailService.sendEmailVerification(user.email, {

@@ -8,75 +8,75 @@ datasource db {
 }
 
 model User {
-  id                       String                  @id @default(uuid())
-  email                    String                  @unique
-  password                 String?
-  name                     String
-  role                     Role                    @default(STUDENT)
-  createdAt                DateTime                @default(now())
-  updatedAt                DateTime                @updatedAt
-  avatar                   String?
-  bio                      String?
-  skills                   String[]
-  isBlocked                Boolean                 @default(false)
-  deletedAt                DateTime?
-  gender                   Gender                  @default(NOT_SPECIFIED)
-  emailVerified            Boolean                 @default(false)
-  emailVerifiedAt          DateTime?
-  verificationToken        String?                 @unique
-  status                   UserStatus              @default(ACTIVE)
-  activitySessions         ActivitySession[]
-  courses                  Course[]                @relation("TeacherCourses")
-  enrollments              Enrollment[]
-  checkedQuizSubmissions   LessonQuizSubmission[]  @relation("QuizCheckedBy")
-  quizSubmissions          LessonQuizSubmission[]
-  notifications            Notification[]
-  notificationPreference   NotificationPreference?
-  supportTickets           SupportTicket[]
-  assignedTickets          SupportTicket[]         @relation("AssignedTickets")
-  supportTicketReplies     SupportTicketReply[]
-  contentReports           ContentReport[]
-  reviewedReports          ContentReport[]         @relation("ReviewedReports")
-  chatParticipant1Rooms    ChatRoom[]              @relation("ChatParticipant1")
-  chatParticipant2Rooms    ChatRoom[]              @relation("ChatParticipant2")
-  chatMessages             ChatMessage[]
-  questionSubmissions      QuestionSubmission[]
-  checkedQuestionSubmissions QuestionSubmission[]  @relation("QuestionCheckedBy")
-  teacherProfile           TeacherProfile?
-  reviewedTeacherProfiles  TeacherProfile[]        @relation("ReviewedTeacherProfiles")
-  enrollmentRequests       EnrollmentRequest[]
-  reviewedEnrollmentRequests EnrollmentRequest[]   @relation("ReviewedEnrollmentRequests")
-  broadcasts               Broadcast[]
-  studentReviews           Review[]                @relation("StudentReviews")
-  teacherReviews           Review[]                @relation("TeacherReviews")
-  courseBooks              CourseBook[]
-  userBookProgress         UserBookProgress[]
-  streaks                  Streak[]
-  hasanatBalance           Int                   @default(0)
-  totalHasanatEarned       Int                   @default(0)
-  hasanatTransactions      HasanatTransaction[]
-  leaderboardEntries       LeaderboardEntry[]
+  id                         String                  @id @default(uuid())
+  email                      String                  @unique
+  password                   String?
+  name                       String
+  role                       Role                    @default(STUDENT)
+  createdAt                  DateTime                @default(now())
+  updatedAt                  DateTime                @updatedAt
+  avatar                     String?
+  bio                        String?
+  skills                     String[]
+  deletedAt                  DateTime?
+  gender                     Gender                  @default(NOT_SPECIFIED)
+  isBlocked                  Boolean                 @default(false)
+  emailVerified              Boolean                 @default(false)
+  emailVerifiedAt            DateTime?
+  status                     UserStatus              @default(ACTIVE)
+  verificationToken          String?                 @unique
+  hasanatBalance             Int                     @default(0)
+  totalHasanatEarned         Int                     @default(0)
+  activitySessions           ActivitySession[]
+  broadcasts                 Broadcast[]
+  chatMessages               ChatMessage[]
+  chatParticipant1Rooms      ChatRoom[]              @relation("ChatParticipant1")
+  chatParticipant2Rooms      ChatRoom[]              @relation("ChatParticipant2")
+  contentReports             ContentReport[]
+  reviewedReports            ContentReport[]         @relation("ReviewedReports")
+  courses                    Course[]                @relation("TeacherCourses")
+  courseBooks                CourseBook[]
+  enrollments                Enrollment[]
+  reviewedEnrollmentRequests EnrollmentRequest[]     @relation("ReviewedEnrollmentRequests")
+  enrollmentRequests         EnrollmentRequest[]
+  hasanatTransactions        HasanatTransaction[]
+  leaderboardEntries         LeaderboardEntry[]
+  checkedQuizSubmissions     LessonQuizSubmission[]  @relation("QuizCheckedBy")
+  quizSubmissions            LessonQuizSubmission[]
+  notifications              Notification[]
+  notificationPreference     NotificationPreference?
+  checkedQuestionSubmissions QuestionSubmission[]    @relation("QuestionCheckedBy")
+  questionSubmissions        QuestionSubmission[]
+  studentReviews             Review[]                @relation("StudentReviews")
+  teacherReviews             Review[]                @relation("TeacherReviews")
+  streaks                    Streak[]
+  assignedTickets            SupportTicket[]         @relation("AssignedTickets")
+  supportTickets             SupportTicket[]
+  supportTicketReplies       SupportTicketReply[]
+  reviewedTeacherProfiles    TeacherProfile[]        @relation("ReviewedTeacherProfiles")
+  teacherProfile             TeacherProfile?
+  userBookProgress           UserBookProgress[]
 }
 
 model TeacherProfile {
-  id              String    @id @default(uuid())
-  userId          String    @unique
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bio             String?   @db.Text
-  subjects        String[]
-  experience      String?   @db.Text
-  qualifications  String?   @db.Text
-  whatsappPhone   String?
-  documentsUrls   String[]
-  videoIntroUrl   String?
-  paymentRequisites String? @db.Text
-  adminNotes      String?   @db.Text
-  reviewedById    String?
-  reviewedBy      User?     @relation("ReviewedTeacherProfiles", fields: [reviewedById], references: [id])
-  reviewedAt      DateTime?
-  rejectionReason String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                String    @id @default(uuid())
+  userId            String    @unique
+  bio               String?
+  subjects          String[]
+  experience        String?
+  qualifications    String?
+  whatsappPhone     String?
+  documentsUrls     String[]
+  videoIntroUrl     String?
+  adminNotes        String?
+  reviewedById      String?
+  reviewedAt        DateTime?
+  rejectionReason   String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  paymentRequisites String?
+  reviewedBy        User?     @relation("ReviewedTeacherProfiles", fields: [reviewedById], references: [id])
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([reviewedById])
@@ -92,9 +92,9 @@ model Course {
   capacity    Int          @default(30)
   published   Boolean      @default(false)
   teacher     User         @relation("TeacherCourses", fields: [teacherId], references: [id])
-  streams     Stream[]
-  reviews     Review[]
   courseBooks CourseBook[]
+  reviews     Review[]
+  streams     Stream[]
 }
 
 model Stream {
@@ -107,22 +107,22 @@ model Stream {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   color               String               @default("#10b981")
-  genderType          StreamGenderType     @default(MIXED)
   chatEnabled         Boolean              @default(true)
-  isOpenForEnrollment Boolean              @default(false)
-  price               Decimal?             @db.Decimal(10, 2)
+  genderType          StreamGenderType     @default(MIXED)
   currency            String               @default("RUB")
   enrollmentDeadline  DateTime?
-  paymentInstructions String?              @db.Text
+  isOpenForEnrollment Boolean              @default(false)
+  paymentInstructions String?
+  price               Decimal?             @db.Decimal(10, 2)
+  chatRoom            ChatRoom?
   enrollments         Enrollment[]
+  enrollmentRequests  EnrollmentRequest[]
   homeworkAssignments HomeworkAssignment[]
   inviteToken         InviteToken?
+  leaderboardEntries  LeaderboardEntry[]
   lessons             Lesson[]
   course              Course               @relation(fields: [courseId], references: [id])
   scheduleSlots       StreamScheduleSlot[]
-  chatRoom            ChatRoom?
-  enrollmentRequests  EnrollmentRequest[]
-  leaderboardEntries  LeaderboardEntry[]
 }
 
 model StreamScheduleSlot {
@@ -154,21 +154,21 @@ model Enrollment {
 }
 
 model EnrollmentRequest {
-  id                    String                    @id @default(uuid())
-  studentId             String
-  streamId              String
-  status                EnrollmentRequestStatus   @default(PENDING_REVIEW)
-  message               String?                   @db.Text
-  reviewedById          String?
-  reviewedAt            DateTime?
-  rejectionReason       String?                   @db.Text
-  paymentConfirmed      Boolean                   @default(false)
-  paymentConfirmedAt    DateTime?
-  createdAt             DateTime                  @default(now())
-  updatedAt             DateTime                  @updatedAt
-  student               User                      @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  stream                Stream                    @relation(fields: [streamId], references: [id], onDelete: Cascade)
-  reviewedBy            User?                     @relation("ReviewedEnrollmentRequests", fields: [reviewedById], references: [id])
+  id                 String                  @id @default(uuid())
+  studentId          String
+  streamId           String
+  status             EnrollmentRequestStatus @default(PENDING_REVIEW)
+  message            String?
+  reviewedById       String?
+  reviewedAt         DateTime?
+  rejectionReason    String?
+  paymentConfirmed   Boolean                 @default(false)
+  paymentConfirmedAt DateTime?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  reviewedBy         User?                   @relation("ReviewedEnrollmentRequests", fields: [reviewedById], references: [id])
+  stream             Stream                  @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  student            User                    @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, streamId])
   @@index([studentId])
@@ -202,9 +202,9 @@ model Lesson {
   homeworks           Homework[]
   homeworkAssignments HomeworkAssignment[]
   stream              Stream               @relation(fields: [streamId], references: [id])
+  progress            LessonProgress[]
   quizzes             LessonQuiz[]
   recordings          LessonRecording[]
-  progress            LessonProgress[]
 }
 
 model LessonQuiz {
@@ -220,15 +220,15 @@ model LessonQuiz {
 }
 
 model LessonQuizQuestion {
-  id                String                 @id @default(uuid())
-  quizId            String
-  prompt            String
-  type              QuestionType           @default(MULTIPLE_CHOICE)
-  sortOrder         Int                    @default(0)
-  createdAt         DateTime               @default(now())
-  updatedAt         DateTime               @updatedAt
-  options           LessonQuizOption[]
-  quiz              LessonQuiz             @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  id                  String               @id @default(uuid())
+  quizId              String
+  prompt              String
+  sortOrder           Int                  @default(0)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  type                QuestionType         @default(MULTIPLE_CHOICE)
+  options             LessonQuizOption[]
+  quiz                LessonQuiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
   questionSubmissions QuestionSubmission[]
 }
 
@@ -280,9 +280,9 @@ model QuestionSubmission {
   checkedAt        DateTime?
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
+  checkedBy        User?                @relation("QuestionCheckedBy", fields: [checkedById], references: [id])
   question         LessonQuizQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
   student          User                 @relation(fields: [studentId], references: [id])
-  checkedBy        User?                @relation("QuestionCheckedBy", fields: [checkedById], references: [id])
 
   @@unique([questionId, studentId])
   @@index([studentId, createdAt])
@@ -290,19 +290,19 @@ model QuestionSubmission {
 }
 
 model LessonRecording {
-  id          String          @id @default(uuid())
-  lessonId    String
-  lesson      Lesson          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  streamId    String
-  videoUrl    String
+  id           String          @id @default(uuid())
+  lessonId     String
+  streamId     String
+  videoUrl     String
   thumbnailUrl String?
-  duration    Int?
-  fileSize    BigInt?
-  recordedAt  DateTime        @default(now())
-  processedAt DateTime?
-  status      RecordingStatus @default(PROCESSING)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  duration     Int?
+  fileSize     BigInt?
+  recordedAt   DateTime        @default(now())
+  processedAt  DateTime?
+  status       RecordingStatus @default(PROCESSING)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  lesson       Lesson          @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@index([lessonId])
   @@index([streamId])
@@ -310,18 +310,18 @@ model LessonRecording {
 }
 
 model LessonProgress {
-  id               String   @id @default(uuid())
-  userId           String
-  lessonId         String
-  lesson           Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  streamId         String
-  watchedSeconds   Int      @default(0)
-  totalSeconds     Int?
-  completed        Boolean  @default(false)
-  lastWatchedAt    DateTime @default(now())
-  completedAt      DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id             String    @id @default(uuid())
+  userId         String
+  lessonId       String
+  streamId       String
+  watchedSeconds Int       @default(0)
+  totalSeconds   Int?
+  completed      Boolean   @default(false)
+  lastWatchedAt  DateTime  @default(now())
+  completedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  lesson         Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
   @@index([userId, streamId])
@@ -397,24 +397,24 @@ model HomeworkAssignment {
 }
 
 model HomeworkSubmission {
-  id             String                   @id @default(uuid())
-  assignmentId   String
-  enrollmentId   String
-  status         HomeworkSubmissionStatus @default(SUBMITTED)
-  grade          Int?
-  teacherComment String?
-  contentText    String?
-  contentUrl     String?
-  voiceData      Bytes?
-  voiceMimeType  String?
+  id              String                   @id @default(uuid())
+  assignmentId    String
+  enrollmentId    String
+  status          HomeworkSubmissionStatus @default(SUBMITTED)
+  grade           Int?
+  teacherComment  String?
+  contentText     String?
+  contentUrl      String?
+  submittedAt     DateTime                 @default(now())
+  checkedAt       DateTime?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  voiceData       Bytes?
   voiceDurationMs Int?
-  voiceUrl       String?
-  submittedAt    DateTime                 @default(now())
-  checkedAt      DateTime?
-  createdAt      DateTime                 @default(now())
-  updatedAt      DateTime                 @updatedAt
-  assignment     HomeworkAssignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
-  enrollment     Enrollment               @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  voiceMimeType   String?
+  voiceUrl        String?
+  assignment      HomeworkAssignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  enrollment      Enrollment               @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
 
   @@unique([assignmentId, enrollmentId])
   @@index([enrollmentId])
@@ -428,14 +428,14 @@ model Notification {
   message     String
   link        String?
   read        Boolean              @default(false)
-  priority    NotificationPriority @default(NORMAL)
-  metadata    Json?
-  actionUrl   String?
+  createdAt   DateTime             @default(now())
   actionText  String?
+  actionUrl   String?
   emailSent   Boolean              @default(false)
   emailSentAt DateTime?
+  metadata    Json?
+  priority    NotificationPriority @default(NORMAL)
   readAt      DateTime?
-  createdAt   DateTime             @default(now())
   user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, read, createdAt])
@@ -444,22 +444,22 @@ model Notification {
 }
 
 model NotificationPreference {
-  id                      String   @id @default(uuid())
-  userId                  String   @unique
-  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  emailNewLesson          Boolean  @default(true)
-  emailHomeworkAssigned   Boolean  @default(true)
-  emailHomeworkChecked    Boolean  @default(true)
-  emailQuizChecked        Boolean  @default(true)
-  emailAnnouncement       Boolean  @default(true)
-  emailHomeworkSubmitted  Boolean  @default(true)
-  emailQuizSubmitted      Boolean  @default(true)
-  emailStudentJoined      Boolean  @default(true)
-  emailDigestEnabled      Boolean  @default(false)
-  emailDigestTime         Int      @default(540)
-  soundEnabled            Boolean  @default(true)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  id                     String   @id @default(uuid())
+  userId                 String   @unique
+  emailNewLesson         Boolean  @default(true)
+  emailHomeworkAssigned  Boolean  @default(true)
+  emailHomeworkChecked   Boolean  @default(true)
+  emailQuizChecked       Boolean  @default(true)
+  emailAnnouncement      Boolean  @default(true)
+  emailHomeworkSubmitted Boolean  @default(true)
+  emailQuizSubmitted     Boolean  @default(true)
+  emailStudentJoined     Boolean  @default(true)
+  emailDigestEnabled     Boolean  @default(false)
+  emailDigestTime        Int      @default(540)
+  soundEnabled           Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -467,16 +467,16 @@ model NotificationPreference {
 model SupportTicket {
   id           String                @id @default(uuid())
   userId       String
-  user         User                  @relation(fields: [userId], references: [id])
   subject      String
-  description  String                @db.Text
+  description  String
   status       SupportTicketStatus   @default(OPEN)
   priority     SupportTicketPriority @default(MEDIUM)
   assignedToId String?
-  assignedTo   User?                 @relation("AssignedTickets", fields: [assignedToId], references: [id])
   createdAt    DateTime              @default(now())
   updatedAt    DateTime              @updatedAt
   resolvedAt   DateTime?
+  assignedTo   User?                 @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  user         User                  @relation(fields: [userId], references: [id])
   replies      SupportTicketReply[]
 
   @@index([userId])
@@ -487,12 +487,12 @@ model SupportTicket {
 model SupportTicketReply {
   id        String        @id @default(uuid())
   ticketId  String
-  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   userId    String
-  user      User          @relation(fields: [userId], references: [id])
-  message   String        @db.Text
+  message   String
   isStaff   Boolean       @default(false)
   createdAt DateTime      @default(now())
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id])
 
   @@index([ticketId, createdAt])
 }
@@ -500,16 +500,16 @@ model SupportTicketReply {
 model ContentReport {
   id           String              @id @default(uuid())
   reporterId   String
-  reporter     User                @relation(fields: [reporterId], references: [id])
   contentType  ContentReportType
   contentId    String
   reason       ContentReportReason
-  description  String?             @db.Text
+  description  String?
   status       ContentReportStatus @default(PENDING)
   reviewedById String?
-  reviewedBy   User?               @relation("ReviewedReports", fields: [reviewedById], references: [id])
   reviewedAt   DateTime?
   createdAt    DateTime            @default(now())
+  reporter     User                @relation(fields: [reporterId], references: [id])
+  reviewedBy   User?               @relation("ReviewedReports", fields: [reviewedById], references: [id])
 
   @@index([reporterId])
   @@index([reviewedById])
@@ -521,13 +521,13 @@ model ChatRoom {
   id             String        @id @default(uuid())
   type           ChatRoomType
   streamId       String?       @unique
-  stream         Stream?       @relation(fields: [streamId], references: [id], onDelete: Cascade)
   participant1Id String?
-  participant1   User?         @relation("ChatParticipant1", fields: [participant1Id], references: [id])
   participant2Id String?
-  participant2   User?         @relation("ChatParticipant2", fields: [participant2Id], references: [id])
   createdAt      DateTime      @default(now())
   messages       ChatMessage[]
+  participant1   User?         @relation("ChatParticipant1", fields: [participant1Id], references: [id])
+  participant2   User?         @relation("ChatParticipant2", fields: [participant2Id], references: [id])
+  stream         Stream?       @relation(fields: [streamId], references: [id], onDelete: Cascade)
 
   @@unique([participant1Id, participant2Id])
   @@index([streamId])
@@ -536,18 +536,253 @@ model ChatRoom {
 model ChatMessage {
   id        String    @id @default(uuid())
   roomId    String
-  room      ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
   senderId  String
-  sender    User      @relation(fields: [senderId], references: [id])
-  content   String    @db.Text
+  content   String
   isEdited  Boolean   @default(false)
   editedAt  DateTime?
   isDeleted Boolean   @default(false)
   deletedAt DateTime?
   createdAt DateTime  @default(now())
+  room      ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender    User      @relation(fields: [senderId], references: [id])
 
   @@index([roomId, createdAt])
   @@index([senderId])
+}
+
+model Review {
+  id        String       @id @default(uuid())
+  studentId String
+  courseId  String
+  teacherId String
+  streamId  String?
+  rating    Int
+  comment   String?
+  status    ReviewStatus @default(PUBLISHED)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  course    Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  student   User         @relation("StudentReviews", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher   User         @relation("TeacherReviews", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, courseId])
+  @@index([courseId, status])
+  @@index([teacherId, status])
+  @@index([status, createdAt])
+}
+
+model PageContent {
+  id        String   @id @default(uuid())
+  page      String   @unique
+  sections  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([page])
+}
+
+model Broadcast {
+  id             String               @id @default(uuid())
+  title          String
+  message        String
+  targetAudience Json
+  priority       NotificationPriority @default(NORMAL)
+  sendEmail      Boolean              @default(false)
+  sentById       String
+  sentAt         DateTime             @default(now())
+  recipientCount Int                  @default(0)
+  readCount      Int                  @default(0)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  sentBy         User                 @relation(fields: [sentById], references: [id])
+
+  @@index([sentById])
+  @@index([sentAt])
+}
+
+model PlatformSettings {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  category  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
+model LibraryCategory {
+  id          String            @id @default(uuid())
+  name        String
+  slug        String            @unique
+  description String?
+  icon        String?
+  order       Int               @default(0)
+  parentId    String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  books       Book[]
+  parent      LibraryCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    LibraryCategory[] @relation("CategoryHierarchy")
+
+  @@index([slug])
+  @@index([parentId])
+  @@index([order])
+}
+
+model Book {
+  id              String             @id @default(uuid())
+  title           String
+  titleArabic     String?
+  author          String?
+  authorArabic    String?
+  description     String?
+  categoryId      String
+  language        String             @default("ar")
+  coverImage      String?
+  sourceType      BookSourceType     @default(TEXT)
+  sourceUrl       String?
+  isOpenSource    Boolean            @default(true)
+  license         String?
+  allowSelfStudy  Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  category        LibraryCategory    @relation(fields: [categoryId], references: [id])
+  chapters        BookChapter[]
+  translations    BookTranslation[]
+  courseBooks     CourseBook[]
+  selfStudyCourse SelfStudyCourse?
+  userProgress    UserBookProgress[]
+
+  @@index([categoryId])
+  @@index([language])
+  @@index([allowSelfStudy])
+}
+
+model BookChapter {
+  id           String            @id @default(uuid())
+  bookId       String
+  number       Int
+  title        String
+  titleArabic  String?
+  content      Json
+  order        Int
+  createdAt    DateTime          @default(now())
+  book         Book              @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  translations BookTranslation[]
+
+  @@unique([bookId, number])
+  @@index([bookId, order])
+}
+
+model BookTranslation {
+  id             String              @id @default(uuid())
+  bookId         String
+  chapterId      String?
+  language       String
+  translatorName String?
+  content        Json
+  type           BookTranslationType @default(TRANSLATION)
+  createdAt      DateTime            @default(now())
+  book           Book                @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapter        BookChapter?        @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@index([bookId, language])
+  @@index([chapterId])
+}
+
+model CourseBook {
+  id         String   @id @default(uuid())
+  courseId   String
+  bookId     String
+  isRequired Boolean  @default(true)
+  order      Int      @default(0)
+  addedById  String
+  createdAt  DateTime @default(now())
+  addedBy    User     @relation(fields: [addedById], references: [id])
+  book       Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, bookId])
+  @@index([courseId, order])
+  @@index([bookId])
+}
+
+model SelfStudyCourse {
+  id               String   @id @default(uuid())
+  title            String
+  description      String
+  bookId           String   @unique
+  lessonsStructure Json
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  book             Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([isActive])
+}
+
+model UserBookProgress {
+  id                String   @id @default(uuid())
+  userId            String
+  bookId            String
+  lastChapterId     String?
+  lastReadAt        DateTime @default(now())
+  completedChapters Int[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  book              Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([userId])
+  @@index([bookId])
+}
+
+model Streak {
+  id             String     @id @default(uuid())
+  userId         String
+  type           StreakType
+  currentStreak  Int        @default(0)
+  maxStreak      Int        @default(0)
+  lastActiveDate DateTime   @default(now())
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@index([userId, type])
+}
+
+model LeaderboardEntry {
+  id            String   @id @default(uuid())
+  streamId      String
+  userId        String
+  xp            Int      @default(0)
+  streak        Int      @default(0)
+  weeklyHasanat Int      @default(0)
+  weekStart     DateTime
+  rank          Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  stream        Stream   @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([streamId, userId, weekStart])
+  @@index([streamId, weekStart, rank])
+  @@index([streamId, weekStart, xp])
+}
+
+model HasanatTransaction {
+  id        String                 @id @default(uuid())
+  userId    String
+  type      HasanatTransactionType
+  amount    Int
+  reason    String
+  createdAt DateTime               @default(now())
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
 
 enum Role {
@@ -599,8 +834,8 @@ enum NotificationType {
   ENROLLMENT_REQUEST_APPROVED
   ENROLLMENT_REQUEST_REJECTED
   ENROLLMENT_PAYMENT_REQUIRED
-  ENROLLMENT_PAYMENT_CLAIMED
   ENROLLMENT_CONFIRMED
+  ENROLLMENT_PAYMENT_CLAIMED
   ENROLLMENT_TRIAL_ATTEMPTED
 }
 
@@ -707,209 +942,16 @@ enum RecordingStatus {
 enum EnrollmentRequestStatus {
   PENDING_REVIEW
   APPROVED_PENDING_PAYMENT
-  PAYMENT_PENDING_CONFIRMATION
   PAYMENT_CONFIRMED
   ACTIVE
   REJECTED
+  PAYMENT_PENDING_CONFIRMATION
   TRIAL_ATTEMPTED
-}
-
-model Review {
-  id         String       @id @default(uuid())
-  studentId  String
-  courseId   String
-  teacherId  String
-  streamId   String?
-  rating     Int
-  comment    String?      @db.Text
-  status     ReviewStatus @default(PUBLISHED)
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  student    User         @relation("StudentReviews", fields: [studentId], references: [id], onDelete: Cascade)
-  course     Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  teacher    User         @relation("TeacherReviews", fields: [teacherId], references: [id], onDelete: Cascade)
-
-  @@unique([studentId, courseId])
-  @@index([courseId, status])
-  @@index([teacherId, status])
-  @@index([status, createdAt])
 }
 
 enum ReviewStatus {
   PUBLISHED
   HIDDEN
-}
-
-model PageContent {
-  id        String   @id @default(uuid())
-  page      String   @unique
-  sections  Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([page])
-}
-
-model Broadcast {
-  id             String               @id @default(uuid())
-  title          String
-  message        String               @db.Text
-  targetAudience Json
-  priority       NotificationPriority @default(NORMAL)
-  sendEmail      Boolean              @default(false)
-  sentById       String
-  sentBy         User                 @relation(fields: [sentById], references: [id])
-  sentAt         DateTime             @default(now())
-  recipientCount Int                  @default(0)
-  readCount      Int                  @default(0)
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
-
-  @@index([sentById])
-  @@index([sentAt])
-}
-
-model PlatformSettings {
-  id        String   @id @default(uuid())
-  key       String   @unique
-  value     Json
-  category  String   // general, integrations, email, registration, notifications
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([category])
-}
-
-// ============================================================================
-// LIBRARY SYSTEM
-// ============================================================================
-
-model LibraryCategory {
-  id          String            @id @default(uuid())
-  name        String
-  slug        String            @unique
-  description String?           @db.Text
-  icon        String?
-  order       Int               @default(0)
-  parentId    String?
-  parent      LibraryCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
-  children    LibraryCategory[] @relation("CategoryHierarchy")
-  books       Book[]
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-
-  @@index([slug])
-  @@index([parentId])
-  @@index([order])
-}
-
-model Book {
-  id              String            @id @default(uuid())
-  title           String
-  titleArabic     String?
-  author          String?
-  authorArabic    String?
-  description     String?           @db.Text
-  categoryId      String
-  category        LibraryCategory   @relation(fields: [categoryId], references: [id])
-  language        String            @default("ar")
-  coverImage      String?
-  sourceType      BookSourceType    @default(TEXT)
-  sourceUrl       String?
-  isOpenSource    Boolean           @default(true)
-  license         String?
-  allowSelfStudy  Boolean           @default(false)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  chapters        BookChapter[]
-  translations    BookTranslation[]
-  courseBooks     CourseBook[]
-  selfStudyCourse SelfStudyCourse?
-  userProgress    UserBookProgress[]
-
-  @@index([categoryId])
-  @@index([language])
-  @@index([allowSelfStudy])
-}
-
-model BookChapter {
-  id           String            @id @default(uuid())
-  bookId       String
-  book         Book              @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  number       Int
-  title        String
-  titleArabic  String?
-  content      Json
-  order        Int
-  createdAt    DateTime          @default(now())
-  translations BookTranslation[]
-
-  @@unique([bookId, number])
-  @@index([bookId, order])
-}
-
-model BookTranslation {
-  id             String              @id @default(uuid())
-  bookId         String
-  book           Book                @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  chapterId      String?
-  chapter        BookChapter?        @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-  language       String
-  translatorName String?
-  content        Json
-  type           BookTranslationType @default(TRANSLATION)
-  createdAt      DateTime            @default(now())
-
-  @@index([bookId, language])
-  @@index([chapterId])
-}
-
-model CourseBook {
-  id         String   @id @default(uuid())
-  courseId   String
-  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  bookId     String
-  book       Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  isRequired Boolean  @default(true)
-  order      Int      @default(0)
-  addedById  String
-  addedBy    User     @relation(fields: [addedById], references: [id])
-  createdAt  DateTime @default(now())
-
-  @@unique([courseId, bookId])
-  @@index([courseId, order])
-  @@index([bookId])
-}
-
-model SelfStudyCourse {
-  id               String   @id @default(uuid())
-  title            String
-  description      String   @db.Text
-  bookId           String   @unique
-  book             Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  lessonsStructure Json
-  isActive         Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  @@index([isActive])
-}
-
-model UserBookProgress {
-  id                String       @id @default(uuid())
-  userId            String
-  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bookId            String
-  book              Book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  lastChapterId     String?
-  lastReadAt        DateTime     @default(now())
-  completedChapters Int[]
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-
-  @@unique([userId, bookId])
-  @@index([userId])
-  @@index([bookId])
 }
 
 enum BookSourceType {
@@ -930,25 +972,6 @@ enum StreakType {
   HASANAT
 }
 
-model Streak {
-  id             String     @id @default(uuid())
-  userId         String
-  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type           StreakType
-  currentStreak  Int        @default(0)
-  maxStreak      Int        @default(0)
-  lastActiveDate DateTime   @default(now())
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
-
-  @@unique([userId, type])
-  @@index([userId, type])
-}
-
-// ============================================================================
-// HASANAT (virtuous deeds currency)
-// ============================================================================
-
 enum HasanatTransactionType {
   VIEW_LESSON
   HOMEWORK_SUBMITTED
@@ -958,35 +981,4 @@ enum HasanatTransactionType {
   REVIEW_SUBMITTED
   STREAK_7_DAYS
   STREAK_30_DAYS
-}
-
-model LeaderboardEntry {
-  id           String   @id @default(uuid())
-  streamId     String
-  stream       Stream   @relation(fields: [streamId], references: [id], onDelete: Cascade)
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  xp           Int      @default(0)
-  streak       Int      @default(0)
-  weeklyHasanat Int     @default(0)
-  weekStart    DateTime
-  rank         Int?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@unique([streamId, userId, weekStart])
-  @@index([streamId, weekStart, rank])
-  @@index([streamId, weekStart, xp])
-}
-
-model HasanatTransaction {
-  id        String                @id @default(uuid())
-  userId    String
-  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      HasanatTransactionType
-  amount    Int
-  reason    String                @db.Text
-  createdAt DateTime              @default(now())
-
-  @@index([userId, createdAt])
 }

@@ -42,7 +42,7 @@ export default async function VerifyEmailPage({
 
   try {
     const res = await fetch(
-      `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/auth/verify-email?token=${token}`,
+      `${process.env.NEXTAUTH_URL || "http://localhost:3051"}/api/auth/verify-email?token=${token}`,
       { cache: "no-store" }
     );
 

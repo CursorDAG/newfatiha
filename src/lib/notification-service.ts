@@ -281,7 +281,7 @@ export class NotificationService {
 
     // Send email notifications
     try {
-      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3051";
       for (const enrollment of stream.enrollments) {
         if (enrollment.user.email) {
           // Check email preferences
@@ -355,7 +355,7 @@ export class NotificationService {
 
     // Send email notifications
     try {
-      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3051";
       for (const enrollment of stream.enrollments) {
         if (enrollment.user.email) {
           // Check email preferences
@@ -431,7 +431,7 @@ export class NotificationService {
         // Check email preferences
         const shouldSend = await this.shouldSendEmail(user.id, "HOMEWORK_CHECKED");
         if (shouldSend) {
-          const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+          const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3051";
           await EmailService.sendHomeworkChecked(user.email, {
             userName: user.name || "Студент",
             assignmentTitle: submission.assignment.title,
@@ -487,7 +487,7 @@ export class NotificationService {
         // Check email preferences
         const shouldSend = await this.shouldSendEmail(submission.student.id, "QUIZ_CHECKED");
         if (shouldSend) {
-          const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+          const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3051";
           await EmailService.sendQuizChecked(submission.student.email, {
             userName: submission.student.name || "Студент",
             lessonTitle: submission.quiz.lesson.title,
@@ -581,7 +581,7 @@ export class NotificationService {
         // Check email preferences
         const shouldSend = await this.shouldSendEmail(teacherId, "HOMEWORK_SUBMITTED");
         if (shouldSend) {
-          const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+          const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3051";
           await EmailService.sendHomeworkSubmitted(teacher.email, {
             teacherName: teacher.name || "Учитель",
             studentName: submission.enrollment.user.name || "Студент",
@@ -650,7 +650,7 @@ export class NotificationService {
         // Check email preferences
         const shouldSend = await this.shouldSendEmail(teacherId, "QUIZ_SUBMITTED");
         if (shouldSend) {
-          const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+          const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3051";
           await EmailService.sendQuizSubmitted(teacher.email, {
             teacherName: teacher.name || "Учитель",
             studentName: submission.student.name || "Студент",
@@ -717,7 +717,7 @@ export class NotificationService {
         // Check email preferences
         const shouldSend = await this.shouldSendEmail(teacherId, "STUDENT_JOINED");
         if (shouldSend) {
-          const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+          const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3051";
           await EmailService.sendStudentJoined(teacher.email, {
             teacherName: teacher.name || "Учитель",
             studentName: enrollment.user.name || "Студент",

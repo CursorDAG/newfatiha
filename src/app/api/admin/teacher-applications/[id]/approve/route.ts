@@ -71,7 +71,7 @@ export const POST = withErrorHandling(async (
     });
 
     // Send email
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3051";
     await EmailService.sendTeacherApplicationApproved(teacher.email, {
       userName: teacher.name,
       loginUrl: `${baseUrl}/teacher`,

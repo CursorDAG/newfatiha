@@ -11,7 +11,7 @@ import { initEmailSystem } from './src/lib/email/init';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
-const port = parseInt(process.env.PORT || '3000', 10);
+const port = parseInt(process.env.PORT || '3051', 10);
 
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
@@ -31,7 +31,7 @@ app.prepare().then(async () => {
   // Initialize Socket.io
   const io = new Server(server, {
     cors: {
-      origin: dev ? 'http://localhost:3000' : process.env.NEXTAUTH_URL,
+      origin: dev ? 'http://localhost:3051' : process.env.NEXTAUTH_URL,
       methods: ['GET', 'POST'],
       credentials: true,
     },

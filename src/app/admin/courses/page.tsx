@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { BookOpen, Users, TrendingUp, AlertCircle, Download } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 type Course = {
   id: string;
@@ -61,14 +62,14 @@ export default function AdminCoursesPage() {
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="mb-6 sm:mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Управление курсами</h1>
-          <p className="text-slate-600 mt-1 text-sm sm:text-base">Все курсы всех учителей на платформе</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Управление курсами</h1>
+          <p className="text-emerald-200/70 mt-1 text-sm sm:text-base">Все курсы всех учителей на платформе</p>
         </div>
 
         <a
           href="/api/admin/export?type=courses"
           download
-          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C49A2B] text-[#06201A] rounded-lg hover:from-[#E8D48B] hover:to-[#D4AF37] transition-all font-bold text-sm shadow-lg shadow-amber-500/20"
         >
           <Download className="w-4 h-4" />
           Экспорт в CSV
@@ -76,9 +77,9 @@ export default function AdminCoursesPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+      <div className="bg-[#0A2820] rounded-xl shadow-sm border border-emerald-800/30 p-4 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-            <span className="text-sm font-medium text-slate-700 shrink-0">Фильтр:</span>
+            <span className="text-sm font-medium text-emerald-200 shrink-0">Фильтр:</span>
             <div className="flex gap-2 flex-wrap">
               {[
                 { value: "all", label: "Все курсы" },
@@ -90,8 +91,8 @@ export default function AdminCoursesPage() {
                   onClick={() => setFilter(option.value as "all" | "published" | "draft")}
                   className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                     filter === option.value
-                      ? "bg-emerald-100 text-emerald-700"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      ? "bg-gradient-to-r from-[#D4AF37] to-[#C49A2B] text-[#06201A]"
+                      : "bg-emerald-800/30 text-emerald-200 hover:bg-emerald-800/50"
                   }`}
                 >
                   {option.label}
@@ -103,99 +104,106 @@ export default function AdminCoursesPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="bg-[#0A2820] rounded-xl shadow-sm border border-emerald-800/30 p-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">{courses.length}</p>
-                <p className="text-sm text-slate-600">Всего курсов</p>
+                <p className="text-2xl font-bold text-white">{courses.length}</p>
+                <p className="text-sm text-emerald-200/70">Всего курсов</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="bg-[#0A2820] rounded-xl shadow-sm border border-emerald-800/30 p-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-emerald-600" />
+              <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                <Users className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-2xl font-bold text-white">
                   {courses.reduce((sum, c) => sum + c.stats.students, 0)}
                 </p>
-                <p className="text-sm text-slate-600">Всего студентов</p>
+                <p className="text-sm text-emerald-200/70">Всего студентов</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="bg-[#0A2820] rounded-xl shadow-sm border border-emerald-800/30 p-6">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-purple-600" />
+              <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-purple-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-2xl font-bold text-white">
                   {courses.reduce((sum, c) => sum + c.stats.streams, 0)}
                 </p>
-                <p className="text-sm text-slate-600">Активных потоков</p>
+                <p className="text-sm text-emerald-200/70">Активных потоков</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Courses List */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-          <div className="p-6 border-b border-slate-200">
-            <h2 className="text-xl font-bold text-slate-900">
+        <div className="bg-[#0A2820] rounded-xl shadow-sm border border-emerald-800/30">
+          <div className="p-6 border-b border-emerald-800/30">
+            <h2 className="text-xl font-bold text-white">
               Курсы ({filteredCourses.length})
             </h2>
           </div>
 
           {loading ? (
             <div className="p-8 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mb-3"></div>
-              <p className="text-slate-600">Загрузка...</p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#D4AF37] mb-3"></div>
+              <p className="text-emerald-200/70">Загрузка...</p>
             </div>
           ) : error ? (
             <div className="p-8 text-center">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <AlertCircle className="w-6 h-6 text-red-600" />
+              <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <AlertCircle className="w-6 h-6 text-red-400" />
               </div>
-              <p className="text-red-600 font-medium mb-2">Ошибка загрузки</p>
-              <p className="text-slate-600 text-sm mb-4">{error}</p>
+              <p className="text-red-400 font-medium mb-2">Ошибка загрузки</p>
+              <p className="text-emerald-200/70 text-sm mb-4">{error}</p>
               <button
                 onClick={fetchCourses}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C49A2B] text-[#06201A] rounded-lg hover:from-[#E8D48B] hover:to-[#D4AF37] transition-all font-bold text-sm shadow-lg shadow-amber-500/20"
               >
                 Попробовать снова
               </button>
             </div>
           ) : filteredCourses.length === 0 ? (
-            <div className="p-8 text-center">
-              <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-600">Курсов не найдено</p>
-            </div>
+            <EmptyState
+              icon={<BookOpen className="w-16 h-16" />}
+              title="Курсов пока нет"
+              description={
+                filter === "all"
+                  ? "Учителя ещё не создали курсы. Как только появится первый курс, он отобразится здесь."
+                  : filter === "published"
+                  ? "Нет опубликованных курсов. Проверьте раздел черновиков."
+                  : "Нет черновиков курсов."
+              }
+            />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
               {filteredCourses.map((course) => (
                 <div
                   key={course.id}
-                  className="group bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg hover:border-emerald-200 transition-all duration-200"
+                  className="group bg-[#0D3329] rounded-xl border border-emerald-700/30 overflow-hidden hover:shadow-lg hover:shadow-emerald-500/10 hover:border-[#D4AF37]/50 transition-all duration-200"
                 >
                   {/* Превью */}
-                  <div className="h-40 bg-gradient-to-br from-emerald-500 to-teal-600 relative overflow-hidden">
+                  <div className="h-40 bg-gradient-to-br from-emerald-600 to-teal-700 relative overflow-hidden">
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <BookOpen className="w-16 h-16 text-white opacity-50" />
+                      <BookOpen className="w-16 h-16 text-white/30" />
                     </div>
                     {/* Статус бейдж */}
                     <div className="absolute top-3 right-3">
                       {course.published ? (
-                        <span className="px-3 py-1 text-xs font-semibold bg-white/90 text-emerald-700 rounded-full backdrop-blur-sm">
+                        <span className="px-3 py-1 text-xs font-semibold bg-emerald-500/90 text-white rounded-full backdrop-blur-sm">
                           Опубликован
                         </span>
                       ) : (
-                        <span className="px-3 py-1 text-xs font-semibold bg-white/90 text-slate-700 rounded-full backdrop-blur-sm">
+                        <span className="px-3 py-1 text-xs font-semibold bg-slate-500/90 text-white rounded-full backdrop-blur-sm">
                           Черновик
                         </span>
                       )}
@@ -204,46 +212,46 @@ export default function AdminCoursesPage() {
 
                   {/* Контент */}
                   <div className="p-5">
-                    <h3 className="text-lg font-bold text-slate-900 mb-2 line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                    <h3 className="text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-[#D4AF37] transition-colors">
                       {course.title}
                     </h3>
 
                     {course.description && (
-                      <p className="text-sm text-slate-600 mb-3 line-clamp-2">
+                      <p className="text-sm text-emerald-200/70 mb-3 line-clamp-2">
                         {course.description}
                       </p>
                     )}
 
                     {/* Учитель */}
-                    <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-100">
+                    <div className="flex items-center gap-2 mb-4 pb-4 border-b border-emerald-700/30">
                       <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-semibold">
                         {course.teacher.name.charAt(0).toUpperCase()}
                       </div>
-                      <div className="text-sm text-slate-600">{course.teacher.name}</div>
+                      <div className="text-sm text-emerald-200/70">{course.teacher.name}</div>
                     </div>
 
                     {/* Статистика */}
                     <div className="grid grid-cols-3 gap-3 mb-4">
                       <div className="text-center">
-                        <div className="text-xl font-bold text-slate-900">{course.stats.streams}</div>
-                        <div className="text-xs text-slate-500">Потоков</div>
+                        <div className="text-xl font-bold text-white">{course.stats.streams}</div>
+                        <div className="text-xs text-emerald-200/70">Потоков</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xl font-bold text-emerald-600">{course.stats.students}</div>
-                        <div className="text-xs text-slate-500">Студентов</div>
+                        <div className="text-xl font-bold text-[#D4AF37]">{course.stats.students}</div>
+                        <div className="text-xs text-emerald-200/70">Студентов</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xl font-bold text-blue-600">{course.stats.lessons}</div>
-                        <div className="text-xs text-slate-500">Уроков</div>
+                        <div className="text-xl font-bold text-blue-400">{course.stats.lessons}</div>
+                        <div className="text-xs text-emerald-200/70">Уроков</div>
                       </div>
                     </div>
 
                     {/* Действия */}
                     <div className="flex gap-2">
-                      <button className="flex-1 py-2 px-3 text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors">
+                      <button className="flex-1 py-2 px-3 text-sm font-medium text-[#D4AF37] bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 rounded-lg transition-colors border border-[#D4AF37]/30">
                         Редактировать
                       </button>
-                      <button className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                      <button className="p-2 text-emerald-300 hover:bg-emerald-700/30 rounded-lg transition-colors">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                         </svg>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Send, Clock, Users } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 type Broadcast = {
   id: string;
@@ -122,13 +123,13 @@ export default function BroadcastsPage() {
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Массовые рассылки</h1>
-            <p className="text-slate-600 mt-1 text-sm sm:text-base">Отправка уведомлений пользователям платформы</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Массовые рассылки</h1>
+            <p className="text-emerald-200/70 mt-1 text-sm sm:text-base">Отправка уведомлений пользователям платформы</p>
           </div>
 
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors shrink-0"
+            className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-[#06201A] bg-gradient-to-r from-[#D4AF37] to-[#C49A2B] rounded-lg hover:from-[#E8D48B] hover:to-[#D4AF37] transition-all shrink-0 shadow-lg shadow-amber-500/20"
           >
             <Send className="w-4 h-4" />
             Создать рассылку
@@ -137,43 +138,43 @@ export default function BroadcastsPage() {
 
         {/* Form */}
         {showForm && (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-            <h2 className="text-xl font-bold text-slate-900 mb-6">Новая рассылка</h2>
+          <div className="bg-[#0A2820] rounded-xl shadow-sm border border-emerald-800/30 p-6 mb-8">
+            <h2 className="text-xl font-bold text-white mb-6">Новая рассылка</h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Заголовок <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-emerald-200 mb-2">
+                  Заголовок <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="Важное объявление"
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-4 py-2 bg-[#0D3329] border border-emerald-700/50 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-white placeholder-emerald-300/50"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Сообщение <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-emerald-200 mb-2">
+                  Сообщение <span className="text-red-400">*</span>
                 </label>
                 <textarea
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   placeholder="Текст объявления..."
                   rows={5}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  className="w-full px-4 py-2 bg-[#0D3329] border border-emerald-700/50 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-white placeholder-emerald-300/50"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Кому отправить</label>
+                  <label className="block text-sm font-medium text-emerald-200 mb-2">Кому отправить</label>
                   <select
                     value={formData.targetAudience}
                     onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value as TargetAudienceType })}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full px-4 py-2 bg-[#0D3329] border border-emerald-700/50 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-white"
                   >
                     <option value="ALL">Всем пользователям</option>
                     <option value="STUDENTS">Только студентам</option>
@@ -182,11 +183,11 @@ export default function BroadcastsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Приоритет</label>
+                  <label className="block text-sm font-medium text-emerald-200 mb-2">Приоритет</label>
                   <select
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    className="w-full px-4 py-2 bg-[#0D3329] border border-emerald-700/50 rounded-lg focus:ring-2 focus:ring-[#D4AF37] focus:border-[#D4AF37] text-white"
                   >
                     <option value="LOW">Низкий</option>
                     <option value="NORMAL">Обычный</option>
@@ -202,9 +203,9 @@ export default function BroadcastsPage() {
                   id="sendEmail"
                   checked={formData.sendEmail}
                   onChange={(e) => setFormData({ ...formData, sendEmail: e.target.checked })}
-                  className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
+                  className="w-4 h-4 text-[#D4AF37] border-emerald-700/50 rounded focus:ring-[#D4AF37] bg-[#0D3329]"
                 />
-                <label htmlFor="sendEmail" className="text-sm text-slate-700">
+                <label htmlFor="sendEmail" className="text-sm text-emerald-200">
                   Отправить также на email (если настроено)
                 </label>
               </div>
@@ -213,7 +214,7 @@ export default function BroadcastsPage() {
                 <button
                   onClick={sendBroadcast}
                   disabled={sending}
-                  className="flex items-center gap-2 px-6 py-2 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center gap-2 px-6 py-2 text-sm font-bold text-[#06201A] bg-gradient-to-r from-[#D4AF37] to-[#C49A2B] rounded-lg hover:from-[#E8D48B] hover:to-[#D4AF37] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-amber-500/20"
                 >
                   <Send className="w-4 h-4" />
                   {sending ? "Отправка..." : "Отправить"}
@@ -221,7 +222,7 @@ export default function BroadcastsPage() {
 
                 <button
                   onClick={() => setShowForm(false)}
-                  className="px-6 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="px-6 py-2 text-sm font-medium text-emerald-200 bg-emerald-800/30 border border-emerald-700/50 rounded-lg hover:bg-emerald-800/50 transition-colors"
                 >
                   Отменить
                 </button>
@@ -231,35 +232,40 @@ export default function BroadcastsPage() {
         )}
 
         {/* History */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-          <div className="p-6 border-b border-slate-200">
-            <h2 className="text-xl font-bold text-slate-900">История рассылок</h2>
+        <div className="bg-[#0A2820] rounded-xl shadow-sm border border-emerald-800/30">
+          <div className="p-6 border-b border-emerald-800/30">
+            <h2 className="text-xl font-bold text-white">История рассылок</h2>
           </div>
 
           {loading ? (
             <div className="p-8 text-center">
-              <p className="text-slate-600">Загрузка...</p>
+              <p className="text-emerald-200/70">Загрузка...</p>
             </div>
           ) : broadcasts.length === 0 ? (
-            <div className="p-8 text-center">
-              <Send className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-600">Рассылок пока нет</p>
-            </div>
+            <EmptyState
+              icon={<Send className="w-16 h-16" />}
+              title="Рассылок пока нет"
+              description="История массовых рассылок пуста. Создайте первую рассылку, чтобы отправить уведомления пользователям платформы."
+              action={{
+                label: "Создать рассылку",
+                onClick: () => setShowForm(true)
+              }}
+            />
           ) : (
-            <div className="divide-y divide-slate-200">
+            <div className="divide-y divide-emerald-800/30">
               {broadcasts.map((broadcast) => (
-                <div key={broadcast.id} className="p-6 hover:bg-slate-50 transition-colors">
+                <div key={broadcast.id} className="p-6 hover:bg-emerald-900/20 transition-colors">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-slate-900 mb-1">{broadcast.title}</h3>
-                      <p className="text-slate-600 text-sm">{broadcast.message}</p>
+                      <h3 className="text-lg font-bold text-white mb-1">{broadcast.title}</h3>
+                      <p className="text-emerald-200/70 text-sm">{broadcast.message}</p>
                     </div>
                     <span className={`px-3 py-1 text-xs font-medium rounded-full ${getPriorityBadge(broadcast.priority)}`}>
                       {broadcast.priority}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-6 text-sm text-slate-500">
+                  <div className="flex items-center gap-6 text-sm text-emerald-300/70">
                     <div className="flex items-center gap-1.5">
                       <Clock className="w-4 h-4" />
                       {new Date(broadcast.createdAt).toLocaleString("ru-RU")}
@@ -281,7 +287,7 @@ export default function BroadcastsPage() {
         <div className="fixed bottom-4 right-4 z-50">
           <div
             className={`px-6 py-4 rounded-lg shadow-lg ${
-              toast.type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
+              toast.type === "success" ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
             }`}
           >
             {toast.message}

@@ -13,7 +13,7 @@ async function sendLessonReminderExample() {
     userName: "Иван Иванов",
     lessonTitle: "Введение в таджвид",
     streamName: "Группа 1",
-    lessonUrl: "http://localhost:3000/lesson/123",
+    lessonUrl: "http://localhost:3051/lesson/123",
     startTime: "10:00",
   });
 }
@@ -66,7 +66,7 @@ function startScheduledEmailsExample() {
 
 // Example 6: Send all types of emails
 async function sendAllEmailTypesExample() {
-  const baseUrl = "http://localhost:3000";
+  const baseUrl = "http://localhost:3051";
 
   // Student emails
   await EmailService.sendNewLesson("student@example.com", {
